@@ -1,0 +1,25 @@
+
+.main-container {
+  max-width: 1800px !important;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+table, td, th {
+  border: none;
+  padding-left: 1em;
+  padding-right: 1em;
+  margin-top: 1em;
+  margin-bottom: 1em;
+}
+
+/* Whole document: */
+body{
+  font-family: Helvetica;
+  font-size: 13pt;
+}
+
+/* Headers */
+h1, .h1, h2, .h2, h3, .h3 {
+    margin-top: 40px;
+}

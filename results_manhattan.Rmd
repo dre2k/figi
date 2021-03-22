@@ -1,0 +1,104 @@
+```{r include = F}
+manhattan_wrapper <- function(exposure, statistic, filename_suffix = "") {
+  knitr::include_graphics(glue("/media/work/gwis/posthoc/", exposure, "/manhattan_", statistic, "_", exposure, filename_suffix, ".mh.png"))
+}
+
+significant_results_table_wrapper <- function(exposure, statistic, filename_suffix = "") {
+  
+  # get clumped list (only show top hit for each peak)
+  
+  
+  if (statistic == "chiSq2df") {
+    clumped <- fread(glue("/media/work/gwis/clump_combined/FIGI_{hrc_version}_gxeset_{exposure}_{statistic}_nogwas_ldclump.clumped"))
+    x <- readRDS(glue("/media/work/gwis/posthoc/", exposure, "/manhattan_", statistic, "_", exposure, filename_suffix, "_df.rds")) %>% 
+      dplyr::rename(Pval_dg = chiSqG_p, 
+                    Pval_gxe = chiSqGxE_p, 
+                    Pval_2df = chiSq2df_p) %>% 
+      dplyr::mutate(across(starts_with("Pval"), ~ formatC(.x, format = 'e', digits = 4))) %>% 
+      dplyr::arrange(Chromosome, Location) %>%
+      dplyr::filter(SNP %in% clumped$SNP) %>% 
+      dplyr::select(SNP, Subjects, Cases, Pval_dg, Pval_gxe, Pval_2df)
+  } else if (statistic == "chiSq3df") {
+    clumped <- fread(glue("/media/work/gwis/clump_combined/FIGI_{hrc_version}_gxeset_{exposure}_{statistic}_nogwas_ldclump.clumped"))
+    x <- readRDS(glue("/media/work/gwis/posthoc/", exposure, "/manhattan_", statistic, "_", exposure, filename_suffix, "_df.rds")) %>% 
+      dplyr::rename(Pval_dg = chiSqG_p, 
+                    Pval_gxe = chiSqGxE_p,
+                    Pval_eg = chiSqGE_p,
+                    Pval_3df = chiSq3df_p) %>% 
+      dplyr::mutate(across(starts_with("Pval"), ~ formatC(.x, format = 'e', digits = 4))) %>% 
+      dplyr::arrange(Chromosome, Location) %>%
+      dplyr::filter(SNP %in% clumped$SNP) %>% 
+      dplyr::select(SNP, Subjects, Cases, Pval_dg, Pval_gxe, Pval_eg, Pval_3df)
+  } else if (statistic == 'chiSqCase') {
+    clumped <- fread(glue("/media/work/gwis/clump_combined/FIGI_{hrc_version}_gxeset_{exposure}_{statistic}_ldclump.clumped"))
+    x <- readRDS(glue("/media/work/gwis/posthoc/", exposure, "/manhattan_", statistic, "_", exposure, filename_suffix, "_df.rds")) %>% 
+      dplyr::rename(Pval_control = chiSqControl_p, 
+                    Pval_case = chiSqCase_p) %>% 
+      dplyr::mutate(across(starts_with("P"), ~ formatC(.x, format = 'e', digits = 4))) %>% 
+      dplyr::arrange(Chromosome, Location) %>%
+      dplyr::filter(SNP %in% clumped$SNP) %>% 
+      dplyr::select(SNP, Subjects, Cases, Pval_control, Pval_case)
+  } else if (statistic == 'chiSqGE') {
+    clumped <- fread(glue("/media/work/gwis/clump_combined/FIGI_{hrc_version}_gxeset_{exposure}_{statistic}_ldclump.clumped"))
+    x <- readRDS(glue("/media/work/gwis/posthoc/", exposure, "/manhattan_", statistic, "_", exposure, filename_suffix, "_df.rds")) %>% 
+      dplyr::rename(Pval_control = chiSqControl_p, 
+                    Pval_case = chiSqCase_p, 
+                    Pval_ge = chiSqGE_p) %>% 
+      dplyr::mutate(across(starts_with("P"), ~ formatC(.x, format = 'e', digits = 4))) %>% 
+      dplyr::arrange(Chromosome, Location) %>%
+      dplyr::filter(SNP %in% clumped$SNP) %>% 
+      dplyr::select(SNP, Subjects, Cases, Pval_control, Pval_case, Pval_ge)
+  } else {
+    clumped <- fread(glue("/media/work/gwis/clump_combined/FIGI_{hrc_version}_gxeset_{exposure}_{statistic}_ldclump.clumped"))
+    x <- readRDS(glue("/media/work/gwis/posthoc/", exposure, "/manhattan_", statistic, "_", exposure, filename_suffix, "_df.rds")) %>% 
+      dplyr::mutate(across(starts_with("P"), ~ formatC(.x, format = 'e', digits = 4))) %>% 
+      dplyr::arrange(Chromosome, Location) %>%
+      dplyr::filter(SNP %in% clumped$SNP) %>% 
+      dplyr::select(SNP, Subjects, Cases, P)
+  }
+  
+  datatable(x, filter = 'top', options = list(pageLength = 10, autoWidth = T))
+}
+```
+
+### G
+```{r , echo=FALSE, out.width = '100%'}
+manhattan_wrapper(exposure = params$exposure, statistic = 'chiSqG')
+# significant_results_table_wrapper(exposure = params$exposure, statistic = 'chiSqG')
+```
+
+### GxE
+```{r , echo=FALSE, out.width = '100%'}
+manhattan_wrapper(exposure = params$exposure, statistic = 'chiSqGxE')
+significant_results_table_wrapper(exposure = params$exposure, statistic = 'chiSqGxE')
+```
+
+### 2DF
+```{r , echo=FALSE, out.width = '100%'}
+manhattan_wrapper(exposure = params$exposure, statistic = 'chiSq2df')
+# significant_results_table_wrapper(exposure = params$exposure, statistic = 'chiSq2df')
+```
+
+### 3DF
+```{r , echo=FALSE, out.width = '100%'}
+manhattan_wrapper(exposure = params$exposure, statistic = 'chiSq3df')
+# significant_results_table_wrapper(exposure = params$exposure, statistic = 'chiSq3df')
+```
+
+### E|G (all)
+```{r , echo=FALSE, out.width = '100%'}
+manhattan_wrapper(exposure = params$exposure, statistic = 'chiSqGE')
+significant_results_table_wrapper(exposure = params$exposure, statistic = 'chiSqGE')
+```
+
+### E|G (controls)
+```{r , echo=FALSE, out.width = '100%'}
+manhattan_wrapper(exposure = params$exposure, statistic = 'chiSqControl')
+significant_results_table_wrapper(exposure = params$exposure, statistic = 'chiSqControl')
+```
+
+### E|G (case only)
+```{r , echo=FALSE, out.width = '100%'}
+manhattan_wrapper(exposure = params$exposure, statistic = 'chiSqCase')
+significant_results_table_wrapper(exposure = params$exposure, statistic = 'chiSqCase')
+```

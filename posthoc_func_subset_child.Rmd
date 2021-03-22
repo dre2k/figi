@@ -1,0 +1,191 @@
+```{r include = F}
+manhattan_wrapper <- function(exposure, statistic, filename_suffix = "") {
+  knitr::include_graphics(glue("/media/work/gwis/posthoc/", exposure, "/manhattan_", statistic, "_", exposure, filename_suffix, ".png"))
+}
+
+manhattan_sig_wrapper <- function(exposure, statistic, filename_suffix = "") {
+  if (statistic == "chiSq2df") {
+  x <- readRDS(glue("/media/work/gwis/posthoc/", exposure, "/manhattan_", statistic, "_", exposure, filename_suffix, "_df.rds")) %>% 
+    dplyr::rename(Pval_dg = chiSqG_p, 
+                  Pval_gxe = chiSqGxE_p, 
+                  Pval_2df = chiSq2df_p) %>% 
+    dplyr::mutate(across(starts_with("Pval"), ~ formatC(.x, format = 'e', digits = 4))) %>% 
+    dplyr::arrange(Chromosome, Location) %>%
+    dplyr::select(SNP, Subjects, Cases, Pval_dg, Pval_gxe, Pval_2df)
+  } else if (statistic == "chiSq3df") {
+  x <- readRDS(glue("/media/work/gwis/posthoc/", exposure, "/manhattan_", statistic, "_", exposure, filename_suffix, "_df.rds")) %>% 
+    dplyr::rename(Pval_dg = chiSqG_p, 
+                  Pval_gxe = chiSqGxE_p,
+                  Pval_eg = chiSqGE_p,
+                  Pval_3df = chiSq3df_p) %>% 
+    dplyr::mutate(across(starts_with("Pval"), ~ formatC(.x, format = 'e', digits = 4))) %>% 
+    dplyr::arrange(Chromosome, Location) %>%
+    dplyr::select(SNP, Subjects, Cases, Pval_dg, Pval_gxe, Pval_eg, Pval_3df)
+  } else {
+  x <- readRDS(glue("/media/work/gwis/posthoc/", exposure, "/manhattan_", statistic, "_", exposure, filename_suffix, "_df.rds")) %>% 
+    dplyr::mutate(across(starts_with("P"), ~ formatC(.x, format = 'e', digits = 4))) %>% 
+    dplyr::arrange(Chromosome, Location) %>%
+    dplyr::select(SNP, Subjects, Cases, P)
+  }
+
+  datatable(x, filter = 'top', options = list(pageLength = 10, autoWidth = T))
+}
+
+
+twostep_wrapper <- function(exposure, step1_statistic, filename_suffix = "") {
+  knitr::include_graphics(glue("/media/work/gwis/posthoc/", exposure, "/twostep_wht_", step1_statistic, "_", exposure, filename_suffix, ".png"))
+}
+
+twostep_sig_wrapper <- function(exposure, step1_statistic, filename_suffix = "") {
+  
+  x <- readRDS(glue("/media/work/gwis/posthoc/", exposure, "/twostep_wht_", step1_statistic, "_", exposure, filename_suffix, "_df.rds")) %>% 
+    dplyr::rename(Bin = bin_number) %>% 
+    dplyr::mutate(Step1p = formatC(step1p, format = "e", digits = 4),
+           Step2p = formatC(step2p, format = "e", digits = 4)) %>% 
+    dplyr::arrange(Chromosome, Location) %>%
+    dplyr::select(SNP, Subjects, Cases, Bin, Step1p, Step2p)
+  
+  datatable(x, filter = 'top', options = list(pageLength = 10, autoWidth = T))
+}
+
+
+
+
+
+twostep_wrapper_ehs <- function(exposure, step1_statistic, filename_suffix = "") {
+  knitr::include_graphics(glue("/media/work/gwis/posthoc/", exposure, "/twostep_wht_", step1_statistic, "_", exposure, "_expectation_hybrid_functional_subset", filename_suffix, ".png"))
+}
+
+
+significant_results_table_wrapper_ehs <- function(exposure, step1_statistic, filename_suffix = "") {
+  
+  x <- readRDS(glue("/media/work/gwis/posthoc/", exposure, "/twostep_wht_", step1_statistic, "_", exposure, "_expectation_hybrid_functional_subset", filename_suffix, "_df.rds")) %>% 
+    dplyr::rename(Bin = bin_number) %>% 
+    dplyr::mutate(Step1p = formatC(step1p, format = "e", digits = 4),
+                  Step2p = formatC(step2p, format = "e", digits = 4)) %>% 
+    dplyr::arrange(Chromosome, Location) %>%
+    dplyr::select(SNP, Subjects, Cases, Bin, Step1p, Step2p)
+  
+  datatable(x, filter = 'top', options = list(pageLength = 10, autoWidth = T))
+}
+
+
+
+
+
+
+```
+
+
+
+### Manhattan plots {.tabset}
+
+#### D|G
+```{r , echo=FALSE, out.width = '100%'}
+manhattan_wrapper(exposure = params$exposure, statistic = 'chiSqG', filename_suffix = filename_suffix_child)
+```
+
+<!-- #### D|G no gwas -->
+<!-- ```{r , echo=FALSE, out.width = '100%'} -->
+<!-- manhattan_wrapper(exposure = params$exposure, statistic = 'chiSqG', filename_suffix = glue(filename_suffix_child, "_no_gwas")) -->
+<!-- ``` -->
+
+#### GxE
+```{r, echo = F, out.width = '100%'}
+manhattan_wrapper(exposure = params$exposure, statistic = 'chiSqGxE', filename_suffix = filename_suffix_child)
+manhattan_sig_wrapper(exposure = params$exposure, statistic = 'chiSqGxE', filename_suffix = filename_suffix_child)
+```
+
+#### Controls only
+```{r, echo = F, out.width = '100%'}
+manhattan_wrapper(exposure = params$exposure, statistic = 'chiSqControl', filename_suffix = filename_suffix_child)
+manhattan_sig_wrapper(exposure = params$exposure, statistic = 'chiSqControl', filename_suffix = filename_suffix_child)
+```
+
+#### Case-only
+```{r, echo = F, out.width = '100%'}
+manhattan_wrapper(exposure = params$exposure, statistic = 'chiSqCase', filename_suffix = filename_suffix_child)
+manhattan_sig_wrapper(exposure = params$exposure, statistic = 'chiSqCase', filename_suffix = filename_suffix_child)
+```
+
+#### 2df (exclude gwas)
+```{r , echo=FALSE, out.width = '100%'}
+manhattan_wrapper(exposure = params$exposure, statistic = 'chiSq2df', filename_suffix = glue(filename_suffix_child, "_no_gwas"))
+manhattan_sig_wrapper(exposure = params$exposure, statistic = 'chiSq2df', filename_suffix = glue(filename_suffix_child, "_no_gwas"))
+```
+
+<!-- #### 3df (exclude gwas & E|G among controls) -->
+<!-- ```{r , echo=FALSE, out.width = '100%'} -->
+<!-- manhattan_wrapper(exposure = params$exposure, statistic = 'chiSq3df', filename_suffix = glue(filename_suffix_child, "_no_gwas_no_ge")) -->
+<!-- manhattan_sig_wrapper(exposure = params$exposure, statistic = 'chiSq3df', filename_suffix = glue(filename_suffix_child, "_no_gwas_no_ge")) -->
+<!-- ``` -->
+
+#### 3df (exclude gwas)
+```{r , echo=FALSE, out.width = '100%'}
+manhattan_wrapper(exposure = params$exposure, statistic = 'chiSq3df', filename_suffix = glue(filename_suffix_child, "_no_gwas"))
+manhattan_sig_wrapper(exposure = params$exposure, statistic = 'chiSq3df', filename_suffix = glue(filename_suffix_child, "_no_gwas"))
+```
+
+
+### {-}
+
+### Two-step {.tabset}
+
+#### Step1 D|G
+```{r , echo=FALSE, out.width = '100%'}
+twostep_wrapper(exposure = params$exposure, step1_statistic = 'chiSqG', filename_suffix = filename_suffix_child)
+twostep_sig_wrapper(exposure = params$exposure, step1_statistic = 'chiSqG', filename_suffix = filename_suffix_child)
+```
+
+<!-- #### Step1 D|G (no GWAS) -->
+<!-- ```{r , echo=FALSE, out.width = '100%'} -->
+<!-- twostep_wrapper(exposure = params$exposure, step1_statistic = 'chiSqG', filename_suffix = glue(filename_suffix_child, "_no_gwas")) -->
+<!-- twostep_sig_wrapper(exposure = params$exposure, step1_statistic = 'chiSqG', filename_suffix = glue(filename_suffix_child, "_no_gwas")) -->
+<!-- ``` -->
+
+#### Step1 E|G
+```{r , echo=FALSE, out.width = '100%'}
+twostep_wrapper(exposure = params$exposure, step1_statistic = 'chiSqGE', filename_suffix = filename_suffix_child)
+twostep_sig_wrapper(exposure = params$exposure, step1_statistic = 'chiSqGE', filename_suffix = filename_suffix_child)
+```
+
+<!-- #### Step1 E|G (no GWAS) -->
+<!-- ```{r , echo=FALSE, out.width = '100%'} -->
+<!-- twostep_wrapper(exposure = params$exposure, step1_statistic = 'chiSqGE', filename_suffix = glue(filename_suffix_child, "_no_gwas")) -->
+<!-- twostep_sig_wrapper(exposure = params$exposure, step1_statistic = 'chiSqGE', filename_suffix = glue(filename_suffix_child, "_no_gwas")) -->
+<!-- ``` -->
+
+#### Step1 EDGE
+```{r , echo=FALSE, out.width = '100%'}
+twostep_wrapper(exposure = params$exposure, step1_statistic = 'chiSqEDGE', filename_suffix = filename_suffix_child)
+twostep_sig_wrapper(exposure = params$exposure, step1_statistic = 'chiSqEDGE', filename_suffix = filename_suffix_child)
+```
+
+<!-- #### Step1 EDGE (no GWAS) -->
+<!-- ```{r , echo=FALSE, out.width = '100%'} -->
+<!-- twostep_wrapper(exposure = params$exposure, step1_statistic = 'chiSqEDGE', filename_suffix = glue(filename_suffix_child, "_no_gwas")) -->
+<!-- twostep_sig_wrapper(exposure = params$exposure, step1_statistic = 'chiSqEDGE', filename_suffix = glue(filename_suffix_child, "_no_gwas")) -->
+<!-- ``` -->
+
+#### Step1 D|G (EH)
+```{r , echo=FALSE, out.width = '100%'}
+twostep_wrapper_ehs(exposure = params$exposure, step1_statistic = 'chiSqG')
+significant_results_table_wrapper_ehs(exposure = params$exposure, step1_statistic = 'chiSqG')
+```
+
+#### Step1 E|G (EH)
+<!-- NA (empty bins) -->
+
+```{r , echo=FALSE, out.width = '100%'}
+twostep_wrapper_ehs(exposure = params$exposure, step1_statistic = 'chiSqGE')
+significant_results_table_wrapper_ehs(exposure = params$exposure, step1_statistic = 'chiSqGE')
+```
+
+#### Step1 EDGE (EH)
+```{r , echo=FALSE, out.width = '100%'}
+twostep_wrapper_ehs(exposure = params$exposure, step1_statistic = 'chiSqEDGE')
+significant_results_table_wrapper_ehs(exposure = params$exposure, step1_statistic = 'chiSqEDGE')
+```
+
+
+### {-}

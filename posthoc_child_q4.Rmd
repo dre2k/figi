@@ -1,0 +1,125 @@
+---
+title: ""
+output: html_document
+---
+
+<!-- ```{r, include = F, echo = F} -->
+<!-- # snp <- paste0("chr", gsub("\\:", "\\_", snp)) -->
+<!-- outdir <- paste0("/media/work/gwis/posthoc/", exposure, "/") -->
+
+<!-- # to indicate if SNP coding was flipped to reflect risk allele when E = 0 (using interaction models with basic covariates) -->
+<!-- tmp_flipped <- readRDS(paste0(outdir, "lm_g_maineffects.rds")) %>%  -->
+<!--   mutate(coeffs = as.numeric(as.character(coeffs))) %>%  -->
+<!--   filter(coeffs >= 0) -->
+
+<!-- snp_info <- unlist(strsplit(gsub("chr", "", snp), split = "_")) -->
+
+<!-- if(snp %in% tmp_flipped$snps) { -->
+<!--   risk_allele <- snp_info[4] -->
+<!-- } else { -->
+<!--   risk_allele <- snp_info[3] -->
+<!-- } -->
+<!-- ``` -->
+
+
+``` {r}
+if(exposure %in% c("redmeatqc2", "procmeatqc2")) {
+  stratified_or_eval = F
+} else {
+  stratified_or_eval = T
+}
+
+```
+
+
+
+``` {r, results = 'asis'}
+cat(paste0("## ", snp, " {.tabset}"), collapse = '\n')
+```
+
+```{r, results = 'asis'}
+cat(paste0("### LR P-values"), collapse = '\n')
+tmp <- function(x) {
+  ifelse(x <= 5e-6,
+         cell_spec(x, color = "red", bold = T),
+         cell_spec(x, color = "black"))
+}
+
+out <- readRDS(paste0(output_dir, "pvalues_dataframe_", method, "_", snp, "_", exposure, ".rds")) %>%
+  mutate_at(vars(matches('p-value')), tmp)
+
+# out <- readRDS('/media/work/gwis/posthoc/hrt_ref_pm2/pvalues_dataframe_chiSq2df_chr6_117823508_T_C_hrt_ref_pm2.rds')
+
+kable(out, caption = "Likelihood Ratio P-values", escape = F) %>%
+  kable_styling("striped", full_width = F, position = 'left') %>%
+  pack_rows("Sex", 2,3) %>%
+  pack_rows("Study Design", 4,5) %>%
+  pack_rows("Tumor Subsite", 6,8)
+```
+
+
+```{r, results = 'asis'}
+cat(paste0("### Model"), collapse = '\n')
+rawHTML <- paste(readLines(paste0(output_dir, "gxe", "_", method, "_", snp, "_", exposure, "_", "covariate_sets.html")))
+cat(paste(rawHTML, collapse = "\n"), "\n")
+```
+
+
+
+```{r, echo = F, results = 'asis'}
+cat(paste0("### RERI"), collapse = '\n')
+```
+```{r}
+# just read in the file and run flextable
+readRDS(glue("/media/work/gwis/posthoc/{exposure}/reri_{exposure}_{snp}_{glue_collapse(covariates, sep = '_')}.rds"))
+
+```
+
+
+```{r, echo = F, results = 'asis'}
+cat(paste0("### Interaction Plot"), collapse = '\n')
+```
+```{r, out.width = '125%'}
+# just read in the file and run flextable
+knitr::include_graphics(glue("/media/work/gwis/posthoc/{exposure}/interaction_plot_{exposure}_{snp}_{glue_collapse(covariates, sep = '_')}.png"))
+
+```
+
+```{r, echo = F, results = 'asis'}
+cat(paste0("### Locuszoom"), collapse = '\n')
+```
+
+```{r}
+# clean up SNP for function call 
+snp_plot <- gsub("chr", "", snp)
+snp_chr <- strsplit(snp_plot, '_')[[1]][1]
+snp_bp <- as.numeric(strsplit(snp_plot, '_')[[1]][2])
+
+file_helper <- list.files(paste0('/media/work/gwis/functional_annotation_out/', exposure), recursive = T, full.names = T)
+snp_helper <- paste0('chr', snp_chr, "_", snp_bp)
+
+# locuszoom plot
+locuszoom <- file_helper[grepl(paste0(snp_helper, '.png'), file_helper) &  grepl("locuszoom", file_helper) & grepl(method, file_helper)]
+knitr::include_graphics(locuszoom)
+
+```
+
+
+```{r, echo = F, results = 'asis'}
+cat(paste0("### Func Annot"), collapse = '\n')
+```
+```{r}
+file_helper <- list.files(paste0('/media/work/gwis/functional_annotation_out/', exposure), recursive = T, full.names = T)
+snp_helper <- paste0('chr', snp_chr, "_", snp_bp)
+
+# functional annotation plot
+func_anno <- file_helper[grepl(paste0(snp_helper, '.png'), file_helper) & !grepl("locuszoom", file_helper) & grepl(method, file_helper)]
+knitr::include_graphics(func_anno)
+```
+
+
+
+
+
+
+

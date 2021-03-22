@@ -1,0 +1,40 @@
+```{r include = F}
+qq_wrapper <- function(exposure, statistic, filename_suffix = "") {
+  knitr::include_graphics(paste0("/media/work/gwis/posthoc/", exposure, "/qq_", statistic, "_", exposure, filename_suffix, ".png"))
+}
+```
+
+### G
+```{r , echo=FALSE, out.width = '100%'}
+qq_wrapper(exposure = params$exposure, statistic = 'chiSqG')
+```
+
+### GxE
+```{r , echo=FALSE, out.width = '100%'}
+qq_wrapper(exposure = params$exposure, statistic = 'chiSqGxE')
+```
+
+### 2DF
+```{r , echo=FALSE, out.width = '100%'}
+qq_wrapper(exposure = params$exposure, statistic = 'chiSq2df')
+```
+
+### 3DF
+```{r , echo=FALSE, out.width = '100%'}
+qq_wrapper(exposure = params$exposure, statistic = 'chiSq3df')
+```
+
+### E|G (all)
+```{r , echo=FALSE, out.width = '100%'}
+qq_wrapper(exposure = params$exposure, statistic = 'chiSqGE')
+```
+
+### E|G (controls)
+```{r , echo=FALSE, out.width = '100%'}
+qq_wrapper(exposure = params$exposure, statistic = 'chiSqControl')
+```
+
+### E|G (case only)
+```{r , echo=FALSE, out.width = '100%'}
+qq_wrapper(exposure = params$exposure, statistic = 'chiSqCase')
+```

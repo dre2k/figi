@@ -1,0 +1,262 @@
+---
+title: "FIGI GWIS results post-hoc analyses"
+date: '`r paste("Updated on", Sys.Date())`'
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    toc_depth: 2
+    theme: "united"
+params:
+  exposure: "alcoholc_moderate"
+  covariates: !r c("age_ref_imp", "study_gxe", "pc1", "pc2", "pc3")
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = F, message = F, warning = F, error = F)
+```
+
+<style type="text/css">
+.main-container {
+  max-width: 1800px !important;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+table, td, th {
+  border: none;
+  padding-left: 1em;
+  padding-right: 1em;
+  margin-top: 1em;
+  margin-bottom: 1em;
+}
+
+/* Whole document: */
+body{
+  font-family: Helvetica;
+  font-size: 14pt;
+}
+/* Headers */
+/* h1,h2,h3,h4,h5,h6{ */
+/*  font-size: 24pt; */
+}
+
+</style>
+
+```{r package_setup, include = F}
+# load packages and define wrapper functions
+library(tidyverse)
+library(data.table)
+library(forcats)
+library(ggplot2)
+library(qqman)
+library(rlang)
+library(figifs)
+library(DT)
+library(grid)
+library(stargazer)
+library(kableExtra)
+
+# wrapper function to add results summary table
+significant_results_table_wrapper <- function(exposure) {
+  af <- readRDS(paste0("/media/work/tmp/posthoc/", params$exposure, "/allelefreq_", params$exposure, ".rds"))
+  x <- readRDS(paste0("/media/work/tmp/posthoc/gwis_sig_results_input_", params$exposure, ".rds")) %>% 
+    dplyr::select(-Reference, -Alternate) %>% 
+    mutate(SNP = paste0("chr", SNP),
+           SNP = gsub('\\:', '_', SNP)) %>% 
+    dplyr::inner_join(., af, by = 'SNP')
+
+  datatable(x, options = list(pageLength = 10))
+}
+
+```
+
+--- 
+
+# FIGI GWIS significant/suggestive results
+
+## Description
+- Table of significant and suggestive (1df GxE only) ``r params$exposure`` GWIS findings    
+<!-- - Plots of predicted logodds stratified by exposure and genotype () -->
+<!--   - *outcome ~ snp_dose:exposure + covariates*   -->
+<!--   - assumes mean values for adjustment covariates    -->
+- Odds ratios stratified by exposure and genotype  
+  - *outcome ~ exposure + snp_p1 + snp_p2 + exposure:snp_p1 + exposure:snp_p2 + covariates*
+- Locuszoom plots (in progress)  
+- Functional annotation plots (in progress)  
+
+# Results
+
+## Summary table of significant results
+```{r echo = F, message = F, warning = F}
+significant_results_table_wrapper(params$exposure)
+```
+
+
+## Plots and tables of log odds
+### Adjustment covariates: ``r params$covariates``
+
+<br>
+
+```{r results = 'asis'}
+# cat("\n\n### ", "chr18_10396692_A_G", "\n\n", sep="")
+# cat('![](', paste0("/media/work/tmp/posthoc/hrt_ref_pm2/", "effects_plot_hrt_ref_pm2_chr18_10396692_A_G_", paste0(sort(params$covariates), collapse = "_"), "_e.png"), '){width=500px}', sep = '')
+# cat('![](', paste0("/media/work/tmp/posthoc/hrt_ref_pm2/", "effects_plot_hrt_ref_pm2_chr18_10396692_A_G_", paste0(sort(params$covariates), collapse = "_"), "_g.png"), '){width=500px}', sep = '')
+
+# x <- readRDS("/media/work/tmp/posthoc/hrt_ref_pm2/effects_df_hrt_ref_pm2_chr6_163781420_C_G_age_ref_imp_pc1_pc2_pc3_study_gxe.rds") %>%
+#   remove_rownames %>%
+#   mutate(OR = paste0(round(as.numeric(OR), 2), " (", round(as.numeric(Lower), 2), "-", round(as.numeric(Upper), 2), ")")) %>%
+#   dplyr::select(-Lower, -Upper)
+# 
+# kable(x) %>%
+#   kable_styling(bootstrap_options = c("striped", "hover", "condensed"))
+
+
+# ok let's try looping it
+dat <- readRDS(paste0("/media/work/tmp/posthoc/gwis_sig_results_input_", params$exposure, ".rds")) %>%
+  arrange(Chromosome, Location) %>%
+  mutate(snp_list = paste0("chr", SNP),
+         snp_list = gsub('\\:', '_', snp_list))
+snp_list <- dat[,'snp_list']
+
+for(snp in snp_list) {
+  # 
+  # plots
+  cat("\n\n### ", snp, "\n\n", sep="")
+  # cat('![](', paste0("/media/work/tmp/posthoc/", params$exposure, "/effects_plot_", params$exposure, "_", snp, "_",  paste0(sort(params$covariates), collapse = "_"), "_e.png"), '){width=600px}', sep = '')
+  # cat('![](', paste0("/media/work/tmp/posthoc/", params$exposure, "/effects_plot_", params$exposure, "_", snp, "_",  paste0(sort(params$covariates), collapse = "_"), "_g.png"), '){width=600px}', sep = '')
+
+  # odds ratio table (old, based on ratio of logodds)
+  # x <- readRDS(paste0("/media/work/tmp/posthoc/", params$exposure, "/effects_df_", params$exposure, "_", snp, "_",  paste0(sort(params$covariates), collapse = "_"), ".rds")) %>%
+  # remove_rownames %>%
+  # mutate(OR = paste0(round(as.numeric(OR), 2), " (", round(as.numeric(Lower), 2), "-", round(as.numeric(Upper), 2), ")")) %>%
+  # dplyr::select(-Lower, -Upper)
+
+  # odds ratio tables from Yi code
+  x <- readRDS(paste0("/media/work/tmp/posthoc/", params$exposure, "/stratified_or_dataframe_", params$exposure, "_", snp, "_",  paste0(sort(params$covariates), collapse = "_"), ".rds"))
+  x <- x[c(1,3,5),]
+  colnames(x) <- c("G=0", "G=1", "G=2", "G=1", "G=2", "N0", "N1", "N2")
+  rownames(x) <- c("E=0", "E=1", "Strata by G")
+  
+  options(knitr.kable.NA = NA)
+  
+  print(kable(x) %>%
+    kable_styling(bootstrap_options = c("striped", "hover", "condensed")) %>% 
+      add_header_above(c(" " = 4, "Strata by E" = 2, "Counts (Ca/Co)" = 3)))
+
+}
+
+
+
+
+# x <- readRDS("/media/work/tmp/posthoc/hrt_ref_pm2/effects_df_hrt_ref_pm2_chr6_163781420_C_G_age_ref_imp_pc1_pc2_pc3_study_gxe.rds") %>%
+#   remove_rownames %>%
+#   mutate(OR = paste0(round(as.numeric(OR), 2), " (", round(as.numeric(Lower), 2), "-", round(as.numeric(Upper), 2), ")")) %>%
+#   dplyr::select(-Lower, -Upper)
+# 
+# kable(x) %>%
+#   kable_styling(bootstrap_options = c("striped", "hover", "condensed"))
+
+
+
+
+# plot_files <- list.files(path = "/media/work/tmp/posthoc/hrt_ref_pm2/",
+#                          pattern = ".*.png$",
+#                          full.names = F)[1:3]
+# 
+# # you have exposure and covariates
+# for(filename in plot_files) {
+#   cat("\n\n### ", "chr18_10396692_A_G", "\n\n", sep="")
+# cat('![](', paste0("/media/work/tmp/posthoc/hrt_ref_pm2/", "effects_plot_hrt_ref_pm2_chr18_10396692_A_G_age_ref_imp_pc1_pc2_pc3_study_gxe_e.png"), '){width=500px}', sep = '') 
+# cat('![](', paste0("/media/work/tmp/posthoc/hrt_ref_pm2/", "effects_plot_hrt_ref_pm2_chr18_10396692_A_G_age_ref_imp_pc1_pc2_pc3_study_gxe_g.png"), '){width=500px}', sep = '')
+# }
+
+
+
+
+
+
+
+
+# cat('![](', paste0("/media/work/tmp/posthoc/hrt_ref_pm2/", "effects_plot_hrt_ref_pm2_chr18_10396692_A_G_age_ref_imp_pc1_pc2_pc3_study_gxe_e.png"), '){width=500px}\n\n', sep = '') 
+# cat('![](', paste0("/media/work/tmp/posthoc/hrt_ref_pm2/", "effects_plot_hrt_ref_pm2_chr18_10396692_A_G_age_ref_imp_pc1_pc2_pc3_study_gxe_g.png"), '){width=500px}\n\n', sep = '')
+
+
+# plot_files <- list.files(paste0("/media/work/tmp/posthoc/hrt_ref_pm2/"))
+# i <- 1
+# cat("\n\n##", substr(plot_files[i], 1, 3), "\n\n", sep="")
+# cat('![](', paste0("/media/work/tmp/posthoc/hrt_ref_pm2/", "effects_plot_hrt_ref_pm2_chr18_10396692_A_G_age_ref_imp_pc1_pc2_pc3_study_gxe_e.png"), '){width=900px}\n\n', sep = '')
+
+```
+
+
+
+<!-- ```{r out.width = "50%", echo=FALSE} -->
+<!-- files <- list.files(path = "/media/work/tmp/posthoc/hrt_ref_pm2/",  -->
+<!--                     pattern = ".*.png$", -->
+<!--                     full.names = TRUE) -->
+<!-- # files -->
+<!-- knitr::include_graphics(files) -->
+<!-- ``` -->
+
+<!-- paste0("![](", "/media/work/tmp/posthoc/", exposure, "/effects_plot_", exposure, "_", i, paste0(covariates, collapse = "_"), "_e.png")) -->
+
+
+<!-- ```{r, echo=FALSE, results="asis"} -->
+
+<!-- # vector of SNPs -->
+<!-- dat <- readRDS(paste0("/media/work/tmp/posthoc/gwis_sig_results_input_", params$exposure, ".rds")) %>% -->
+<!--   arrange(Chromosome, Location) %>% -->
+<!--   mutate(snp_list = paste0("chr", SNP), -->
+<!--          snp_list = gsub('\\:', '_', snp_list)) -->
+<!-- snp_list <- dat[,'snp_list'] -->
+
+
+<!-- for(i in snp_list[1:3]) { -->
+<!--   cat(paste0("  \n### ", i, "\n")) -->
+<!--   # knitr::include_graphics(paste0("/media/work/tmp/posthoc/", params$exposure, "/effects_plot_", params$exposure, "_", 'chr2_44319250_A_T', paste0(params$covariates, collapse = "_"), "_e.png")) -->
+<!--   knitr::include_graphics(paste0("hrt_ref_pm2/effects_plot_hrt_ref_pm2_chr2_44319250_A_T_age_ref_imp_pc1_pc2_pc3_study_gxe_e.png")) -->
+
+<!--   print("this is a test") -->
+<!--   cat("  \n") -->
+<!-- } -->
+
+
+<!-- # hrt_ref_pm2/effects_plot_hrt_ref_pm2_chr2_44319250_A_T_age_ref_imp_pc1_pc2_pc3_study_gxe_e.png -->
+
+
+<!-- ``` -->
+
+
+<!-- ## All plots and tables -->
+<!-- ```{r echo = F, message = F, warning = F} -->
+<!-- x <- readRDS("/media/work/tmp/posthoc/hrt_ref_pm2/effects_df_hrt_ref_pm2_chr12_111369401_T_G_age_ref_imp_pc1_pc2_pc3_study_gxe.rds") -->
+<!-- datatable(x, options = list(pageLength = 25)) -->
+
+<!-- # manhattan_wrapper <- function(exposure, statistic, filename_suffix = "") { -->
+<!-- #   knitr::include_graphics(paste0("/home/rak/Dropbox/FIGI/Results/", exposure, "/plots/manhattan_", statistic, "_", exposure, filename_suffix, ".mh.png")) -->
+<!-- # } -->
+
+<!-- knitr::include_graphics(paste0("/media/work/tmp/posthoc/hrt_ref_pm2/effects_plot_hrt_ref_pm2_chr12_111369401_T_G_age_ref_imp_pc1_pc2_pc3_study_gxe_e.png")) -->
+
+<!-- ``` -->
+
+<!-- ## GxE {.tabset} -->
+<!-- ```{r child = 'results_report_child_meta_analysis.Rmd'} -->
+<!-- ``` -->
+
+<!-- ## 2DF {.tabset} -->
+<!-- ```{r child = 'results_report_child_meta_analysis.Rmd'} -->
+<!-- ``` -->
+
+
+<!-- ## 3DF {.tabset} -->
+<!-- ```{r child = 'results_report_child_meta_analysis.Rmd'} -->
+<!-- ``` -->
+
+
+<!-- ## Two-step methods {.tabset} -->
+<!-- ```{r child = 'results_report_child_meta_analysis.Rmd'} -->
+<!-- ``` -->
+
+

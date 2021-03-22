@@ -1,0 +1,184 @@
+---
+title: "Posthoc analyses - `r params$exposure`"
+date: '`r paste("Updated on", Sys.Date())`'
+output: 
+  html_document:
+    css: posthoc_report.css
+    toc: true
+    toc_float:
+      collapsed: true
+      smooth_scroll: false
+    toc_depth: 3
+    theme: "paper"
+params:
+  exposure: "procmeatqc2"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = F, message = F, warning = F, error = F)
+library(tidyverse)
+library(data.table)
+library(forcats)
+library(ggplot2)
+library(qqman)
+library(rlang)
+library(figifs)
+library(DT)
+library(grid)
+library(stargazer)
+library(kableExtra)
+library(formattable)
+library(flextable)
+library(glue)
+
+output_dir <- glue("/media/work/gwis/posthoc/{params$exposure}/")
+
+covariates_set1 <- c("age_ref_imp", "sex", "energytot_imp", "pc1", "pc2", "pc3", "study_gxe")
+# covariates_set2 <- c(covariates_set1, "smk_ever", "bmi", "famhx1")
+covariates_list = list(covariates_set1) 
+```
+
+# Description
+
+## GWIS results followup
+- Table of significant and suggestive (1df GxE only) ```r params$exposure``` GWIS findings  
+- Interaction model output  
+- Interaction model output (additive scale)  
+- Interaction plot  
+  - Predicted log odds for combinations of  `r params$exposure` and SNP dosage values  
+- Locuszoom plot
+  - based on statistic that identified the finding (e.g. gxe, 2df, 3df, etc)  
+  - for two-step methods, plot step 2 GxE statistic  
+- Functional annotation plot (Cohen 2017)  
+
+## Covariates Sets
+- Set1: age_ref_imp, sex, study_gxe, pc1, pc2, pc3  
+
+## Note about 2df/3df manhattan plots
+For 2df/3df manhattan plots, I attempted to remove known GWAS hits to better visualize potentially novel markers. This can be problematic sometimes because LD calculation is baesd on 1000G population, and sometimes markers can still remain that are clearly within known GWAS regions. Therefore, I included locuszoom plots for all 2df/3df peaks (AFTER REMOVING KNOWN GWAS LOCI) to illustrate that many of the peaks identified by these methods still correspond to previously known GWAS hits (Huygue 2019). Please contact me if you have any questions. 
+
+
+------
+
+<!-- # 2DF/3DF check -->
+
+<!-- Comments - joint methods often identify regions with strong D|G association. To visualize potentially novel findings, I generated plots after removing KNOWN GWAS LOCI regions (N = 140 SNPs + SNPs in LD @ R^2 > 0.2, based on 1000 genomes reference panel). However, removing SNPs based on LD calculated in a different panel sometimes leaves some SNPs behind, so I generated locuszoom plots of those hits specifically to check whether they are in fact found in known GWAS regions. Only plotting the TOP SNP for each region (based on LD).    -->
+
+
+<!-- ```{r} -->
+<!-- child_env <- new.env() -->
+<!-- assign("exposure", params$exposure, child_env) -->
+<!-- assign("method", "chiSqG", child_env) # need to use this stat since I'm verifying main effects -->
+<!-- assign("covariates", sort(covariates_set1), child_env) -->
+<!-- ``` -->
+
+<!-- ```{r} -->
+<!-- x <- readRDS(glue("{output_dir}gwis_sig_results_input_", child_env$exposure, ".rds")) %>% -->
+<!--   dplyr::mutate(SNP = paste0("chr", gsub("\\:", "_", SNP)), -->
+<!--                 AAF = round(GxESet_AltAlleleFreq, 3), -->
+<!--                 Rsq = round(GxESet_Rsq, 3)) %>% -->
+<!--   # filter(grepl(child_env$method, method)) %>% -->
+<!--   dplyr::rename(Chr = Chromosome, -->
+<!--                 BP = Location) %>% -->
+<!--   arrange(Chr, BP) %>% -->
+<!--   dplyr::select(SNP, Chr, BP, Pval, AAF, Rsq) -->
+
+<!-- kable(x, caption = "Significant GxE SNPs", escape = F) %>% -->
+<!--   kable_styling("striped", full_width = F, position = 'center') -->
+<!-- ``` -->
+
+
+<!-- ```{r, results = 'asis'} -->
+<!-- snps_out <- readRDS(glue(output_dir, "manhattan_chiSq2df_{params$exposure}_no_gwas_clump_df.rds")) %>%  -->
+<!--   arrange(Chromosome, Location) %>%  -->
+<!--   dplyr::mutate(snps = paste0('chr', gsub("\\:", "\\_", SNP))) %>%  -->
+<!--   pull(snps) -->
+
+<!-- res <- lapply(snps_out, function(snp) { -->
+<!--   assign("snp", snp, child_env) -->
+<!--   knitr::knit_child( -->
+<!--     glue('../posthoc/posthoc_child_locuszoom_only.Rmd'), envir = child_env, quiet = TRUE) -->
+<!--   } -->
+<!-- ) -->
+
+<!-- cat(unlist(res), sep = '\n') -->
+<!-- ``` -->
+
+
+# GxE 1df
+
+```{r}
+child_env <- new.env()
+assign("exposure", params$exposure, child_env)
+assign("method", "chiSqGxE", child_env)
+assign("covariates", sort(covariates_set1), child_env)
+```
+
+```{r, results = 'asis'}
+snps_out <- readRDS(glue(output_dir, "manhattan_chiSqGxE_{params$exposure}_clump_df.rds")) %>%
+  arrange(Chromosome, Location) %>%
+  dplyr::mutate(snps = paste0('chr', gsub("\\:", "\\_", SNP))) %>%
+  pull(snps)
+
+res <- lapply(snps_out, function(snp) {
+  assign("snp", snp, child_env)
+  knitr::knit_child(
+    glue('posthoc_child.Rmd'), envir = child_env, quiet = TRUE)
+  }
+)
+cat(unlist(res), sep = '\n')
+```
+
+
+
+# 2df (locuszoom)
+
+```{r}
+child_env <- new.env()
+assign("exposure", params$exposure, child_env)
+assign("method", "chiSq2df", child_env)
+assign("covariates", sort(covariates_set1), child_env)
+```
+
+```{r, results = 'asis'}
+snps_out <- readRDS(glue(output_dir, "manhattan_chiSq2df_{params$exposure}_no_gwas_clump_df.rds")) %>%
+  arrange(Chromosome, Location) %>%
+  dplyr::mutate(snps = paste0('chr', gsub("\\:", "\\_", SNP))) %>%
+  pull(snps)
+
+res <- lapply(snps_out, function(snp) {
+  assign("snp", snp, child_env)
+  knitr::knit_child(
+    glue('posthoc_child_locuszoom_only.Rmd'), envir = child_env, quiet = TRUE)
+  }
+)
+cat(unlist(res), sep = '\n')
+```
+
+
+
+# 3df (locuszoom)
+
+```{r}
+child_env <- new.env()
+assign("exposure", params$exposure, child_env)
+assign("method", "chiSq3df", child_env)
+assign("covariates", sort(covariates_set1), child_env)
+```
+
+```{r, results = 'asis'}
+snps_out <- readRDS(glue(output_dir, "manhattan_chiSq3df_{params$exposure}_no_gwas_clump_df.rds")) %>%
+  arrange(Chromosome, Location) %>%
+  dplyr::mutate(snps = paste0('chr', gsub("\\:", "\\_", SNP))) %>%
+  pull(snps)
+
+res <- lapply(snps_out, function(snp) {
+  assign("snp", snp, child_env)
+  knitr::knit_child(
+    glue('posthoc_child_locuszoom_only.Rmd'), envir = child_env, quiet = TRUE)
+  }
+)
+cat(unlist(res), sep = '\n')
+```
+
+

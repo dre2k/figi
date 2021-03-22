@@ -1,0 +1,185 @@
+---
+title: "FIGI GWIS Results"
+date: '`r paste("Updated on", Sys.Date())`'
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    toc_depth: 2
+    theme: "united"
+params:
+  exposure: ""
+  hrc_version: "v2.3"
+  covariates: !r c("age_ref_imp", "sex")
+---
+
+
+
+<!-- Analysis updates -->
+<!-- don't get confused, just a bunch of flags because some updates are exposure specific -->
+
+```{r echo = F, include = F}
+# whether to execute chunks based on categorical/binary vs continuous
+do_next_chunk <- params$is_exposure_categorical
+folate_totqc2 <- params$exposure == "folate_totqc2"
+folate_dietqc2 <- params$exposure == "folate_dietqc2"
+alcoholc_moderate <- params$exposure == "alcoholc_moderate"
+diab <- params$exposure == "diab"
+```
+
+<!-- ```{python, echo=FALSE, results='asis', eval=folate_totqc2} -->
+<!-- print(""" -->
+<!-- - 2020/2/5   -->
+<!--   - added main effects (meta-analysis and pooled analysis) adjusted by bmi+alcoholc+famhx1+smoke   -->
+<!--   - added meta-analyses stratified by alcohol status   -->
+<!-- """) -->
+<!-- ``` -->
+
+<!-- #===============================# -->
+<!-- folate_totqc2 -->
+<!-- #===============================# -->
+```{r, echo=FALSE, results="asis", eval=folate_totqc2}
+cat(paste0("### Additional covariates - smoking (ever/never), bmi, and family history (0/1)  {.tabset}", collapse = '\n'))
+```
+
+```{r, echo=FALSE, results="asis", eval=folate_totqc2}
+cat(paste0("#### Meta-analysis", collapse = '\n'))
+```
+
+```{r  out.width="49%", echo = F, message = F, warning = F, cache = F, eval=folate_totqc2}
+knitr::include_graphics(paste0("/media/work/tmp/results_report/meta_analysis_", params$exposure, "_age_ref_imp_sex_study_gxe_pc1_pc2_pc3_bmi_famhx1_smk_ever.png"))
+knitr::include_graphics(paste0("/media/work/tmp/results_report/funnel_plot_", params$exposure, "_age_ref_imp_sex_study_gxe_pc1_pc2_pc3_bmi_famhx1_smk_ever.png"))
+```
+
+```{r, echo=FALSE, results="asis", eval=folate_totqc2}
+cat(paste0("#### Pooled analysis - sex", collapse = '\n'))
+```
+
+```{r, results = 'asis', echo = F, quote = F, message = F, eval=folate_totqc2}
+rawHTML <- paste(readLines(paste0("/media/work/tmp/results_report/pooled_analysis_sex_", params$exposure, "_age_ref_imp_sex_study_gxe_pc1_pc2_pc3_bmi_famhx1_smk_ever.html")))
+cat(paste(rawHTML, collapse = "\n"), "\n")
+```
+
+```{r, echo=FALSE, results="asis", eval=folate_totqc2}
+cat(paste0("#### Pooled analysis - tumor site", collapse = '\n'))
+```
+
+```{r, results = 'asis', echo = F, quote = F, message = F, eval=folate_totqc2}
+rawHTML <- paste(readLines(paste0("/media/work/tmp/results_report/pooled_analysis_tumorsite_", params$exposure, "_age_ref_imp_sex_study_gxe_pc1_pc2_pc3_bmi_famhx1_smk_ever.html")))
+cat(paste(rawHTML, collapse = "\n"), "\n")
+```
+
+```{r, echo=FALSE, results="asis", eval=folate_totqc2}
+cat(paste0("#### Pooled analysis - study design", collapse = '\n'))
+```
+
+```{r, results = 'asis', echo = F, quote = F, message = F, eval=folate_totqc2}
+rawHTML <- paste(readLines(paste0("/media/work/tmp/results_report/pooled_analysis_studydesign_", params$exposure, "_age_ref_imp_sex_study_gxe_pc1_pc2_pc3_bmi_famhx1_smk_ever.html")))
+cat(paste(rawHTML, collapse = "\n"), "\n")
+```
+
+
+
+
+<!-- #===============================# -->
+<!-- folate_dietqc2 -->
+<!-- #===============================# -->
+
+```{r, echo=FALSE, results="asis", eval=folate_dietqc2}
+cat(paste0("### Additional covariates - smoking (ever/never), bmi, and family history (0/1)  {.tabset}", collapse = '\n'))
+```
+
+```{r, echo=FALSE, results="asis", eval=folate_dietqc2}
+cat(paste0("#### Meta-analysis", collapse = '\n'))
+```
+
+```{r  out.width="49%", echo = F, message = F, warning = F, cache = F, eval=folate_dietqc2}
+knitr::include_graphics(paste0("/media/work/tmp/results_report/meta_analysis_", params$exposure, "_age_ref_imp_sex_study_gxe_pc1_pc2_pc3_bmi_famhx1_smk_ever.png"))
+knitr::include_graphics(paste0("/media/work/tmp/results_report/funnel_plot_", params$exposure, "_age_ref_imp_sex_study_gxe_pc1_pc2_pc3_bmi_famhx1_smk_ever.png"))
+```
+
+```{r, echo=FALSE, results="asis", eval=folate_dietqc2}
+cat(paste0("#### Pooled analysis - sex", collapse = '\n'))
+```
+
+```{r, results = 'asis', echo = F, quote = F, message = F, eval=folate_dietqc2}
+rawHTML <- paste(readLines(paste0("/media/work/tmp/results_report/pooled_analysis_sex_", params$exposure, "_age_ref_imp_sex_study_gxe_pc1_pc2_pc3_bmi_famhx1_smk_ever.html")))
+cat(paste(rawHTML, collapse = "\n"), "\n")
+```
+
+```{r, echo=FALSE, results="asis", eval=folate_dietqc2}
+cat(paste0("#### Pooled analysis - tumor site", collapse = '\n'))
+```
+
+```{r, results = 'asis', echo = F, quote = F, message = F, eval=folate_dietqc2}
+rawHTML <- paste(readLines(paste0("/media/work/tmp/results_report/pooled_analysis_tumorsite_", params$exposure, "_age_ref_imp_sex_study_gxe_pc1_pc2_pc3_bmi_famhx1_smk_ever.html")))
+cat(paste(rawHTML, collapse = "\n"), "\n")
+```
+
+```{r, echo=FALSE, results="asis", eval=folate_dietqc2}
+cat(paste0("#### Pooled analysis - study design", collapse = '\n'))
+```
+
+```{r, results = 'asis', echo = F, quote = F, message = F, eval=folate_dietqc2}
+rawHTML <- paste(readLines(paste0("/media/work/tmp/results_report/pooled_analysis_studydesign_", params$exposure, "_age_ref_imp_sex_study_gxe_pc1_pc2_pc3_bmi_famhx1_smk_ever.html")))
+cat(paste(rawHTML, collapse = "\n"), "\n")
+```
+
+
+
+<!-- #===============================# -->
+<!-- diab -->
+<!-- additional covariates (bmi) for main effects meta and pooled analyses -->
+<!-- #===============================# -->
+
+```{r, include = F}
+create_suffix <- function(covar, strata = '') {
+  if(strata == '') {
+    paste0(paste0(covar, collapse = '_'), strata, ".png")
+  } else {
+    paste0(paste0(covar, collapse = '_'), "_", strata, ".png")
+  }
+}
+
+covariates_bmi <- sort(c(params$covariates, 'bmi'))
+```
+
+```{r, echo=FALSE, results="asis", eval=diab}
+cat(paste0("### BMI adjustment {.tabset}", collapse = '\n'))
+cat(paste0("#### Meta-analysis", collapse = '\n'))
+```
+
+```{r  out.width="49%", echo = F, message = F, warning = F, cache = F, eval=diab}
+all <- create_suffix(covariates_bmi)
+
+knitr::include_graphics(paste0(output_dir, "meta_analysis_", params$exposure, "_", all))
+knitr::include_graphics(paste0(output_dir, "funnel_plot_", params$exposure, "_", all))
+```
+
+```{r, echo=FALSE, results="asis", eval=diab}
+cat(paste0("#### Pooled analysis - sex", collapse = '\n'))
+```
+
+```{r, results = 'asis', echo = F, quote = F, message = F, eval=diab}
+rawHTML <- paste(readLines(paste0("/media/work/tmp/results_report/pooled_analysis_sex_", params$exposure, "_age_ref_imp_sex_study_gxe_pc1_pc2_pc3_bmi.html")))
+cat(paste(rawHTML, collapse = "\n"), "\n")
+```
+
+```{r, echo=FALSE, results="asis", eval=diab}
+cat(paste0("#### Pooled analysis - tumor site", collapse = '\n'))
+```
+
+```{r, results = 'asis', echo = F, quote = F, message = F, eval=diab}
+rawHTML <- paste(readLines(paste0("/media/work/tmp/results_report/pooled_analysis_tumorsite_", params$exposure, "_age_ref_imp_sex_study_gxe_pc1_pc2_pc3_bmi.html")))
+cat(paste(rawHTML, collapse = "\n"), "\n")
+```
+
+```{r, echo=FALSE, results="asis", eval=diab}
+cat(paste0("#### Pooled analysis - study design", collapse = '\n'))
+```
+
+```{r, results = 'asis', echo = F, quote = F, message = F, eval=diab}
+rawHTML <- paste(readLines(paste0("/media/work/tmp/results_report/pooled_analysis_studydesign_", params$exposure, "_age_ref_imp_sex_study_gxe_pc1_pc2_pc3_bmi.html")))
+cat(paste(rawHTML, collapse = "\n"), "\n")
+```
+

@@ -1,0 +1,29 @@
+---
+title: ""
+output: html_document
+---
+
+``` {r, results = 'asis'}
+cat(paste0("## ", snp, " {.tabset}"), collapse = '\n')
+```
+
+
+```{r, echo = F, results = 'asis'}
+cat(paste0("### Locuszoom"), collapse = '\n')
+```
+
+
+```{r}
+# clean up SNP for function call 
+snp_plot <- gsub("chr", "", snp)
+snp_chr <- strsplit(snp_plot, '_')[[1]][1]
+snp_bp <- as.numeric(strsplit(snp_plot, '_')[[1]][2])
+
+file_helper <- list.files(paste0('/media/work/gwis/functional_annotation_out/', exposure), recursive = T, full.names = T)
+snp_helper <- paste0('chr', snp_chr, "_", snp_bp)
+
+# locuszoom plot
+locuszoom <- file_helper[grepl(paste0(snp_helper, '.png'), file_helper) &  grepl("locuszoom", file_helper) & grepl(method, file_helper)]
+knitr::include_graphics(locuszoom)
+
+```

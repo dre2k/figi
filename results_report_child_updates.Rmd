@@ -1,0 +1,59 @@
+<!-- Analysis updates -->
+<!-- don't get confused, just a bunch of flags because some updates are exposure specific -->
+
+```{r echo = F, include = F}
+# whether to execute chunks based on categorical/binary vs continuous
+do_next_chunk <- params$is_exposure_categorical
+folate_totqc2 <- params$exposure == "folate_totqc2"
+alcoholc_moderate <- params$exposure == "alcoholc_moderate"
+diab <- params$exposure == "diab"
+```
+
+
+
+```{python, echo=FALSE, results='asis'}
+print("""
+- 2/14/2020
+  - enlarged plot labels and points for better visibility
+  - added chiSqG/chiSqGxE LD clumped results
+  
+- 3/15/2020
+  - additional 2df/3df plots excluding SNPs with any D|G (main effects) association p < 5e-8 (simpler to identify 2df/3df hits driven by GxE or G|E)
+  - added meta-analysis of exposure main effect by tumor site (proximal, distal, rectal)
+  - added pooled analysis of exposure main effect by tumor site (proximal, distal, rectal)
+  - removed chiSqGxE LD clumped results from report
+  - generated descriptive tables (e.g. table1) by both outcome and exposure variable (when categorical)
+
+- 3/24/2020
+  - fixed labeling error for study-design stratified pooled analysis of E main effects
+  - changed order of tumor stratified pooled analysis results table (proximal, distal, rectal)
+- 2020/04/10
+  - added 3DF plot that excludes D|G and E|G significant loci
+""")
+```
+
+## ``r params$exposure`` updates
+
+```{python, echo=FALSE, results='asis', eval=alcoholc_moderate}
+print("""
+- 2020/2/6
+  - changed reference group to moderate drinkers
+""")
+```
+
+```{python, echo=FALSE, results='asis', eval=folate_totqc2}
+print("""
+- folate specific
+  - added main effects (meta-analysis and pooled analysis) adjusted by bmi+alcoholc+famhx1+smoke  
+  - added meta-analyses stratified by alcohol status  
+""")
+
+```
+
+```{python, echo=FALSE, results='asis', eval=diab}
+print("""
+- 2020/03/25
+  - added meta and pooled analyses adjusted by BMI
+""")
+```
+

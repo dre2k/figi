@@ -1,0 +1,259 @@
+---
+date: '`r paste("Updated on", Sys.Date())`'
+output: 
+  html_document:
+    toc: true
+    toc_float:
+      collapsed: false
+      smooth_scroll: false
+    toc_depth: 2
+    theme: "united"
+params:
+  exposure: "bmi5"
+  hrc_version: "v2.3"
+  covariates: !r c("age_ref_imp", "pc1", "pc2", "pc3", "study_gxe")
+title: "FIGI GWIS Results - `r params$exposure`"
+---
+
+
+```{r setup, include=F}
+knitr::opts_chunk$set(echo = F, message = F, warning = F, error = F)
+
+library(tidyverse)
+library(data.table)
+library(ggplot2)
+library(qqman)
+library(table1)
+library(meta)
+library(rlang)
+library(broom)
+library(effects)
+library(figifs)
+library(DT)
+library(grid)
+library(sjPlot)
+library(stargazer)
+library(nnet)
+library(forcats)
+library(kableExtra)
+library(reticulate)
+library(glue)
+library(flextable)
+library(gtools)
+
+# source of files
+output_dir = paste0("/media/work/gwis/posthoc/", params$exposure, "/")
+```
+
+<style type="text/css">
+.main-container {
+  max-width: 1800px !important;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+table, td, th {
+  border: none;
+  padding-left: 1em;
+  padding-right: 1em;
+  margin-top: 1em;
+  margin-bottom: 1em;
+}
+
+/* Whole document: */
+body{
+  font-family: Helvetica;
+  font-size: 14pt;
+}
+/* Headers */
+/* h1,h2,h3,h4,h5,h6{ */
+/*  font-size: 24pt; */
+}
+
+</style>
+
+
+# ``r params$exposure`` Main Effects
+
+## Description
+- Box/bar plots
+- Descriptive statistics by outcome and exposure status (when applicable) for CRC related variables. Only includes subset of samples with available ``r params$exposure`` information
+- Meta-analysis of CRC/``r params$exposure`` association. Results are presented overall and stratified by sex, tumor site, and relevant covariates
+- Pooled analysis of CRC/``r params$exposure`` in pooled FIGI GxE subset. Results also presented overall and stratified. Adjustment covariates same as those for meta-analyses, in addition to study_gxe
+
+<br>
+
+---
+
+<br>
+
+```{r child = paste0("results_descriptive_ver2.Rmd")}
+```
+
+
+## Results
+
+Adjusted by age and sex (energy, study/platform, PCs when applicable)  
+
+### Meta analysis {.tabset}
+```{r child = 'results_meta.Rmd'}
+```
+
+### Pooled analysis {.tabset}
+```{r child = 'results_pooled.Rmd'}
+```
+
+
+
+# Main results
+
+## Description
+
+I generated figures based on results from genome-wide interaction scans using [GxEScanR](https://github.com/USCbiostats/GxEScanR). P-values are based on likelihood ratio tests. Refer to the github page for more detailed documentation of methods. I briefly describe each section and the statistic being plotted.
+
+<br>
+Assume the following coding:
+
+**D**:  Disease status (1=case, 0=control)
+
+**E**:  Environmental factor of interest (binary/continuous)
+
+**C**: 	A set of adjustment covariates. Typically includes age_ref_imp, sex, study_gxe, energytot_imp (when applicable), and the first three principal components
+
+**G**:  Imputed genotype dosage at one of M SNPs being scanned for GxE interaction.  Only SNPs on autosomal chromosomes can be analyzed. We assume the underlying genotype for each SNP is biallelic, with possible genotype 0 (two major alleles), 1 (heterozygous), or 2 (two minor alleles).  For each SNP, the imputed dosage is assumed to be a value between 0 and 2 representing the expected number of minor alleles.
+
+<br>
+
+### QQ/Manhattan Plots
+
+- **Genetic main effect**: standard GWAS in the form $$Logit(Pr(D=1|G)) = \lambda_0 + \lambda_GG + \boldsymbol{\lambda_CC}$$
+Models are adjusted for the exposure variable under investigation
+- **GxE**: include interaction term in the model: $$Logit(Pr(D=1|G)) = \beta_0 + \beta_GG + \beta_EE + \beta_{GxE}GxE + \boldsymbol{\beta_CC}$$ **Note - I included 'suggestive' hits (p < 5e-6) in the table for this section**
+- **2DF test**: joint test, null hypothesis $\beta_G = \beta_GxE = 0$ based on the GxE model
+- **3DF test**: joint test, null hypothesis $\beta_G = \beta_GxE = \delta_G = 0$ based on the GxE model, where the delta term represents associations between G and E in a combined case/control sample (see below)
+- **G|E Association (all)**: G|E association in combined cases/controls $$Logit(Pr(E=1|g)) = \delta_0 + \delta_G$$
+Serves as a filtering statistic for two-step methods, described below
+- **G|E Association (controls)**: G|E association in controls only $$Logit(Pr(G=g|E, D = 0)) = \delta_0 + \delta_1 + \delta_E(g)(E) + \delta_CC \;\;\;\;\;\;  g = 0,1,2$$
+- **G|E Association (case only)**: G|E association in cases e.g. case-only analysis $$Logit(Pr(G=g|E, D = 1)) = \delta_0 + \delta_1 + \delta_E(g)(E) + \delta_CC \;\;\;\;\;\;  g = 0,1,2$$
+
+<br>
+
+### 2DF/3DF Excluding GWAS Loci
+Because 2DF/3DF joint tests identify a lot of SNPs with strong D|G associations, we decided to create additional plots after removing GWAS loci reported in Jeroen's paper (https://www.ncbi.nlm.nih.gov/pubmed/30510241) to better visualize potentially novel hits. Main hit + SNPs in LD (based on 1000G population) were excluded  
+- **2DF no gwas**: exclude GWAS + SNPs in LD  
+- **2DF no gwas, no D|G**: exclude GWAS SNPs + SNPs with significant D|G association in study subset  
+- **3DF no gwas**: exclude GWAS + SNPs in LD  
+- **3DF no gwas, no D|G**: exclude GWAS SNPs + SNPs with significant D|G association in study subset  
+- **3DF no gwas, no E|G**: exclude GWAS SNPs + SNPs that are significantly associated with exposure (3DF method is sensitive to E|G independence assumption, like case-only analyses)  
+- **3DF no gwas, no E|G, no D|G**: exclude all of the above  
+
+<br>
+
+### Two-step methods
+
+Two-step methods implement a filtering step prior to GxE testing in order to decrease multiple testing burden and improve power. The filtering step (step 1) can be based on marginal statistics (G main effects), E|G correlation among combined cases/control, or a combination of the two statistics called EDGE -- provided independence between the filtering step and the GxE testing step is preserved. GxE testing (step 2) can then be performed on a subset of SNPs after filtering  
+
+Rather than restrict GxE testing to a subset of SNPs (and avoid having to optimize the step 1 p-value cutoff level), we employ a weighted hypothesis testing approach. SNPs are assigned to bins with increasingly more stringent GxE (step 2) significance thresholds based on the ordered p-values from step 1 statistics. In short, GxE significance thresholds would be much more permissive for SNPs that have more significant step 1 p values. More details can be found in Ionita-Loza 2007  
+
+- **Step1 statistic: D|G**: SNPs filtered/assigned to bins based on main effect p-values (Kooperberg 2008)
+- **Step1 statistic: G|E**: SNPs filtered/assigned to bins based on G|E correlation among a combined case/control sample (Murcray 2009)
+- **Step1 statistic: EDGE**: SNPs filtered/assigned to bins based on EDGE statistic (Gauderman 2013)
+- **Step1 statistic: D|G (expectation based)**:
+- **Step1 statistic: G|E (expectation based)**:
+- **Step1 statistic: EDGE (expectation based)**:
+
+<br>
+
+### Two-step methods (GWAS Step1 statistic)
+
+Rather than using the *Genetic main effect* statistic to conduct two-step methods, here we use the main effects statistic calculated on the GWAS subset of individuals in the FIGI dataset, N ~ 120K individuals. Models are only adjusted for age, sex, study_gxe, and principal components.
+
+<br> 
+
+### Two-step methods, 'expectation hybrid'
+
+Modification of the two-step method. In this method, bins are created using the same approach as before. However, rather than assigning SNPs to bins based on their step 1 statistic p value **ranks**, they are instead assigned to each bin based on the significance level in expectation, assuming 1,000,000 tests. for example, bin 1 has a size of 5 in the original approach. Assuming a uniform distribution of one million tests, we would expect 5/1000000 SNPs to be significant at that level. Hence, any SNPs with a step 1 statistic meeting that significance threshold (e.g. 5e-6)is assigned to bin number 1. Cutoff for bin number 2 would be 15/1000000, and so forth. Secondly, we applied bin specific significance thresholds for step 2 (GxE) testing that is based on the *effective number of tests* (see Gao 2008), in order to properly control for both the number of SNPs within each bin, and also to address the issue of linkage disequillibrium between those SNPs. This is work in progress, but simulations show proper control for Type I error while improving power.  
+
+<br>
+
+### Functional annotation subset
+
+Approach to begin incorporating functional annotation in GWIS. Using SVM scores generated by Anna (details in methods), we prioritize SNPs that are likely to be functionally relevant. SVM scores were normalized and filtered at $abs(sd) > 3$. Using SNPs with high SVM scores, we generated manhattan and two-step plots. 
+
+---
+
+## QQ Plots {.tabset}
+```{r child = 'results_qq.Rmd' }
+```
+
+## Manhattan Plots {.tabset}
+```{r child = 'results_manhattan.Rmd' }
+```
+
+## 2DF/3DF no GWAS {.tabset}
+```{r child = 'results_manhattan_no_gwas.Rmd' }
+```
+
+## Two-step {.tabset}
+**Notes**
+- Step 1 D|G uses statistics estimated from the exposure GxE subset population. Models are adjusted by the exposure variable
+<!-- - All plots have a counterpart that excludes the 140 GWAS loci identified in Huygue 2019 (Nat Gen) -->
+```{r child = 'results_two_step.Rmd' }
+```
+
+## Two-step GECCO {.tabset}
+**Notes**
+- Step 1 D|G uses statistics estimated from GECCO/CORECT/CCFR EUR only meta-analysis (Huygue 2019)
+- Likewise, all plots have counterpart that excludes the 140 GWAS loci
+```{r child = 'results_two_step_gwas_step1.Rmd' }
+```
+
+## Two-step EH {.tabset}
+**Notes**
+- expectation-based hybrid approach:   
+  - expectation based bin assignment  
+  - step 2 significance thresholds based on effective number of tests (Gao 2008)  
+```{r child = 'results_two_step_expectation_hybrid.Rmd' }
+```
+
+
+
+
+<!-- # Functional annotation subset -->
+
+<!-- ## Description -->
+<!-- Subset results to SNPs with evidence of functional consequence. In this batch of results, we are using Anna's scores calculated using Cohen 2017 samples. Documentation to follow. -->
+
+
+<!-- ## SVM Pooled Scores -->
+<!-- SNPs in ``r params$exposure`` = 7,262,164 -->
+<!-- SVM Pooled scores $abs(Z) > 3$ = 999,079 -->
+<!-- Overlap = 184,521 -->
+
+<!-- ```{r, echo = F, results = 'asis', warning = F} -->
+<!-- filename_suffix_child = "_functional_subset_pooled" -->
+<!-- res <- knitr::knit_child("posthoc_func_subset_child.Rmd", quiet = T) -->
+<!-- cat(res, sep = '\n') -->
+<!-- ``` -->
+
+
+<!-- ## SVM Tumor Scores -->
+<!-- SNPs in ``r params$exposure`` = 7,262,164 -->
+<!-- SVM Tumor scores $abs(Z) > 3$ = 409,523 -->
+<!-- Overlap = 75,787 -->
+<!-- ```{r, echo = F, results = 'asis', warning = F} -->
+<!-- filename_suffix_child = "_functional_subset_tumor" -->
+<!-- res <- knitr::knit_child("posthoc_func_subset_child.Rmd", quiet = T) -->
+<!-- cat(res, sep = '\n') -->
+<!-- ``` -->
+
+
+<!-- ## SVM Control Scores -->
+<!-- SNPs in ``r params$exposure`` = 7,262,164 -->
+<!-- SVM Pooled scores $abs(Z) > 3$ = 406,265 -->
+<!-- Overlap = 75,195 -->
+<!-- ```{r, echo = F, results = 'asis', warning = F} -->
+<!-- filename_suffix_child = "_functional_subset_control" -->
+<!-- res <- knitr::knit_child("posthoc_func_subset_child.Rmd", quiet = T) -->
+<!-- cat(res, sep = '\n') -->
+<!-- ``` -->

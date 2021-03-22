@@ -1,0 +1,162 @@
+---
+title: "FIGI T2D additional analyses"
+date: '`r paste("Updated on", Sys.Date())`'
+output: 
+  html_document:
+    #css: posthoc_report.css
+    toc: false
+    toc_float:
+      collapsed: false
+      smooth_scroll: false
+    toc_depth: 3
+    theme: "paper"
+---
+
+<style type="text/css">
+
+/* Whole document: */
+body{
+  font-family: Helvetica;
+  font-size: 12pt;
+}
+/* Headers */
+/* h1,h2,h3,h4,h5,h6{ */
+/*  font-size: 18pt; */
+}
+
+</style>
+
+Check models with and without adjustment for the following covariates:  
+- batch  
+- country  
+- season of blood draw  
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(data.table)
+library(stargazer)
+library(lmtest)
+library(broom)
+library(figifs)
+library(kableExtra)
+```
+
+```{r, include = F}
+# FIGI gxe set (gxe == 1, EUR_subset == 1)
+figi <- readRDS("/media/work/gwis/results/input/FIGI_v2.3_gxeset_analysis_data_glm.rds")
+load("/home/rak/data/FIGI_vitaminD_epi-200527/pooled_vitD_25OH.RData")
+load("/home/rak/data/FIGI_vitaminD_epi-200527/vitd_crp_UKB.Rdata")
+
+figiD <- inner_join(figi, vitD, 'pooledcompassid') %>% 
+  mutate(group = "others")
+
+# figiD <- inner_join(figi, vitD, 'pooledcompassid') %>% 
+#   mutate(group = "others") %>% 
+#   filter(vitd25 < 1000)
+
+bio.uk <- mutate(bio.uk, f.eid = as.character(f.eid))
+ukb <- filter(figi, study_gxe == "UKB_1")
+ukbD <- inner_join(ukb, bio.uk, by = c("compassid" = "f.eid")) %>% 
+  mutate(vitd25 = f.30890.0.0, 
+         crp = f.30710.0.0, 
+         group = 'ukb')
+
+out <- bind_rows(figiD[, c('pooledcompassid', 'group', 'vitd25', 'studyname')], 
+                 ukbD[, c('pooledcompassid', 'group', 'vitd25', 'studyname')]) %>% 
+  mutate(group = as.factor(group)) 
+
+out_mean <- out %>% 
+  group_by(group) %>%
+  dplyr::summarize(group.mean = mean(vitd25, na.rm = T))
+```
+
+## WHI blood draw batch
+
+WHI has 'batch' information which correspond to multiple ancillary studies.  
+
+Table:
+``` {r}
+whi <- filter(figiD, grepl("WHI", study.x)) %>% 
+  mutate(batch = as.factor(whi_testver))
+
+table(whi$batch, whi$outcome)
+```
+
+Models: 
+```{r, results = 'asis'}
+model1 <- glm(outcome ~ vitd25 + age_ref_imp + pc1 + pc2 + pc3,         data = whi, family = 'binomial')
+model2 <- glm(outcome ~ vitd25 + age_ref_imp + pc1 + pc2 + pc3 + batch, data = whi, family = 'binomial')
+
+stargazer(model1, model2, 
+          type = 'html', 
+          apply.coef = exp, 
+          ci = T, 
+          omit = c("pc"), 
+          column.labels = c("baseline", "adjust by batch"))
+```
+
+
+## EPIC
+
+Country varible adjustment
+```{r}
+# Create country variable
+spain <- c("Asturias", "Granada", "Murcia", "Navarra", "San Sebastian")
+netherlands <- c("Bilthoven", "Utrecht")
+uk <- c("Cambridge", "UK General Population", "UK Health Conscious")
+italy <- c("Florence", "Naples", "Turin", "Varese")
+greece <- c("Greece")
+germany <- c("Heidelberg", "Potsdam")
+france <- c("Northeast France", "Northwest France", "South coast France", "South France")
+croatia <- c("Ragusa")
+switzerland <- c("Umea")
+
+epic <- filter(figiD, grepl("EPIC", study_gxe )) %>% 
+  mutate(study_country = case_when(study_site %in% spain ~ "Spain", 
+                                   study_site %in% netherlands ~ "Netherlands", 
+                                   study_site %in% uk ~ "UK", 
+                                   study_site %in% italy ~ "Italy", 
+                                   study_site %in% greece ~ "Greece", 
+                                   study_site %in% germany ~ "Germany", 
+                                   study_site %in% france ~ "France", 
+                                   study_site %in% croatia ~ "Croatia", 
+                                   study_site %in% switzerland ~ "Switzerland"),
+         study_country = as.factor(study_country))
+```
+
+Table:
+```{r}
+table(epic$study_country, epic$outcome)
+```
+
+Models:
+```{r, results = 'asis'}
+model1 <- glm(outcome ~ vitd25 + age_ref_imp + sex + pc1 + pc2 + pc3,                 data = epic, family = 'binomial')
+model2 <- glm(outcome ~ vitd25 + age_ref_imp + sex + pc1 + pc2 + pc3 + study_country, data = epic, family = 'binomial')
+
+stargazer(model1, model2, type = 'html', apply.coef = exp, ci = T, omit = c("pc"), column.labels = c("baseline", "country adj."))
+```
+
+
+## Blood draw month/season
+
+Blood draw month available for NHS and WHI: 
+```{r}
+table(vitD$blood_month, vitD$study)
+```
+
+UKB has 'assay date', but this seems to correspond to date the assay was carried rather than when blood sample was drawn (confirm). Is there a variable that captures blood draw date in UKB data? I see "Date of attending assessment centre" in data dictionary? 
+
+
+# Models - subset of studies with blood month available
+```{r, results = 'asis'}
+
+nhs_whi <- figiD %>% 
+  dplyr::filter(study.x %in% c("NHS", "WHI"))
+
+model1 <- glm(outcome ~ vitd25 + age_ref_imp + sex + pc1 + pc2 + pc3 + study.x,               data = nhs_whi, family = 'binomial')
+model2 <- glm(outcome ~ vitd25 + age_ref_imp + sex + pc1 + pc2 + pc3 + study.x + blood_month, data = nhs_whi, family = 'binomial')
+
+stargazer(model1, model2, type = 'html', apply.coef = exp, ci = T, omit = c("pc"), column.labels = c("baseline", "blood month"))
+```

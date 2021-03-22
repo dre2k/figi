@@ -1,0 +1,317 @@
+---
+title: "`r params$exposure` posthoc analysis"
+date: '`r paste("Updated on", Sys.Date())`'
+output: 
+  html_document:
+    css: posthoc_report.css
+    toc: true
+    toc_float:
+      collapsed: false
+      smooth_scroll: false
+    toc_depth: 3
+    theme: "paper"
+params:
+  exposure: "calcium_totqc2"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = F, message = F, warning = F, error = F)
+
+# load packages and define wrapper functions
+library(tidyverse)
+library(data.table)
+library(forcats)
+library(ggplot2)
+library(qqman)
+library(rlang)
+library(figifs)
+library(DT)
+library(grid)
+library(stargazer)
+library(kableExtra)
+library(formattable)
+```
+
+# Description
+
+## GWIS results followup
+- Table of significant and suggestive (1df GxE only) ```r params$exposure``` GWIS findings  
+<!-- - Plots of predicted logodds stratified by exposure and genotype () -->
+<!--   - *outcome ~ snp_dose:exposure + covariates*   -->
+<!--   - assumes mean values for adjustment covariates    -->
+- GxE models stratified by study_design and tumor site (proximal, distal, rectal)  
+- GxE models with additional covariate sets (if requested)  
+- Odds ratios stratified by exposure and genotype  
+  <!-- - model of the form *outcome ~ exposure + covariates + snp_p1 + snp_p2 + exposure:covariates + exposure:snp_p1 + exposure:snp_p2* -->
+  - Odds ratios with single reference group (E = 0, G = 0), and exposure odds ratios stratified by imputed genotype  
+    - model: *outcome ~ exposure + covariates + snp_p1 + snp_p2 + exposure:snp_p1 + exposure:snp_p2*  
+  - per risk allele odds ratios stratified by exposure
+    - model:  *outcome ~ exposure + covariates + dosage + exposure:dosage*  
+  - **exposures and SNPs coded to reflect risk increase**  
+- Locuszoom plot  
+  - based on statistic that identified the hit (e.g. gxe, 2df, 3df, etc)
+- Functional annotation plot  
+
+## Covariates Sets
+- **Set1**: age_ref_imp, sex, energytot_imp, study_gxe, pc1, pc2, pc3
+
+------
+
+# Suggestive GxE findings
+(top hits only)
+```{r}
+child_env <- new.env()
+assign("exposure", params$exposure, child_env)
+assign("method", "chiSqGxE", child_env)
+assign("covariates", sort(covariates_set1), child_env)
+```
+
+
+```{r}
+x <- readRDS(glue("/media/work/gwis/posthoc/{child_env$exposure}/gwis_sig_results_input_{child_env$exposure}.rds")) %>%
+  dplyr::mutate(SNP = paste0("chr", gsub("\\:", "_", SNP)),
+                AAF = round(GxESet_AltAlleleFreq, 3),
+                Rsq = round(GxESet_Rsq, 3)) %>%
+  filter(grepl(child_env$method, method)) %>%
+  dplyr::rename(Chr = Chromosome,
+                BP = Location) %>%
+  arrange(Chr, BP) %>%
+  dplyr::select(SNP, Chr, BP, Pval, AAF, Rsq)
+
+kable(x, caption = "Significant GxE SNPs", escape = F) %>%
+  kable_styling("striped", full_width = F, position = 'center')
+```
+
+
+```{r, results = 'asis'}
+snps_out <- readRDS(glue("{output_dir}manhattan_chiSqGxE_{params$exposure}_clump_df.rds")) %>%
+  arrange(Chromosome, Location) %>%
+  dplyr::mutate(snps = paste0('chr', gsub("\\:", "\\_", SNP))) %>%
+  pull(snps)
+
+res <- lapply(snps_out, function(snp) {
+  assign("snp", snp, child_env)
+  knitr::knit_child('posthoc_child.Rmd', envir = child_env, quiet = TRUE)
+  }
+)
+
+cat(unlist(res), sep = '\n')
+```
+
+
+
+# Case only
+```{r}
+child_env <- new.env()
+assign("exposure", params$exposure, child_env)
+assign("method", "chiSqGxE", child_env)
+assign("covariates", sort(covariates_set1), child_env)
+```
+
+```{r, results = 'asis'}
+snps_out <- readRDS(glue("{output_dir}manhattan_chiSqCase_{params$exposure}_clump_df.rds")) %>%
+  dplyr::filter(Location == "114550461") %>% 
+  arrange(Chromosome, Location) %>%
+  dplyr::mutate(snps = paste0('chr', gsub("\\:", "\\_", SNP))) %>%
+  pull(snps)
+
+res <- lapply(snps_out, function(snp) {
+  assign("snp", snp, child_env)
+  knitr::knit_child('posthoc_child.Rmd', envir = child_env, quiet = TRUE)
+  }
+)
+
+cat(unlist(res), sep = '\n')
+```
+
+
+
+
+# Two-step finding (expectation based)
+```{r}
+child_env <- new.env()
+assign("exposure", params$exposure, child_env)
+assign("method", "chiSqGxE", child_env)
+assign("covariates", sort(covariates_set1), child_env)
+```
+
+```{r, results = 'asis'}
+snps_out <- readRDS(glue(output_dir, "twostep_wht_chiSqGE_{params$exposure}_expectation_hybrid_df.rds")) %>%
+  arrange(Chromosome, Location) %>%
+  dplyr::mutate(snps = paste0('chr', gsub("\\:", "\\_", SNP))) %>%
+  pull(snps)
+
+res <- lapply(snps_out, function(snp) {
+  assign("snp", snp, child_env)
+  knitr::knit_child(
+    glue('posthoc_child.Rmd'), envir = child_env, quiet = TRUE)
+  }
+)
+cat(unlist(res), sep = '\n')
+```
+
+
+
+
+# 2DF (locuszoom only)
+Check whether locus coincides with GWAS findings
+
+```{r}
+child_env <- new.env()
+assign("exposure", params$exposure, child_env)
+assign("method", "chiSq2df", child_env)
+assign("covariates", sort(covariates_set1), child_env)
+```
+
+```{r, results = 'asis'}
+snps_out <- readRDS(glue(output_dir, "manhattan_chiSq2df_{params$exposure}_no_gwas_clump_df.rds")) %>%
+  arrange(Chromosome, Location) %>%
+  dplyr::mutate(snps = paste0('chr', gsub("\\:", "\\_", SNP))) %>%
+  pull(snps)
+
+res <- lapply(snps_out, function(snp) {
+  assign("snp", snp, child_env)
+  knitr::knit_child(
+    glue('posthoc_child_locuszoom_only.Rmd'), envir = child_env, quiet = TRUE)
+  }
+)
+cat(unlist(res), sep = '\n')
+```
+
+
+
+# 3DF (locuszoom only)
+Check whether locus coincides with GWAS findings
+
+```{r}
+child_env <- new.env()
+assign("exposure", params$exposure, child_env)
+assign("method", "chiSq3df", child_env)
+assign("covariates", sort(covariates_set1), child_env)
+```
+
+```{r, results = 'asis'}
+snps_out <- readRDS(glue(output_dir, "manhattan_chiSq3df_{params$exposure}_no_gwas_clump_df.rds")) %>%
+  arrange(Chromosome, Location) %>%
+  dplyr::mutate(snps = paste0('chr', gsub("\\:", "\\_", SNP))) %>%
+  pull(snps)
+
+res <- lapply(snps_out, function(snp) {
+  assign("snp", snp, child_env)
+  knitr::knit_child(
+    glue('posthoc_child_locuszoom_only.Rmd'), envir = child_env, quiet = TRUE)
+  }
+)
+cat(unlist(res), sep = '\n')
+```
+
+
+
+<!-- # 3DF -->
+<!-- Top hit only. Excludes GWAS, D|G, E|G (controls) -->
+<!-- ```{r} -->
+<!-- child_env <- new.env() -->
+<!-- assign("exposure", params$exposure, child_env) -->
+<!-- assign("method", "chiSq3df", child_env) -->
+<!-- ``` -->
+
+<!-- ```{r} -->
+<!-- x <- readRDS(paste0("/media/work/gwis/posthoc/gwis_sig_results_input_", child_env$exposure, ".rds")) %>% -->
+<!--   dplyr::mutate(SNP = paste0("chr", gsub("\\:", "_", SNP)), -->
+<!--                 AAF = round(GxESet_AltAlleleFreq, 3), -->
+<!--                 Rsq = round(GxESet_Rsq, 3)) %>% -->
+<!--   filter(method == paste0("chiSq3df_", child_env$exposure, "_no_gwas_no_marginal_no_ge"), -->
+<!--          Chromosome != 15) %>% -->
+<!--   dplyr::rename(Chr = Chromosome, -->
+<!--                 BP = Location) %>% -->
+<!--   arrange(Chr, BP) %>% -->
+<!--   dplyr::select(SNP, Chr, BP, Pval, AAF, Rsq) -->
+
+<!-- kable(x, caption = "Significant GxE SNPs", escape = F) %>% -->
+<!--   kable_styling("striped", full_width = F, position = 'center') -->
+<!-- ``` -->
+
+
+<!-- ```{r, results = 'asis'} -->
+
+<!-- # tophits -->
+<!-- # - 2:136979530:G:A	 -->
+<!-- # - 6:161133559:A:G	 -->
+
+<!-- snps <- readRDS(paste0("/media/work/gwis/posthoc/gwis_sig_results_input_", child_env$exposure, ".rds")) %>% -->
+<!--   filter(method == paste0("chiSq3df_", child_env$exposure, "_no_gwas_no_marginal_no_ge"), -->
+<!--          Chromosome != 15,  -->
+<!--          SNP %in% c("2:135759095:C:T")) %>%  -->
+<!--   arrange(Chromosome, Location) -->
+<!-- snps <- paste0('chr', gsub("\\:", "\\_", snps$SNP)) -->
+<!-- res <- lapply(snps, function(snp) { -->
+<!--   assign("snp", snp, child_env) -->
+<!--   knitr::knit_child( -->
+<!--     paste0('posthoc_', child_env$exposure, '_child.Rmd'), envir = child_env, quiet = TRUE) -->
+<!--   } -->
+<!-- ) -->
+
+<!-- cat(unlist(res), sep = '\n') -->
+<!-- ``` -->
+
+
+<!-- # two-step results -->
+<!-- LD clumped based on chiSqG statistics -->
+<!-- ```{r} -->
+<!-- child_env <- new.env() -->
+<!-- assign("exposure", params$exposure, child_env) -->
+<!-- assign("method", "chiSqGxE", child_env) -->
+<!-- ``` -->
+
+<!-- ```{r} -->
+<!-- x <- readRDS(paste0("/media/work/gwis/posthoc/gwis_sig_results_input_", child_env$exposure, ".rds")) %>% -->
+<!--   dplyr::mutate(SNP = paste0("chr", gsub("\\:", "_", SNP)), -->
+<!--                 AAF = round(GxESet_AltAlleleFreq, 3), -->
+<!--                 Rsq = round(GxESet_Rsq, 3)) %>% -->
+<!--   dplyr::filter(method == paste0("twostep_wht_chiSqG_", child_env$exposure, "_chiSqG_ld_clump")) %>% -->
+<!--   dplyr::rename(Chr = Chromosome, -->
+<!--                 BP = Location) %>% -->
+<!--   arrange(Chr, BP) %>% -->
+<!--   dplyr::select(SNP, Chr, BP, Pval, AAF, Rsq) -->
+
+<!-- kable(x, caption = "Significant GxE SNPs", escape = F) %>% -->
+<!--   kable_styling("striped", full_width = F, position = 'center') -->
+<!-- ``` -->
+
+
+<!-- ```{r, results = 'asis'} -->
+
+<!-- snps <- readRDS(paste0("/media/work/gwis/posthoc/gwis_sig_results_input_", child_env$exposure, ".rds")) %>% -->
+<!--   filter(SNP %in% c("8:117630683:A:C")) %>%  -->
+<!--   arrange(Chromosome, Location) -->
+<!-- snps <- unique(paste0('chr', gsub("\\:", "\\_", snps$SNP))) -->
+
+
+<!-- res <- lapply(snps, function(snp) { -->
+<!--   assign("snp", snp, child_env) -->
+<!--   knitr::knit_child( -->
+<!--     paste0('posthoc_', child_env$exposure, '_child.Rmd'), envir = child_env, quiet = TRUE) -->
+<!--   } -->
+<!-- ) -->
+
+<!-- cat(unlist(res), sep = '\n') -->
+<!-- ``` -->
+
+
+
+
+<!-- # Additive scale interaction -->
+<!-- (RERI calculated for significant/suggestive loci) -->
+
+<!-- ```{r} -->
+<!-- child_env <- new.env() -->
+<!-- assign("exposure", params$exposure, child_env) -->
+<!-- assign("method", "chiSqGxE", child_env) -->
+<!-- ``` -->
+
+<!-- ```{r} -->
+<!-- x <- readRDS("/media/work/gwis/posthoc/folate_totqc2/reri_tmp.rds") -->
+
+<!-- kable(x, caption = "RERI", escape = F) %>% -->
+<!--   kable_styling("striped", full_width = F, position = 'center') -->
+<!-- ``` -->
