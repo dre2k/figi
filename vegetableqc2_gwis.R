@@ -1,5 +1,5 @@
 #=============================================================================#
-# FIGI GxE bmi5 results
+# FIGI GxE vegetableqc2 results
 #=============================================================================#
 library(tidyverse)
 library(data.table)
@@ -28,18 +28,13 @@ rm(list = ls())
 # input variables
 exposure = 'vegetableqc2'
 hrc_version = 'v2.3'
-output_dir = paste0("/media/work/gwis/posthoc/", exposure, "/")
-annotation_file <- 'gwas_141_ld_annotation_july2020.txt'
+annotation_file <- 'gwas_200_ld_annotation_feb2021.txt'
+path = glue("/media/work/gwis_test/{exposure}/")
 
 covariates <- sort(c('age_ref_imp', 'sex', 'energytot_imp', 'study_gxe', 'pc1', 'pc2', 'pc3'))
-covariates_set1 <- covariates
-# covariates_set2 <- sort(c(covariates_set1, 'bmi', 'smk_ever', 'fruitqc2', 'vegetableqc2'))
-covariates_list <- list(covariates_set1)
 
 # input data
 input_data <- readRDS(glue("/media/work/gwis/data/FIGI_EpiData/FIGI_{hrc_version}_gxeset_analysis_data_glm.rds"))
-gxe <- readRDS(glue("/media/work/gwis/results/{exposure}/processed/FIGI_{hrc_version}_gxeset_{exposure}_basic_covars_gxescan_results.rds")) %>% 
-  mutate(SNP2 = paste0(Chromosome, ":", Location))
 
 #-----------------------------------------------------------------------------#
 # main effects ----
@@ -116,45 +111,6 @@ plot(inf.analysis, "es")
 plot(inf.analysis, "i2")
 
 
-#-----------------------------------------------------------------------------#
-# qq plots, manhattan plots, two-step plots ---- 
-# (should be able to source script since variables are defined here)
-#-----------------------------------------------------------------------------#
-source("~/Dropbox/FIGI/FIGI_code/results/gwis/gwis_02_plots.R")
-
-
-#-----------------------------------------------------------------------------#
-# two-step expectation hybrid ---- 
-#-----------------------------------------------------------------------------#
-# ------ output list of SNPs from each bin (expectation based) to extract dosages
-# exposure subset for step 1 statistics
-twostep_eh_snps(gxe, 'chiSqG')
-twostep_eh_snps(gxe, 'chiSqGE')
-twostep_eh_snps(gxe, 'chiSqEDGE')
-
-# gecco meta analysis for main effects step 1 statistics
-gwas_results <- readRDS("/media/work/gwis/results/gecco/MarginalMeta_gecco_HRC_EUR_only.rds")
-gxe_twostep_gwas_step1 <- gxe %>%
-  dplyr::select(-betaG, -chiSqG, -chiSqEDGE, -chiSq3df) %>%
-  inner_join(gwas_results, 'SNP') %>%
-  mutate(chiSqEDGE = chiSqG + chiSqGE,
-         chiSq3df = chiSqG + chiSqGxE + chiSqGE)
-
-twostep_eh_snps(gxe_twostep_gwas_step1, 'chiSqG', step1_source = "gecco")
-
-
-# ----------------------------------------------------------- #
-# ------- run simpleM and generate plots + results df ------- #
-simplem_wrap(x = gxe, exposure = exposure, covariates = covariates, simplem_step1_statistic = 'chiSqG', output_dir = output_dir)
-simplem_wrap(x = gxe, exposure = exposure, covariates = covariates, simplem_step1_statistic = 'chiSqGE', output_dir = output_dir)
-simplem_wrap(x = gxe, exposure = exposure, covariates = covariates, simplem_step1_statistic = 'chiSqEDGE', output_dir = output_dir)
-simplem_wrap(x = gxe_twostep_gwas_step1, exposure = exposure, covariates = covariates, simplem_step1_statistic = 'chiSqG', output_dir = output_dir, filename_suffix = "_gwas_step1" )
-
-
-simplem_wrap(x = gxe, exposure = exposure, covariates = covariates, simplem_step1_statistic = 'chiSqG', output_dir = output_dir, include_gwas = F, filename_suffix = "_no_gwas")
-simplem_wrap(x = gxe, exposure = exposure, covariates = covariates, simplem_step1_statistic = 'chiSqGE', output_dir = output_dir, include_gwas = F, filename_suffix = "_no_gwas")
-simplem_wrap(x = gxe, exposure = exposure, covariates = covariates, simplem_step1_statistic = 'chiSqEDGE', output_dir = output_dir, include_gwas = F, filename_suffix = "_no_gwas")
-simplem_wrap(x = gxe_twostep_gwas_step1, exposure = exposure, covariates = covariates, simplem_step1_statistic = 'chiSqG', output_dir = output_dir, include_gwas = F, filename_suffix = "_gwas_step1_no_gwas" )
 
 #-----------------------------------------------------------------------------#
 # SNP followup ---- 
@@ -165,6 +121,15 @@ source("/home/rak/Dropbox/FIGI/FIGI_code/results/posthoc/posthoc_01_combine_resu
 # on HPC:
 # - extract dosage information on HPC
 # - calculate clumped statistics - gxe, 2/3df if necessary
+
+
+# ================================================================== #
+# ======= rmarkdown reports ---- 
+# ================================================================== #
+
+gwis_report(exposure = exposure, hrc_version = hrc_version, covariates = covariates)
+
+posthoc_report(exposure = exposure)
 
 
 

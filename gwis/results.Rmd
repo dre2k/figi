@@ -73,35 +73,35 @@ body{
 </style>
 
 
-# ``r params$exposure`` Main Effects
+<!-- # ``r params$exposure`` Main Effects -->
 
-## Description
-- Box/bar plots
-- Descriptive statistics by outcome and exposure status (when applicable) for CRC related variables. Only includes subset of samples with available ``r params$exposure`` information
-- Meta-analysis of CRC/``r params$exposure`` association. Results are presented overall and stratified by sex, tumor site, and relevant covariates
-- Pooled analysis of CRC/``r params$exposure`` in pooled FIGI GxE subset. Results also presented overall and stratified. Adjustment covariates same as those for meta-analyses, in addition to study_gxe
+<!-- ## Description -->
+<!-- - Box/bar plots -->
+<!-- - Descriptive statistics by outcome and exposure status (when applicable) for CRC related variables. Only includes subset of samples with available ``r params$exposure`` information -->
+<!-- - Meta-analysis of CRC/``r params$exposure`` association. Results are presented overall and stratified by sex, tumor site, and relevant covariates -->
+<!-- - Pooled analysis of CRC/``r params$exposure`` in pooled FIGI GxE subset. Results also presented overall and stratified. Adjustment covariates same as those for meta-analyses, in addition to study_gxe -->
 
-<br>
+<!-- <br> -->
 
----
+<!-- --- -->
 
-<br>
+<!-- <br> -->
 
-```{r child = paste0("results_descriptive_ver2.Rmd")}
-```
+<!-- ```{r child = paste0("results_descriptive_ver2.Rmd")} -->
+<!-- ``` -->
 
 
-## Results
+<!-- ## Results -->
 
-Adjusted by age and sex (energy, study/platform, PCs when applicable)  
+<!-- Adjusted by age and sex (energy, study/platform, PCs when applicable)   -->
 
-### Meta analysis {.tabset}
-```{r child = 'results_meta.Rmd'}
-```
+<!-- ### Meta analysis {.tabset} -->
+<!-- ```{r child = 'results_meta.Rmd'} -->
+<!-- ``` -->
 
-### Pooled analysis {.tabset}
-```{r child = 'results_pooled.Rmd'}
-```
+<!-- ### Pooled analysis {.tabset} -->
+<!-- ```{r child = 'results_pooled.Rmd'} -->
+<!-- ``` -->
 
 
 
@@ -190,31 +190,40 @@ Approach to begin incorporating functional annotation in GWIS. Using SVM scores 
 ```{r child = 'results_manhattan.Rmd' }
 ```
 
-## 2DF/3DF no GWAS {.tabset}
-```{r child = 'results_manhattan_no_gwas.Rmd' }
-```
-
-## Two-step {.tabset}
+## Two-step Plots {.tabset}
 **Notes**
 - Step 1 D|G uses statistics estimated from the exposure GxE subset population. Models are adjusted by the exposure variable
 <!-- - All plots have a counterpart that excludes the 140 GWAS loci identified in Huygue 2019 (Nat Gen) -->
 ```{r child = 'results_two_step.Rmd' }
 ```
 
-## Two-step GECCO {.tabset}
+## Two-step Plots - Gao {.tabset}
 **Notes**
-- Step 1 D|G uses statistics estimated from GECCO/CORECT/CCFR EUR only meta-analysis (Huygue 2019)
-- Likewise, all plots have counterpart that excludes the 140 GWAS loci
-```{r child = 'results_two_step_gwas_step1.Rmd' }
+```{r child = 'results_two_step_eh_gao.Rmd' }
 ```
 
-## Two-step EH {.tabset}
-**Notes**
-- expectation-based hybrid approach:   
-  - expectation based bin assignment  
-  - step 2 significance thresholds based on effective number of tests (Gao 2008)  
-```{r child = 'results_two_step_expectation_hybrid.Rmd' }
+
+## Two-step Plots - Li/Ji {.tabset}
+```{r child = 'results_two_step_eh_liji.Rmd' }
 ```
+
+
+
+
+<!-- ## Two-step GECCO {.tabset} -->
+<!-- **Notes** -->
+<!-- - Step 1 D|G uses statistics estimated from GECCO/CORECT/CCFR EUR only meta-analysis (Huygue 2019) -->
+<!-- - Likewise, all plots have counterpart that excludes the 140 GWAS loci -->
+<!-- ```{r child = 'results_two_step_gwas_step1.Rmd' } -->
+<!-- ``` -->
+
+<!-- ## Two-step EH {.tabset} -->
+<!-- **Notes** -->
+<!-- - expectation-based hybrid approach:    -->
+<!--   - expectation based bin assignment   -->
+<!--   - step 2 significance thresholds based on effective number of tests (Gao 2008)   -->
+<!-- ```{r child = 'results_two_step_expectation_hybrid.Rmd' } -->
+<!-- ``` -->
 
 
 

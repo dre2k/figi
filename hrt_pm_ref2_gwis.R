@@ -347,3 +347,15 @@ model_out   <- glm(outcome ~ chr12_13670508_G_C_dose * hrt_ref_pm2 + age_ref_imp
 lrtest(model_out, model_base)
 
 
+
+
+
+
+# ================================================================== #
+# ======= rmarkdown reports ---- 
+gwis_report(exposure = exposure, 
+            hrc_version = hrc_version, 
+            covariates = covariates)
+
+posthoc_report(exposure = exposure)
+

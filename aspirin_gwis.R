@@ -136,48 +136,6 @@ plot(inf.analysis, "es")
 plot(inf.analysis, "i2")
 
 
-#-----------------------------------------------------------------------------#
-# qq plots, manhattan plots, two-step plots ---- 
-# (should be able to source script since variables are defined here)
-#-----------------------------------------------------------------------------#
-source("~/Dropbox/FIGI/FIGI_code/results/gwis/gwis_02_plots.R")
-
-
-#-----------------------------------------------------------------------------#
-# two-step expectation hybrid ---- 
-#-----------------------------------------------------------------------------#
-# ------ output list of SNPs from each bin (expectation based) to extract dosages
-# exposure subset for step 1 statistics
-twostep_eh_snps(gxe, 'chiSqG')
-twostep_eh_snps(gxe, 'chiSqGE')
-twostep_eh_snps(gxe, 'chiSqEDGE')
-
-# gecco meta analysis for main effects step 1 statistics
-gwas_results <- readRDS("/media/work/gwis/results/gecco/MarginalMeta_gecco_HRC_EUR_only.rds")
-gxe_twostep_gwas_step1 <- gxe %>%
-  dplyr::select(-betaG, -chiSqG, -chiSqEDGE, -chiSq3df) %>%
-  inner_join(gwas_results, 'SNP') %>%
-  mutate(chiSqEDGE = chiSqG + chiSqGE,
-         chiSq3df = chiSqG + chiSqGxE + chiSqGE)
-
-twostep_eh_snps(gxe_twostep_gwas_step1, 'chiSqG', step1_source = "gecco")
-
-
-# ----------------------------------------------------------- #
-# ------- run simpleM and generate plots + results df ------- #
-simplem_wrap(x = gxe, exposure = exposure, covariates = covariates, simplem_step1_statistic = 'chiSqG', output_dir = output_dir)
-simplem_wrap(x = gxe, exposure = exposure, covariates = covariates, simplem_step1_statistic = 'chiSqGE', output_dir = output_dir)
-simplem_wrap(x = gxe, exposure = exposure, covariates = covariates, simplem_step1_statistic = 'chiSqEDGE', output_dir = output_dir)
-simplem_wrap(x = gxe_twostep_gwas_step1, exposure = exposure, covariates = covariates, simplem_step1_statistic = 'chiSqG', output_dir = output_dir, filename_suffix = "_gwas_step1" )
-
-
-simplem_wrap(x = gxe, exposure = exposure, covariates = covariates, simplem_step1_statistic = 'chiSqG', output_dir = output_dir, include_gwas = F, filename_suffix = "_no_gwas")
-simplem_wrap(x = gxe, exposure = exposure, covariates = covariates, simplem_step1_statistic = 'chiSqGE', output_dir = output_dir, include_gwas = F, filename_suffix = "_no_gwas")
-simplem_wrap(x = gxe, exposure = exposure, covariates = covariates, simplem_step1_statistic = 'chiSqEDGE', output_dir = output_dir, include_gwas = F, filename_suffix = "_no_gwas")
-simplem_wrap(x = gxe_twostep_gwas_step1, exposure = exposure, covariates = covariates, simplem_step1_statistic = 'chiSqG', output_dir = output_dir, include_gwas = F, filename_suffix = "_gwas_step1_no_gwas" )
-
-
-
 
 #-----------------------------------------------------------------------------#
 # functional annotation subset ---- 
@@ -208,122 +166,57 @@ simplem_wrap2(x = x1, exposure = exposure, covariates = covariates, simplem_step
 
 
 
-
 #-----------------------------------------------------------------------------#
-# SNP followup ---- 
-#-----------------------------------------------------------------------------#
-# compile significant results into data.frame
-source("/home/rak/Dropbox/FIGI/FIGI_code/results/posthoc/posthoc_01_combine_results.R")
-
-# on HPC:
-# - extract dosage information on HPC
-# - calculate clumped statistics - gxe, 2/3df if necessary
-
-
-
-#-----------------------------------------------------------------------------#
-# SNP followup (models and plots) ---- 
+# GxE additional analysis ---- 
 #-----------------------------------------------------------------------------#
 
-figi <- posthoc_input(exposure, hrc_version, glue('gwis_sig_results_output_{exposure}.rds')) %>% 
-  mutate(aspirin = fct_relevel(aspirin, "Yes", "No"))
+source(glue("/media/work/git/figifs/R/01_process.R"))
+source(glue("/media/work/git/figifs/R/02_plots.R"))
+source(glue("/media/work/git/figifs/R/03_posthoc.R"))
+source(glue("/media/work/git/figifs/R/03_posthoc_iplot.R"))
+source(glue("/media/work/git/figifs/R/03_posthoc_stratified_or.R"))
 
-snps <- readRDS(glue(output_dir, "gwis_sig_results_input_{exposure}.rds"))
-table(snps$method)
+# output GxE models adjusted by different covariate sets
+covariates_sets <- list(covariates, 
+                        c(covariates, 'bmi5'), 
+                        c(covariates, 'bmi5', 'smk_ever'), 
+                        c(covariates, 'bmi5', 'smk_ever', 'fruitqc2', 'vegetableqc2'))
 
-
-# ------- GxE 1DF 'significant' findings ------- #
-snps_filter <- snps %>% 
-  dplyr::filter(method == glue("manhattan_chiSqGxE_{exposure}_clump_df"),
-                Pval <= 5e-8) %>% 
-  dplyr::mutate(snps = paste0('chr', gsub("\\:", "\\_", SNP))) %>% 
-  pull(snps)
-
-posthoc_run_models(snps_filter, 'chiSqGxE')
-posthoc_run_reri_plot(snps_filter)
-posthoc_create_plots(snps_filter, 'chiSqGxE')
+fit_gxe_covars(data_epi = input_data, exposure = exposure, snp = "13:47191972:G:A", covariates_list = covariates_sets, method = 'chiSqGxE', path = glue("{path}/output"))
 
 
-
-# ------- GxE 1DF suggestive findings ------- #
-snps_filter <- snps %>% 
-  dplyr::filter(method == glue("manhattan_chiSqGxE_{exposure}_clump_df"),
-                SNP != '6:12577203:T:C') %>% 
-  dplyr::mutate(snps = paste0('chr', gsub("\\:", "\\_", SNP))) %>% 
-  pull(snps)
-
-
-posthoc_run_models(snps_filter, 'chiSqGxE')
-posthoc_run_reri_plot(snps_filter)
-posthoc_create_plots(snps_filter, 'chiSqGxE')
+# additional covariates is making association more significant.. let's generate for all suggestive hits
+suggestive_gxe <- fread(glue("{path}/data/FIGI_{hrc_version}_gxeset_{exposure}_chiSqGxE_ldclump.clumped"))
+walk(suggestive_gxe$SNP, ~ fit_gxe_covars(data_epi = input_data, exposure = exposure, snp = .x, covariates_list = covariates_sets, method = 'chiSqGxE', path = glue("{path}/output")))
 
 
 
 
 
+# output RERI plots (can't install package on CARC yet)
+significant_snps <- c("6:12577203:T:C", "5:40252294:C:T") 
+significant_snps <- c("5:40252294:C:T") # not sure what's going on here.. do i need to flip the aspirin coding? -- answer is YES
 
+walk(significant_snps, ~ reri_wrapper(data_epi = input_data, exposure = exposure, snp = .x, covariates = covariates, path = glue("{path}/output")))
 
-# ------- two step -------- #
-# only after excluding gwas loci
-snps_filter <- snps %>% 
-  dplyr::filter(method == glue("twostep_wht_chiSqG_{exposure}_gwas_step1_no_gwas_df")) %>% 
-  dplyr::mutate(snps = paste0('chr', gsub("\\:", "\\_", SNP))) %>% 
-  pull(snps)
+input_data_flip <- input_data %>% 
+  mutate(aspirin = fct_relevel(aspirin, "Yes"))
 
-posthoc_run_models(snps_filter, 'chiSqGxE')
-posthoc_run_reri_plot(snps_filter)
-posthoc_create_plots(snps_filter[2], 'chiSqGxE')
-
-
-
-# ------- EH hybrid ------- #
-# just focus on top 5 or so
-snps_filter <- snps %>% 
-  dplyr::filter(method == glue("twostep_wht_chiSqG_{exposure}_expectation_hybrid_df")) %>% 
-  dplyr::arrange(Pval) %>% 
-  dplyr::mutate(snps = paste0('chr', gsub("\\:", "\\_", SNP))) %>% 
-  pull(snps)
-snps_filter <- snps_filter[1]
-
-posthoc_run_models(snps_filter, 'chiSqGxE')
-posthoc_run_reri_plot(snps_filter)
-posthoc_create_plots(snps_filter, 'chiSqGxE')
-
-
-
-
-# ------- 2DF/3DF clumped removing GWAS and or EG (to check 'novel' D|G results) ------- #
-# as first pass, only generate locuszoom plots to gauge whether the region is already capture by GECCO meta-analysis
-snps_filter <- readRDS(glue(output_dir, "manhattan_chiSq2df_{exposure}_no_gwas_clump_df.rds")) %>% 
-  dplyr::mutate(snps = paste0('chr', gsub("\\:", "\\_", SNP))) %>% 
-  pull(snps)
-posthoc_create_plots_locuszoom(snps_filter, 'chiSq2df')
-
-
-snps_filter <- readRDS(glue(output_dir, "manhattan_chiSq3df_{exposure}_no_gwas_clump_df.rds")) %>% 
-  dplyr::mutate(snps = paste0('chr', gsub("\\:", "\\_", SNP))) %>% 
-  pull(snps)
-posthoc_create_plots_locuszoom(snps_filter, 'chiSq3df')
-
-
-
-
+walk(significant_snps, ~ reri_wrapper(data_epi = input_data_flip, exposure = exposure, snp = .x, covariates = covariates, path = glue("{path}/output")))
 
 
 # ================================================================== #
 # ======= rmarkdown reports ---- 
 # ================================================================== #
+exposure = 'aspirin'
+hrc_version = 'v3.0'
+path = glue("/media/work/gwis_test/{exposure}")
+
 gwis_report(exposure = exposure, 
             hrc_version = hrc_version, 
             covariates = covariates)
 
 posthoc_report(exposure = exposure)
-
-
-
-
-
-
 
 
 

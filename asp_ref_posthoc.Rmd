@@ -3,7 +3,7 @@ title: "`r params$exposure` posthoc analysis"
 date: '`r paste("Updated on", Sys.Date())`'
 output: 
   html_document:
-    css: posthoc_report.css
+    css: posthoc/posthoc_report.css
     toc: true
     toc_float:
       collapsed: false
@@ -11,7 +11,10 @@ output:
     toc_depth: 3
     theme: "paper"
 params:
-  exposure: "asp_ref"
+  exposure: "diab"
+  covariates: !r c("age_ref_imp", "sex", "pc1", "pc2", "pc3", "study_gxe")
+  hrc_version: "v2.3"
+  path: "/media/work/gwis_test"
 ---
 
   
@@ -59,49 +62,60 @@ library(glue)
 
 ------
 
-# SNP information
-```{r}
+<!-- # SNP information -->
+<!-- ```{r} -->
+<!-- child_env <- new.env() -->
+<!-- assign("exposure", params$exposure, child_env) -->
+<!-- ``` -->
+
+<!-- ```{r} -->
+<!-- include_methods <- c("manhattan_chiSqGxE_aspirin_clump_df",  -->
+<!--                      "twostep_wht_chiSqG_aspirin_expectation_hybrid_df") -->
+
+<!-- x <- readRDS(glue("/media/work/gwis/posthoc/{child_env$exposure}/gwis_sig_results_input_{child_env$exposure}.rds")) %>% -->
+<!--   dplyr::mutate(SNP = paste0("chr", gsub("\\:", "_", SNP)), -->
+<!--                 AAF = round(GxESet_AltAlleleFreq, 3), -->
+<!--                 Rsq = round(GxESet_Rsq, 3)) %>% -->
+<!--   dplyr::filter(method %in% include_methods) %>%  -->
+<!--   dplyr::rename(Chr = Chromosome, -->
+<!--                 BP = Location) %>% -->
+<!--   arrange(method, Chr, BP) %>% -->
+<!--   dplyr::select(SNP, Chr, BP, method, AAF, Rsq) -->
+
+<!-- kable(x, caption = "Significant GxE SNPs", escape = F) %>% -->
+<!--   kable_styling("striped", full_width = F, position = 'center') -->
+<!-- ``` -->
+
+<!-- define variables -->
+```{r, include = F}
 child_env <- new.env()
-assign("exposure", params$exposure, child_env)
+assign("exposure",        params$exposure, child_env)
+assign("hrc_version",     params$hrc_version, child_env)
+assign("covariates", sort(params$covariates), child_env)
+# assign("method", "chiSqGxE", child_env)
+
+# exposure working directory path
+path = glue("/media/work/gwis_test/{params$exposure}")
 ```
 
-```{r}
-include_methods <- c("manhattan_chiSqGxE_aspirin_clump_df", 
-                     "twostep_wht_chiSqG_aspirin_expectation_hybrid_df")
 
-x <- readRDS(glue("/media/work/gwis/posthoc/{child_env$exposure}/gwis_sig_results_input_{child_env$exposure}.rds")) %>%
-  dplyr::mutate(SNP = paste0("chr", gsub("\\:", "_", SNP)),
-                AAF = round(GxESet_AltAlleleFreq, 3),
-                Rsq = round(GxESet_Rsq, 3)) %>%
-  dplyr::filter(method %in% include_methods) %>% 
-  dplyr::rename(Chr = Chromosome,
-                BP = Location) %>%
-  arrange(method, Chr, BP) %>%
-  dplyr::select(SNP, Chr, BP, method, AAF, Rsq)
-
-kable(x, caption = "Significant GxE SNPs", escape = F) %>%
-  kable_styling("striped", full_width = F, position = 'center')
-```
 
 
 # GxE (1df)
-```{r}
-child_env <- new.env()
-assign("exposure", params$exposure, child_env)
-assign("method", "chiSqGxE", child_env)
-assign("covariates", sort(covariates_set1), child_env)
-```
-
 ```{r, results = 'asis'}
-snps_out <- readRDS(glue("{output_dir}manhattan_chiSqGxE_{params$exposure}_clump_df.rds")) %>%
-  dplyr::filter(chiSqGxE_p <= 5e-8) %>%
-  dplyr::arrange(Chromosome, Location) %>%
-  dplyr::mutate(snps = paste0('chr', gsub("\\:", "\\_", SNP))) %>%
-  dplyr::pull(snps)
+assign("method", "chiSqGxE", child_env)
+
+# snps_out <- readRDS(glue("{output_dir}manhattan_chiSqGxE_{params$exposure}_clump_df.rds")) %>%
+#   dplyr::filter(chiSqGxE_p <= 5e-8) %>%
+#   dplyr::arrange(Chromosome, Location) %>%
+#   dplyr::mutate(snps = paste0('chr', gsub("\\:", "\\_", SNP))) %>%
+#   dplyr::pull(snps)
+
+snps_out <- paste0('chr', gsub(":", "_", c("6:12577203:T:C", "6:32560631:C:T")))
 
 res <- lapply(snps_out, function(snp) {
   assign("snp", snp, child_env)
-  knitr::knit_child('posthoc_child.Rmd', envir = child_env, quiet = TRUE)
+  knitr::knit_child('posthoc/posthoc_child.Rmd', envir = child_env, quiet = TRUE)
   }
 )
 
@@ -138,82 +152,26 @@ cat(unlist(res), sep = '\n')
 
 
 # Two-step finding (expectation based)
-```{r}
-child_env <- new.env()
-assign("exposure", params$exposure, child_env)
+```{r, results = 'asis'}
+
 assign("method", "chiSqGxE", child_env)
-assign("covariates", sort(covariates_set1), child_env)
-```
 
-```{r, results = 'asis'}
-snps_out <- readRDS(glue(output_dir, "twostep_wht_chiSqEDGE_{params$exposure}_expectation_hybrid_df.rds")) %>%
-  dplyr::filter(SNP == '5:40252294:C:T' | SNP == "6:32560631:C:T") %>%
-  arrange(Chromosome, Location) %>%
-  dplyr::mutate(snps = paste0('chr', gsub("\\:", "\\_", SNP))) %>%
-  pull(snps)
+# snps_out <- readRDS(glue(output_dir, "twostep_wht_chiSqEDGE_{params$exposure}_expectation_hybrid_df.rds")) %>%
+#   dplyr::filter(SNP == '5:40252294:C:T' | SNP == "6:32560631:C:T") %>%
+#   arrange(Chromosome, Location) %>%
+#   dplyr::mutate(snps = paste0('chr', gsub("\\:", "\\_", SNP))) %>%
+#   pull(snps)
+
+snps_out <- paste0('chr', gsub(":", "_", c("5:40252294:C:T")))
 
 res <- lapply(snps_out, function(snp) {
   assign("snp", snp, child_env)
   knitr::knit_child(
-    glue('posthoc_child.Rmd'), envir = child_env, quiet = TRUE)
+    glue('posthoc/posthoc_child.Rmd'), envir = child_env, quiet = TRUE)
   }
 )
 cat(unlist(res), sep = '\n')
 ```
 
-
-
-
-# 2DF (locuszoom only)
-Check whether locus coincides with GWAS findings
-
-```{r}
-child_env <- new.env()
-assign("exposure", params$exposure, child_env)
-assign("method", "chiSq2df", child_env)
-assign("covariates", sort(covariates_set1), child_env)
-```
-
-```{r, results = 'asis'}
-snps_out <- readRDS(glue(output_dir, "manhattan_chiSq2df_{params$exposure}_no_gwas_clump_df.rds")) %>%
-  arrange(Chromosome, Location) %>%
-  dplyr::mutate(snps = paste0('chr', gsub("\\:", "\\_", SNP))) %>%
-  pull(snps)
-
-res <- lapply(snps_out, function(snp) {
-  assign("snp", snp, child_env)
-  knitr::knit_child(
-    glue('posthoc_child_locuszoom_only.Rmd'), envir = child_env, quiet = TRUE)
-  }
-)
-cat(unlist(res), sep = '\n')
-```
-
-
-
-# 3DF (locuszoom only)
-Check whether locus coincides with GWAS findings
-
-```{r}
-child_env <- new.env()
-assign("exposure", params$exposure, child_env)
-assign("method", "chiSq3df", child_env)
-assign("covariates", sort(covariates_set1), child_env)
-```
-
-```{r, results = 'asis'}
-snps_out <- readRDS(glue(output_dir, "manhattan_chiSq3df_{params$exposure}_no_gwas_clump_df.rds")) %>%
-  arrange(Chromosome, Location) %>%
-  dplyr::mutate(snps = paste0('chr', gsub("\\:", "\\_", SNP))) %>%
-  pull(snps)
-
-res <- lapply(snps_out, function(snp) {
-  assign("snp", snp, child_env)
-  knitr::knit_child(
-    glue('posthoc_child_locuszoom_only.Rmd'), envir = child_env, quiet = TRUE)
-  }
-)
-cat(unlist(res), sep = '\n')
-```
 
 

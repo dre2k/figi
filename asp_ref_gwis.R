@@ -23,34 +23,23 @@ library(flextable)
 library(jtools)
 library(interactions)
 library(msm)
+library(qs)
 rm(list = ls())
-source("functions.R")
 
 # input variables
 exposure = 'asp_ref'
 hrc_version = 'v2.4'
-output_dir = paste0("/media/work/gwis/posthoc/", exposure, "/")
-annotation_file <- 'gwas_141_ld_annotation_july2020.txt'
-
+annotation_file <- 'gwas_200_ld_annotation_feb2021.txt'
 covariates <- sort(c('age_ref_imp', 'sex', 'study_gxe', 'pc1', 'pc2', 'pc3'))
-covariates_set1 <- covariates
-# covariates_set2 <- sort(c(covariates_set1, 'bmi', 'smk_ever', 'fruitqc2', 'vegetableqc2'))
-covariates_list <- list(covariates)
-mod <- 'age_ref_imp+sex+pc1+pc2+pc3+study_gxe'
+path = glue("/media/work/gwis_test/{exposure}/")
 
-exclude_gwas <- fread("~/data/Annotations/gwas_141_ld_annotation_july2020.txt") %>%
-  mutate(SNP2 = paste0(Chr, ":", Pos)) %>%
-  pull(SNP2)
 
 # input data
-esubset <- readRDS(glue("/media/work/gwis/data/FIGI_EpiData/FIGI_{hrc_version}_gxeset_{exposure}_basic_covars_glm.rds")) %>% 
+esubset <- readRDS(glue("/media/work/gwis_test/{exposure}/data/FIGI_{hrc_version}_gxeset_{exposure}_basic_covars_glm.rds")) %>% 
   pull(vcfid)
-input_data <- readRDS(glue("/media/work/gwis/data/FIGI_EpiData/FIGI_{hrc_version}_gxeset_analysis_data_glm.rds")) %>% 
-  filter(vcfid%in% esubset)
 
-# gxescan output
-gxe <- readRDS(glue("/media/work/gwis/results/{exposure}/processed/FIGI_{hrc_version}_gxeset_{exposure}_basic_covars_gxescan_results.rds")) %>% 
-  mutate(SNP2 = paste0(Chromosome, ":", Location))
+input_data <- readRDS(glue("/media/work/gwis_test/data/FIGI_{hrc_version}_gxeset_analysis_data_glm.rds")) %>% 
+  filter(vcfid%in% esubset)
 
 
 
@@ -59,23 +48,29 @@ gxe <- readRDS(glue("/media/work/gwis/results/{exposure}/processed/FIGI_{hrc_ver
 #-----------------------------------------------------------------------------#
 
 # ------ meta-analysis ------ #
-covariates_meta <- sort(c('age_ref_imp', 'sex', 'study_gxe'))
-meta_analysis_execute(dataset = input_data, exposure = exposure, hrc_version = hrc_version, covariates = covariates_meta, output_dir = output_dir, filename_suffix2 = "")
+output_dir = as.character(glue("{path}/output/posthoc/"))
+covariates_meta <- sort(covariates[which(!covariates %in% c(paste0(rep('pc', 20), seq(1, 20)), "study_gxe"))])
 
-# ------- pooled analysis ------- #
-## basic covariates
-covariates_pooled <- sort(covariates[which(!covariates %in% c(paste0(rep('pc', 20), seq(1, 20))))])
-pooled_analysis_glm(input_data, exposure = exposure, covariates = covariates_pooled, strata = 'sex', 
-                    filename_suffix = paste0(paste0(sort(covariates), collapse = '_'), "_stratified_sex"), output_dir = output_dir)
-pooled_analysis_glm(input_data, exposure = exposure, covariates = covariates_pooled, strata = 'study_design', 
-                    filename_suffix = paste0(paste0(sort(covariates), collapse = '_'), "_stratified_study_design"), output_dir = output_dir)
-pooled_analysis_multinom(input_data, exposure = exposure, covariates = covariates_pooled, 
-                         filename_suffix = paste0(paste0(sort(covariates), collapse = '_'), "_stratified_cancer_site_sum2"), output_dir = output_dir)
+create_forest_plot(data_epi = input_data, exposure = exposure, covariates = covariates_meta, hrc_version = hrc_version, path = glue("{path}/output/posthoc/"), strata = "all", forest_height = 15)
+create_forest_plot(data_epi = input_data, exposure = exposure, covariates = covariates_meta, hrc_version = hrc_version, path = glue("{path}/output/posthoc/"), strata = "proximal", forest_height = 13)
+create_forest_plot(data_epi = input_data, exposure = exposure, covariates = covariates_meta, hrc_version = hrc_version, path = glue("{path}/output/posthoc/"), strata = "distal", forest_height = 13)
+create_forest_plot(data_epi = input_data, exposure = exposure, covariates = covariates_meta, hrc_version = hrc_version, path = glue("{path}/output/posthoc/"), strata = "rectal", forest_height = 13)
+create_forest_plot(data_epi = input_data, exposure = exposure, covariates = covariates_meta, hrc_version = hrc_version, path = glue("{path}/output/posthoc/"), strata = "female", forest_height = 13)
+create_forest_plot(data_epi = input_data, exposure = exposure, covariates = covariates_meta, hrc_version = hrc_version, path = glue("{path}/output/posthoc/"), strata = "male", forest_height = 13)
 
-#-----------------------------------------------------------------------------#
+
+# ------- stratified pooled analysis ------- #
+pooled_analysis_glm(input_data, exposure = exposure, hrc_version = hrc_version, covariates = covariates, strata = 'sex', filename_suffix = paste0(paste0(sort(covariates), collapse = '_'), "_stratified_sex"), output_dir = glue("{path}/output/posthoc/"))
+
+pooled_analysis_glm(input_data, exposure = exposure, hrc_version = hrc_version, covariates = covariates, strata = 'study_design', filename_suffix = paste0(paste0(sort(covariates), collapse = '_'), "_stratified_study_design"), output_dir = glue("{path}/output/posthoc/"))
+
+pooled_analysis_multinom(input_data, exposure = exposure, hrc_version = hrc_version, covariates = covariates, filename_suffix = paste0(paste0(sort(covariates), collapse = '_'), "_stratified_cancer_site_sum2"), output_dir = glue("{path}/output/posthoc/"))
+
+
+
+
+
 # main effects additional ----
-#-----------------------------------------------------------------------------#
-
 output_dir_dropbox = paste0("~/Dropbox/Presentations/", exposure, "/")
 
 tmp1 <- readRDS(paste0("/media/work/gwis/results/input/FIGI_", hrc_version, "_gxeset_", exposure, "_basic_covars_glm.rds")) %>% 
@@ -130,48 +125,6 @@ plot(inf.analysis, "es")
 plot(inf.analysis, "i2")
 
 
-#-----------------------------------------------------------------------------#
-# qq plots, manhattan plots, two-step plots ---- 
-# (should be able to source script since variables are defined here)
-#-----------------------------------------------------------------------------#
-source("~/Dropbox/FIGI/FIGI_code/results/gwis/gwis_02_plots.R")
-
-
-#-----------------------------------------------------------------------------#
-# two-step expectation hybrid ---- 
-#-----------------------------------------------------------------------------#
-# ------ output list of SNPs from each bin (expectation based) to extract dosages
-# exposure subset for step 1 statistics
-twostep_eh_snps(gxe, 'chiSqG')
-twostep_eh_snps(gxe, 'chiSqGE')
-twostep_eh_snps(gxe, 'chiSqEDGE')
-
-# gecco meta analysis for main effects step 1 statistics
-gwas_results <- readRDS("/media/work/gwis/results/gecco/MarginalMeta_gecco_HRC_EUR_only.rds")
-gxe_twostep_gwas_step1 <- gxe %>%
-  dplyr::select(-betaG, -chiSqG, -chiSqEDGE, -chiSq3df) %>%
-  inner_join(gwas_results, 'SNP') %>%
-  mutate(chiSqEDGE = chiSqG + chiSqGE,
-         chiSq3df = chiSqG + chiSqGxE + chiSqGE)
-
-twostep_eh_snps(gxe_twostep_gwas_step1, 'chiSqG', step1_source = "gecco")
-
-
-# ----------------------------------------------------------- #
-# ------- run simpleM and generate plots + results df ------- #
-simplem_wrap(x = gxe, exposure = exposure, covariates = covariates, simplem_step1_statistic = 'chiSqG', output_dir = output_dir)
-simplem_wrap(x = gxe, exposure = exposure, covariates = covariates, simplem_step1_statistic = 'chiSqGE', output_dir = output_dir)
-simplem_wrap(x = gxe, exposure = exposure, covariates = covariates, simplem_step1_statistic = 'chiSqEDGE', output_dir = output_dir)
-simplem_wrap(x = gxe_twostep_gwas_step1, exposure = exposure, covariates = covariates, simplem_step1_statistic = 'chiSqG', output_dir = output_dir, filename_suffix = "_gwas_step1" )
-
-
-simplem_wrap(x = gxe, exposure = exposure, covariates = covariates, simplem_step1_statistic = 'chiSqG', output_dir = output_dir, include_gwas = F, filename_suffix = "_no_gwas")
-simplem_wrap(x = gxe, exposure = exposure, covariates = covariates, simplem_step1_statistic = 'chiSqGE', output_dir = output_dir, include_gwas = F, filename_suffix = "_no_gwas")
-simplem_wrap(x = gxe, exposure = exposure, covariates = covariates, simplem_step1_statistic = 'chiSqEDGE', output_dir = output_dir, include_gwas = F, filename_suffix = "_no_gwas")
-simplem_wrap(x = gxe_twostep_gwas_step1, exposure = exposure, covariates = covariates, simplem_step1_statistic = 'chiSqG', output_dir = output_dir, include_gwas = F, filename_suffix = "_gwas_step1_no_gwas" )
-
-
-
 
 #-----------------------------------------------------------------------------#
 # functional annotation subset ---- 
@@ -200,86 +153,34 @@ simplem_wrap2(x = x1, exposure = exposure, covariates = covariates, simplem_step
 
 
 
-#-----------------------------------------------------------------------------#
-# SNP followup ---- 
-#-----------------------------------------------------------------------------#
-# compile significant results into data.frame
-source("/home/rak/Dropbox/FIGI/FIGI_code/results/posthoc/posthoc_01_combine_results.R")
 
-# on HPC:
-# - extract dosage information on HPC
-# - calculate clumped statistics - gxe, 2/3df if necessary
+
 
 
 
 #-----------------------------------------------------------------------------#
-# SNP followup (models and plots) ---- 
+# GxE additional analysis ---- 
 #-----------------------------------------------------------------------------#
-figi <- posthoc_input(exposure, hrc_version, glue('gwis_sig_results_output_{exposure}.rds')) %>% 
-  mutate(asp_ref = fct_relevel(asp_ref, "Yes", "No"))
 
-snps <- readRDS(glue(output_dir, "gwis_sig_results_input_{exposure}.rds"))
-table(snps$method)
+# output GxE models adjusted by different covariate sets
+covariates_sets <- list(covariates)
 
 
+# stratified by tumor and sex 
+snps <- c("6:12577203:T:C", "6:32560631:C:T", "5:40252294:C:T")
+walk(snps, ~ fit_gxe_stratified(data_epi = input_data, exposure = exposure, snp = .x, covariates = covariates, method = "chiSqGxE", strata = 'sex', path = glue("{path}/output")))
+walk(snps, ~ fit_gxe_stratified(data_epi = input_data, exposure = exposure, snp = .x, covariates = covariates, method = "chiSqGxE", strata = 'cancer_site_sum2', path = glue("{path}/output")))
 
 
-# ------- GxE 1DF findings ------- #
-snps_filter <- snps %>% 
-  dplyr::filter(method == glue("manhattan_chiSqGxE_{exposure}_clump_df"),
-                Pval <= 5e-8) %>% 
-  dplyr::mutate(snps = paste0('chr', gsub("\\:", "\\_", SNP))) %>% 
-  pull(snps)
+# output RERI plots
+snps <- c("6:12577203:T:C")
+walk(snps, ~ reri_wrapper(data_epi = input_data, exposure = exposure, snp = .x, covariates = covariates, path = glue("{path}/output")))
 
-posthoc_run_models(snps_filter, 'chiSqGxE', quartile = T)
-posthoc_run_reri_plot(snps_filter)
-posthoc_create_plots(snps_filter, 'chiSqGxE')
-
-
-# ------- two step (E|G no gwas) ------- #
-snps_filter <- snps %>% 
-  dplyr::filter(method == glue("twostep_wht_chiSqGE_{exposure}_no_gwas_df")) %>% 
-  dplyr::mutate(snps = paste0('chr', gsub("\\:", "\\_", SNP))) %>% 
-  pull(snps)
-
-posthoc_run_models(snps_filter, 'chiSqGxE', quartile = T)
-posthoc_run_reri_plot(snps_filter)
-posthoc_create_plots(snps_filter, 'chiSqGxE')
-
-
-
-
-
-# ------- twostep eh ------- #
-snps_filter <- snps %>% 
-  dplyr::filter(method == glue("twostep_wht_chiSqEDGE_{exposure}_expectation_hybrid_no_gwas_df")) %>% 
-  dplyr::arrange(Pval) %>% 
-  dplyr::mutate(snps = paste0('chr', gsub("\\:", "\\_", SNP))) %>% 
-  pull(snps)
-
-posthoc_run_models(snps_filter, 'chiSqGxE', quartile = T)
-posthoc_run_reri_plot(snps_filter)
-posthoc_create_plots(snps_filter, 'chiSqGxE')
-
-
-
-
-# ------- 2DF/3DF clumped removing GWAS and or EG (to check 'novel' D|G results) ------- #
-# as first pass, only generate locuszoom plots to gauge whether the region is already capture by GECCO meta-analysis
-snps_filter <- readRDS(glue(output_dir, "manhattan_chiSq2df_{exposure}_no_gwas_clump_df.rds")) %>% 
-  dplyr::mutate(snps = paste0('chr', gsub("\\:", "\\_", SNP))) %>% 
-  pull(snps)
-posthoc_create_plots(snps_filter, 'chiSq2df')
-
-snps_filter <- readRDS(glue(output_dir, "manhattan_chiSq3df_{exposure}_no_gwas_no_ge_clump_df.rds")) %>% 
-  dplyr::mutate(snps = paste0('chr', gsub("\\:", "\\_", SNP))) %>% 
-  pull(snps)
-posthoc_create_plots(snps_filter, 'chiSq3df')
-
-
-
-
-
+# need to flip exposure
+tmp_flip <- input_data %>% 
+  mutate(asp_ref = fct_relevel(asp_ref, "Yes"))
+snps <- c( "6:32560631:C:T", "5:40252294:C:T")
+walk(snps, ~ reri_wrapper(data_epi = tmp_flip, exposure = exposure, snp = .x, covariates = covariates, path = glue("{path}/output")))
 
 
 
@@ -288,12 +189,17 @@ posthoc_create_plots(snps_filter, 'chiSq3df')
 # ================================================================== #
 # ======= rmarkdown reports ---- 
 # ================================================================== #
+main_effects_report(exposure = exposure, hrc_version = hrc_version, covariates = covariates, path = path)
+
+
 gwis_report(exposure = exposure, 
             hrc_version = hrc_version, 
             covariates = covariates)
 
-posthoc_report(exposure = exposure)
-
+posthoc_report(exposure = exposure, 
+               hrc_version = hrc_version,
+               covariates = covariates,
+               path = path)
 
 
 

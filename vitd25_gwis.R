@@ -48,9 +48,9 @@ vitd <- readRDS("/media/work/gwis/data/FIGI_EpiData/FIGI_v2.3_gxeset_vitd25_basi
 
 input_data$vitd25 <- vitd$vitd25
 
-# gxescan output
-gxe <- readRDS(glue("/media/work/gwis/results/{exposure}/processed/FIGI_{hrc_version}_gxeset_{exposure}_basic_covars_gxescan_results.rds")) %>% 
-  mutate(SNP2 = paste0(Chromosome, ":", Location))
+
+
+
 
 #-----------------------------------------------------------------------------#
 # main effects ----
@@ -132,187 +132,25 @@ plot(inf.analysis, "i2")
 
 
 #-----------------------------------------------------------------------------#
-# qq plots, manhattan plots, two-step plots ---- 
-# (should be able to source script since variables are defined here)
-#-----------------------------------------------------------------------------#
-source("~/Dropbox/FIGI/FIGI_code/results/gwis/gwis_02_plots.R")
-
-
-#-----------------------------------------------------------------------------#
-# two-step expectation hybrid ---- 
-#-----------------------------------------------------------------------------#
-# ------ output list of SNPs from each bin (expectation based) to extract dosages
-# exposure subset for step 1 statistics
-twostep_eh_snps(gxe, 'chiSqG')
-twostep_eh_snps(gxe, 'chiSqGE')
-twostep_eh_snps(gxe, 'chiSqEDGE')
-
-# gecco meta analysis for main effects step 1 statistics
-gwas_results <- readRDS("/media/work/gwis/results/gecco/MarginalMeta_gecco_HRC_EUR_only.rds")
-gxe_twostep_gwas_step1 <- gxe %>%
-  dplyr::select(-betaG, -chiSqG, -chiSqEDGE, -chiSq3df) %>%
-  inner_join(gwas_results, 'SNP') %>%
-  mutate(chiSqEDGE = chiSqG + chiSqGE,
-         chiSq3df = chiSqG + chiSqGxE + chiSqGE)
-
-twostep_eh_snps(gxe_twostep_gwas_step1, 'chiSqG', step1_source = "gecco")
-
-
-# ----------------------------------------------------------- #
-# ------- run simpleM and generate plots + results df ------- #
-simplem_wrap(x = gxe, exposure = exposure, covariates = covariates, simplem_step1_statistic = 'chiSqG', output_dir = output_dir)
-simplem_wrap(x = gxe, exposure = exposure, covariates = covariates, simplem_step1_statistic = 'chiSqGE', output_dir = output_dir)
-simplem_wrap(x = gxe, exposure = exposure, covariates = covariates, simplem_step1_statistic = 'chiSqEDGE', output_dir = output_dir)
-simplem_wrap(x = gxe_twostep_gwas_step1, exposure = exposure, covariates = covariates, simplem_step1_statistic = 'chiSqG', output_dir = output_dir, filename_suffix = "_gwas_step1" )
-
-
-simplem_wrap(x = gxe, exposure = exposure, covariates = covariates, simplem_step1_statistic = 'chiSqG', output_dir = output_dir, include_gwas = F, filename_suffix = "_no_gwas")
-simplem_wrap(x = gxe, exposure = exposure, covariates = covariates, simplem_step1_statistic = 'chiSqGE', output_dir = output_dir, include_gwas = F, filename_suffix = "_no_gwas")
-simplem_wrap(x = gxe, exposure = exposure, covariates = covariates, simplem_step1_statistic = 'chiSqEDGE', output_dir = output_dir, include_gwas = F, filename_suffix = "_no_gwas")
-simplem_wrap(x = gxe_twostep_gwas_step1, exposure = exposure, covariates = covariates, simplem_step1_statistic = 'chiSqG', output_dir = output_dir, include_gwas = F, filename_suffix = "_gwas_step1_no_gwas" )
-
-
-
-
-#-----------------------------------------------------------------------------#
-# functional annotation subset ---- 
-# focus on pooled scores for now
+# GxE additional analysis ---- 
 #-----------------------------------------------------------------------------#
 
-svm_pooled <- readRDS("/media/work/svm_scores/svm_pooled_filter_sd3.rds")
-x1 <- gxe %>%
-  filter(SNP %in% svm_pooled$SNP)
+# output GxE models adjusted by different covariate sets
+covariates_sets <- list(covariates, 
+                        c(covariates, 'bmi5'), 
+                        c(covariates, 'bmi5', 'smk_ever'), 
+                        c(covariates, 'bmi5', 'smk_ever', 'fruitqc2', 'vegetableqc2'))
+
+fit_gxe_covars(data_epi = input_data, exposure = exposure, snp = "13:47191972:G:A", covariates_list = covariates_sets, method = 'chiSqGxE', path = glue("{path}/output"))
 
 
-# output bin SNPs for expectation based hybrid method..  
-twostep_eh_snps(x1, 'chiSqG', output_dir = glue('/media/work/gwis/twostep_expectation_hybrid/{exposure}/svm_subset/'))
-twostep_eh_snps(x1, 'chiSqGE', output_dir = glue('/media/work/gwis/twostep_expectation_hybrid/{exposure}/svm_subset/'))
-twostep_eh_snps(x1, 'chiSqEDGE', output_dir = glue('/media/work/gwis/twostep_expectation_hybrid/{exposure}/svm_subset/'))
+# additional covariates is making association more significant.. let's generate for all suggestive hits
+suggestive_gxe <- fread(glue("{path}/data/FIGI_v2.3_gxeset_diab_chiSqGxE_ldclump.clumped"))
+walk(suggestive_gxe$SNP, ~ fit_gxe_covars(data_epi = input_data, exposure = exposure, snp = .x, covariates_list = covariates_sets, method = 'chiSqGxE', path = glue("{path}/output")))
 
 
-# create manhattan, qq, two-step
-plot_funcannot_wrap(gxe, exposure = exposure, covariates = covariates, output_dir = output_dir, filename_suffix = "_functional_subset")
-
-# run expectation based hybrid?
-simplem_wrap2(x = x1, exposure = exposure, covariates = covariates, simplem_step1_statistic = 'chiSqG', output_dir = output_dir, filename_suffix = "_functional_subset")
-simplem_wrap2(x = x1, exposure = exposure, covariates = covariates, simplem_step1_statistic = 'chiSqGE', output_dir = output_dir, filename_suffix = "_functional_subset")
-simplem_wrap2(x = x1, exposure = exposure, covariates = covariates, simplem_step1_statistic = 'chiSqEDGE', output_dir = output_dir, filename_suffix = "_functional_subset")
-
-
-
-
-
-
-#-----------------------------------------------------------------------------#
-# SNP followup ---- 
-#-----------------------------------------------------------------------------#
-# compile significant results into data.frame
-source("/home/rak/Dropbox/FIGI/FIGI_code/results/posthoc/posthoc_01_combine_results.R")
-
-# on HPC:
-# - extract dosage information on HPC
-# - calculate clumped statistics - gxe, 2/3df if necessary
-
-
-
-#-----------------------------------------------------------------------------#
-# SNP followup (models and plots) ---- 
-#-----------------------------------------------------------------------------#
-
-figi <- posthoc_input(exposure, hrc_version, glue('gwis_sig_results_output_{exposure}.rds')) 
-
-snps <- readRDS(glue(output_dir, "gwis_sig_results_input_{exposure}.rds"))
-table(snps$method)
-
-
-# ------- GxE 1DF suggestive findings ------- #
-snps_filter <- snps %>% 
-  dplyr::filter(method == glue("manhattan_chiSqGxE_{exposure}_clump_df")) %>% 
-  dplyr::mutate(snps = paste0('chr', gsub("\\:", "\\_", SNP))) %>% 
-  pull(snps)
-
-posthoc_run_models(snps_filter, 'chiSqGxE')
-posthoc_run_reri_plot(snps_filter)
-posthoc_create_plots(snps_filter, 'chiSqGxE')
-
-
-# ------- case-only findings ... ------- #
-snps_filter <- snps %>% 
-  dplyr::filter(method == glue("manhattan_chiSqCase_{exposure}_clump_df")) %>% 
-  dplyr::mutate(snps = paste0('chr', gsub("\\:", "\\_", SNP))) %>% 
-  dplyr::arrange(Pval) %>% 
-  pull(snps)
-
-posthoc_run_models(snps_filter, 'chiSqCase')
-posthoc_run_reri_plot(snps_filter)
-posthoc_create_plots(snps_filter, 'chiSqCase')
-
-
-# 2df the one hit
-snps_filter <- snps %>% 
-  dplyr::filter(method == glue("manhattan_chiSq2df_{exposure}_no_gwas_clump_df"), 
-                SNP == "13:47191972:G:A") %>% 
-  dplyr::mutate(snps = paste0('chr', gsub("\\:", "\\_", SNP))) %>% 
-  dplyr::arrange(Pval) %>% 
-  pull(snps)
-
-
-posthoc_run_models(snps_filter, 'chiSq2df')
-posthoc_run_reri_plot(snps_filter)
-posthoc_create_plots(snps_filter, 'chiSq2df')
-
-
-
-# ------- 2DF/3DF clumped removing GWAS and or EG (to check 'novel' D|G results) ------- #
-# as first pass, only generate locuszoom plots to gauge whether the region is already capture by GECCO meta-analysis
-snps_filter <- readRDS(glue(output_dir, "manhattan_chiSq2df_{exposure}_no_gwas_clump_df.rds")) %>% 
-  dplyr::mutate(snps = paste0('chr', gsub("\\:", "\\_", SNP))) %>% 
-  pull(snps)
-posthoc_create_plots_locuszoom(snps_filter, 'chiSq2df')
-
-snps_filter <- readRDS(glue(output_dir, "manhattan_chiSq3df_{exposure}_no_gwas_clump_df.rds")) %>% 
-  dplyr::mutate(snps = paste0('chr', gsub("\\:", "\\_", SNP))) %>% 
-  pull(snps)
-posthoc_create_plots_locuszoom(snps_filter, 'chiSq3df')
-
-
-snps_filter <- snps_filter[7]
-posthoc_create_plots_locuszoom(snps_filter, 'chiSq3df')
-
-
-
-
-# ----- add additional covariates ------ #
-# ------- GxE 1DF suggestive findings ------- #
-
-covariates1 <- sort(c('age_ref_imp', 'sex', 'study_gxe', 'pc1', 'pc2', 'pc3'))
-covariates2 <- sort(c(covariates1, 'bmi'))
-covariates3 <- sort(c(covariates2, 'redmeatqc2', 'smk_ever'))
-covariates_list <- list(covariates1, covariates2, covariates3)
-mod <- 'age_ref_imp+sex+pc1+pc2+pc3+study_gxe'
-
-
-snps_filter <- snps %>% 
-  dplyr::filter(method == glue("manhattan_chiSqGxE_{exposure}_clump_df")) %>% 
-  dplyr::mutate(snps = paste0('chr', gsub("\\:", "\\_", SNP))) %>% 
-  pull(snps)
-
-posthoc_run_models(snps_filter, 'chiSqGxE')
-posthoc_run_reri_plot(snps_filter)
-posthoc_create_plots(snps_filter, 'chiSqGxE')
-
-
-
-
-# ================================================================== #
-# ======= interaction stratified by diabetes status ---- 
-# ================================================================== #
-
-snps_filter <- snps %>% 
-  dplyr::filter(method == glue("manhattan_chiSqCase_{exposure}_clump_df")) %>% 
-  dplyr::mutate(snps = paste0('chr', gsub("\\:", "\\_", SNP))) %>% 
-  dplyr::arrange(Pval) %>% 
-  pull(snps)
+# output RERI plots (can't install package on CARC yet)
+reri_wrapper(data_epi = input_data, exposure = exposure, snp = "13:47191972:G:A", covariates = covariates, path = glue("{path}/output"))
 
 
 
@@ -320,15 +158,10 @@ snps_filter <- snps %>%
 # ================================================================== #
 # ======= rmarkdown reports ---- 
 # ================================================================== #
-
+# 
 gwis_report(exposure = exposure, hrc_version = hrc_version, covariates = covariates)
 
 posthoc_report(exposure = exposure)
-
-
-
-
-
 
 
 

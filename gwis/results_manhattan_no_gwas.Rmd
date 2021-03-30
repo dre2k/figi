@@ -1,0 +1,62 @@
+```{r include = F}
+
+# manhattan plots
+manhattan_wrapper <- function(exposure, hrc_version, statistic, nogwas = F) {
+  
+  # input files
+  if(nogwas == T) {
+    manhattan_plot <- glue("/media/work/gwis_test/{exposure}/output/manhattan_{exposure}_{hrc_version}_{statistic}_no_gwas.png")
+  } else {
+    manhattan_plot <- glue("/media/work/gwis_test/{exposure}/output/manhattan_{exposure}_{hrc_version}_{statistic}.png")
+  }
+  
+  knitr::include_graphics(manhattan_plot)
+}
+
+
+# significant results table
+significant_results_table_wrapper <- function(exposure, hrc_version, statistic, nogwas = F) {
+  
+  # input files
+  if(nogwas == T) {
+    clump_file <- glue("/media/work/gwis_test/{exposure}/data/FIGI_{hrc_version}_gxeset_{exposure}_{statistic}_no_gwas_ldclump.clumped")
+    manhattan_file <- glue("/media/work/gwis_test/{exposure}/output/manhattan_{exposure}_{hrc_version}_{statistic}_no_gwas_df.rds")
+  } else {
+    clump_file <- glue("/media/work/gwis_test/{exposure}/data/FIGI_{hrc_version}_gxeset_{exposure}_{statistic}_ldclump.clumped")
+    manhattan_file <- glue("/media/work/gwis_test/{exposure}/output/manhattan_{exposure}_{hrc_version}_{statistic}_df.rds")
+  }
+  
+  # plink clump output
+  clumped <- fread(clump_file)
+  
+  # significant findings from manhattan plot (filter to only clumped peaks for brevity)
+  out <- readRDS(manhattan_file) %>% 
+      dplyr::rename(Pval_dg = chiSqG_p, 
+                    Pval_gxe = chiSqGxE_p, 
+                    Pval_ge = chiSqGE_p, 
+                    Pval_control = chiSqControl_p, 
+                    Pval_case = chiSqCase_p,
+                    Pval_2df = chiSq2df_p, 
+                    Pval_3df = chiSq3df_p) %>% 
+      dplyr::mutate(across(starts_with("Pval"), ~ formatC(.x, format = 'e', digits = 4))) %>% 
+      dplyr::arrange(Chromosome, Location) %>%
+      dplyr::filter(SNP %in% clumped$SNP) %>% 
+      dplyr::select(SNP, Subjects, Cases, Pval_dg, Pval_gxe, Pval_ge, Pval_control, Pval_case, Pval_2df, Pval_3df)
+  
+  out %>% 
+    DT::datatable(filter = 'top', options = list(pageLength = 10, autoWidth = T)) %>% 
+    DT::formatStyle(columns = colnames(out), fontSize = '75%')}
+
+```
+
+### 2DF
+```{r , echo=FALSE, out.width = '100%'}
+manhattan_wrapper(exposure = params$exposure, hrc_version = params$hrc_version, statistic = 'chiSq2df', nogwas = T)
+significant_results_table_wrapper(exposure = params$exposure, hrc_version = params$hrc_version, statistic = 'chiSq2df', nogwas = T)
+```
+
+### 3DF Test
+```{r , echo=FALSE, out.width = '100%'}
+manhattan_wrapper(exposure = params$exposure, hrc_version = params$hrc_version, statistic = 'chiSq3df', nogwas = T)
+significant_results_table_wrapper(exposure = params$exposure, hrc_version = params$hrc_version, statistic = 'chiSq3df', nogwas = T)
+```

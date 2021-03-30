@@ -1,0 +1,62 @@
+
+```{r include = F}
+
+# twostep plot
+twostep_wrapper <- function(exposure, step1_statistic, eh_method, hrc_version, filename_suffix = "") {
+  knitr::include_graphics(glue("/media/work/gwis_test/{exposure}/output/twostep_{eh_method}_{exposure}_{hrc_version}_{step1_statistic}.png"))
+}
+
+# table of significant results
+significant_results_table_wrapper <- function(exposure, step1_statistic, eh_method, hrc_version, filename_suffix = "") {
+  
+  # output
+  out <- readRDS(glue("/media/work/gwis_test/{exposure}/output/twostep_{eh_method}_{exposure}_{hrc_version}_{step1_statistic}_df.rds")) %>% 
+    dplyr::rename(Bin = bin_number) %>% 
+    dplyr::mutate(Step1p = formatC(step1p, format = "e", digits = 4),
+           Step2p = formatC(step2p, format = "e", digits = 4)) %>% 
+    dplyr::arrange(Chromosome, Location) %>%
+    dplyr::select(SNP, Subjects, Cases, Bin, Step1p, Step2p)
+  
+  out %>% 
+    DT::datatable(filter = 'top', options = list(pageLength = 10, autoWidth = T)) %>% 
+    DT::formatStyle(columns = colnames(out), fontSize = '75%')
+}
+
+```
+
+### Step1 D|G (pca cutoff 99.5%)
+```{r , echo=FALSE, out.width = '100%'}
+twostep_wrapper(exposure = params$exposure, hrc_version = params$hrc_version, eh_method = "gao_0.995", step1_statistic = 'chiSqG')
+significant_results_table_wrapper(exposure = params$exposure, eh_method = "gao_0.995", hrc_version = params$hrc_version, step1_statistic = 'chiSqG')
+```
+
+### Step1 D|G (pca cutoff 97.5%)
+```{r , echo=FALSE, out.width = '100%'}
+twostep_wrapper(exposure = params$exposure, hrc_version = params$hrc_version, eh_method = "gao_0.975", step1_statistic = 'chiSqG')
+significant_results_table_wrapper(exposure = params$exposure, hrc_version = params$hrc_version, eh_method = "gao_0.975", step1_statistic = 'chiSqG')
+```
+
+### Step1 G|E (pca cutoff 99.5%)
+```{r , echo=FALSE, out.width = '100%'}
+twostep_wrapper(exposure = params$exposure, hrc_version = params$hrc_version, eh_method = "gao_0.995", step1_statistic = 'chiSqGE')
+significant_results_table_wrapper(exposure = params$exposure, eh_method = "gao_0.995", hrc_version = params$hrc_version, step1_statistic = 'chiSqGE')
+```
+
+### Step1 G|E (pca cutoff 97.5%)
+```{r , echo=FALSE, out.width = '100%'}
+twostep_wrapper(exposure = params$exposure, hrc_version = params$hrc_version, eh_method = "gao_0.975", step1_statistic = 'chiSqGE')
+significant_results_table_wrapper(exposure = params$exposure, hrc_version = params$hrc_version, eh_method = "gao_0.975", step1_statistic = 'chiSqGE')
+```
+
+### Step1 EDGE (pca cutoff 99.5%)
+```{r , echo=FALSE, out.width = '100%'}
+twostep_wrapper(exposure = params$exposure, hrc_version = params$hrc_version, eh_method = "gao_0.995", step1_statistic = 'chiSqEDGE')
+significant_results_table_wrapper(exposure = params$exposure, eh_method = "gao_0.995", hrc_version = params$hrc_version, step1_statistic = 'chiSqEDGE')
+```
+
+### Step1 EDGE (pca cutoff 97.5%)
+```{r , echo=FALSE, out.width = '100%'}
+twostep_wrapper(exposure = params$exposure, hrc_version = params$hrc_version, eh_method = "gao_0.975", step1_statistic = 'chiSqEDGE')
+significant_results_table_wrapper(exposure = params$exposure, hrc_version = params$hrc_version, eh_method = "gao_0.975", step1_statistic = 'chiSqEDGE')
+```
+

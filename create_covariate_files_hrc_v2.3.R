@@ -799,6 +799,26 @@ table(y$study_gxe, y$smk_aveday)
 
 
 
+
+# smk_pkyrqc2 (yi analysis match)
+table(figi_gxe$smk_pkyrqc2, figi_gxe$smk_ever)
+
+x <- figi_gxe %>% 
+  filter(smoke != "Never smoked")
+
+describeBy(x$smk_pkyr, x$smoke)
+summary(x$smk_pkyr)
+hist(x$smk_pkyr)
+
+xx <- filter(x, smk_pkyr <= 0)
+
+exclude = c("PPS3", "PPS4", "NGCCS", "MECC_3")
+wrap(x, exposure = 'smk_pkyr', is_e_categorical = F, vars_to_exclude = c("energytot_imp"), studies_to_exclude = exclude)
+y <- readRDS("~/data/GxEScanR_PhenotypeFiles/FIGI_v2.3_gxeset_smk_pkyr_basic_covars_glm.rds")
+table(y$study_gxe, y$outcome)
+table(y$study_gxe, y$smk_aveday)
+
+
 # ----- Fruits vegetables and fiber ------ 
 
 # fiberqc2

@@ -295,9 +295,11 @@ posthoc_create_plots(snps_filter, 'chiSq3df')
 # ================================================================== #
 # ======= rmarkdown reports ---- 
 # ================================================================== #
+path = glue("/media/work/gwis_test/{exposure}")
+
 gwis_report(exposure = exposure, 
             hrc_version = hrc_version, 
-            covariates = c('age_ref_imp', 'energytot_imp', 'sex' , 'pc1', 'pc2', 'pc3', 'study_gxe'))
+            covariates = covariates)
 
 posthoc_report(exposure = exposure)
 

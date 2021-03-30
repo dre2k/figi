@@ -3,7 +3,7 @@ title: "`r params$exposure` posthoc analysis"
 date: '`r paste("Updated on", Sys.Date())`'
 output: 
   html_document:
-    css: posthoc/posthoc_report.css
+    css: posthoc_report.css
     toc: true
     toc_float:
       collapsed: true
@@ -11,9 +11,9 @@ output:
     toc_depth: 3
     theme: "paper"
 params:
-  exposure: "aspirin"
-  covariates: !r c("age_ref_imp", "sex", "pc1", "pc2", "pc3", "study_gxe")
-  hrc_version: "v2.4"
+  exposure: "fruitqc2"
+  covariates: !r c("age_ref_imp", "sex", "energytot_imp", "pc1", "pc2", "pc3", "study_gxe")
+  hrc_version: "v2.3"
 ---
 
 ```{r setup, include=FALSE}
@@ -69,43 +69,20 @@ path = glue("/media/work/gwis_test/{params$exposure}")
 assign("method", "chiSqGxE", child_env)
 
 # SNPs
-snps_clumped <- fread(glue("{path}/data/FIGI_{hrc_version}_gxeset_{exposure}_chiSqGxE_ldclump.clumped"), header = T, stringsAsFactors = F)
-snps_out <- readRDS(glue("{path}/output/manhattan_{exposure}_{hrc_version}_chiSqGxE_df.rds")) %>%
-  dplyr::filter(SNP %in% snps_clumped$SNP, 
-                chiSqGxE_p < 5e-8) %>% 
-  dplyr::arrange(Chromosome, Location) %>%
-  dplyr::mutate(snps = paste0('chr', gsub("\\:", "\\_", SNP))) %>%
-  dplyr::pull(snps)
-
-# Call child Rmd script
-res <- lapply(snps_out, function(snp) {
-  assign("snp", snp, child_env)
-  knitr::knit_child('posthoc/posthoc_child.Rmd', envir = child_env, quiet = TRUE)
-  }
-)
-
-cat(unlist(res), sep = '\n')
-```
-
-
-# Two-step method (expectation based)
-```{r, results = 'asis'}
-# child method variable
-assign("method", "chiSqGxE", child_env)
-
-# SNPs
 # snps_clumped <- fread(glue("{path}/data/FIGI_{hrc_version}_gxeset_{exposure}_chiSqGxE_ldclump.clumped"), header = T, stringsAsFactors = F)
-# snps_out <- readRDS(glue("{path}/output/twostep_liji_{exposure}_{hrc_version}_chiSqG_df.rds")) %>%
+# snps_out <- readRDS(glue("{path}/output/manhattan_{exposure}_{hrc_version}_chiSqGxE_df.rds")) %>%
+#   dplyr::filter(SNP %in% snps_clumped$SNP, 
+#                 chiSqGxE_p < 5e-8) %>% 
 #   dplyr::arrange(Chromosome, Location) %>%
 #   dplyr::mutate(snps = paste0('chr', gsub("\\:", "\\_", SNP))) %>%
 #   dplyr::pull(snps)
 
-snps_out <- c("chr5_40252294_C_T")
+snps_out <- "chr14_74029409_C_T"
 
 # Call child Rmd script
 res <- lapply(snps_out, function(snp) {
   assign("snp", snp, child_env)
-  knitr::knit_child('posthoc/posthoc_child.Rmd', envir = child_env, quiet = TRUE)
+  knitr::knit_child('posthoc_child.Rmd', envir = child_env, quiet = TRUE)
   }
 )
 
@@ -113,9 +90,9 @@ cat(unlist(res), sep = '\n')
 ```
 
 
+
 # GxE suggestive
 Output models stratified by sex or tumor site to check for differences in associations
-(consider adding locuszoom plots?)
 ```{r, results = 'asis'}
 # child method variable
 assign("method", "chiSqGxE", child_env)
@@ -132,7 +109,7 @@ snps_out <- readRDS(glue("{path}/output/manhattan_{exposure}_{hrc_version}_chiSq
 # Call child Rmd script
 res <- lapply(snps_out, function(snp) {
   assign("snp", snp, child_env)
-  knitr::knit_child('posthoc/posthoc_child_suggestive_gxe.Rmd', envir = child_env, quiet = TRUE)
+  knitr::knit_child('posthoc_suggestive_gxe.Rmd', envir = child_env, quiet = TRUE)
   }
 )
 
@@ -161,7 +138,7 @@ snps_out <- readRDS(glue("{path}/output/manhattan_{exposure}_{hrc_version}_chiSq
 # Call child Rmd script
 res <- lapply(snps_out, function(snp) {
   assign("snp", snp, child_env)
-  knitr::knit_child('posthoc/posthoc_child_locuszoom_only.Rmd', envir = child_env, quiet = TRUE)
+  knitr::knit_child('posthoc_locuszoom_only.Rmd', envir = child_env, quiet = TRUE)
   }
 )
 

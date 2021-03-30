@@ -1,0 +1,15 @@
+---
+title: ""
+output: html_document
+---
+
+``` {r, results = 'asis'}
+cat(paste0("## ", snp, " {.tabset}"), collapse = '\n')
+```
+
+
+```{r}
+snpfix <- substr(snp, 1, nchar(snp)-4)
+locuszoom <- glue("{path}/output/locuszoom_plot/locuszoom_plot_{exposure}_{hrc_version}_{method}_{snpfix}.png")
+knitr::include_graphics(locuszoom)
+```
