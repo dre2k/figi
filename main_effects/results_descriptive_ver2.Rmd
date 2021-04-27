@@ -9,7 +9,7 @@ exposure_tmp <- params$exposure
 
 # flipping protective variables? 
 # also - set some of the dietary variables as factors
-if (params$exposure %in% c("folate_totqc2", "folate_dietqc2", "bmi5")) {
+if (params$exposure %in% c("folate_totqc2", "folate_dietqc2", "bmi5", "redmeatqcm", "procmeatqcm")) {
   gxe_ggplot <-  readRDS(paste0(output_dir, "/FIGI_", params$hrc_version, "_gxeset_analysis_data_ggplot.rds"))
   gxe_ggplot_subset <- gxe_ggplot %>%
     filter(vcfid %in% exposure_subset) %>% 

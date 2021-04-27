@@ -26,8 +26,8 @@ library(msm)
 rm(list = ls())
 
 # input variables
-exposure = 'smk_aveday'
-hrc_version = 'v2.3'
+exposure = 'methrswklns'
+hrc_version = 'v3.0'
 annotation_file <- 'gwas_200_ld_annotation_feb2021.txt'
 covariates <- sort(c('age_ref_imp', 'sex', 'study_gxe', 'pc1', 'pc2', 'pc3'))
 path = glue("/media/work/gwis_test/{exposure}/")
@@ -38,17 +38,19 @@ esubset <- readRDS(glue("/media/work/gwis_test/{exposure}/data/FIGI_{hrc_version
   pull(vcfid)
 
 input_data <- readRDS(glue("/media/work/gwis_test/data/FIGI_{hrc_version}_gxeset_analysis_data_glm.rds")) %>% 
-  filter(vcfid%in% esubset) %>%
-  mutate(smk_aveday = smk_aveday / 10)
-  # mutate(smk_aveday = scale(smk_aveday))
+  filter(!is.na(methrswklns)) %>% 
+  mutate(methrswklns = as.numeric(methrswklns) / 5)
+  # filter(vcfid%in% esubset) %>%
+  # mutate(smk_aveday = smk_aveday / 10)
+# mutate(smk_aveday = scale(smk_aveday))
 
 
 
 input_data %>% 
-  mutate(smk_aveday = as.numeric(smk_aveday)) %>% 
-  filter(smk_aveday != 0) %>% 
-  mutate(study = fct_reorder(study, smk_aveday, .fun='median')) %>% 
-  ggplot(aes(x=study, y=smk_aveday, fill = study)) + 
+  mutate(methrswklns = as.numeric(methrswklns)) %>% 
+  filter(methrswklns != 0) %>% 
+  mutate(study = fct_reorder(study, methrswklns, .fun='median')) %>% 
+  ggplot(aes(x=study, y=methrswklns, fill = study)) + 
   geom_boxplot(outlier.color = 'red') + 
   theme_bw() + 
   theme(axis.text.x = element_text(angle = 270))
@@ -81,6 +83,35 @@ pooled_analysis_glm(input_data, exposure = exposure, hrc_version = hrc_version, 
 
 pooled_analysis_multinom(input_data, exposure = exposure, hrc_version = hrc_version, covariates = covariates, filename_suffix = paste0(paste0(sort(covariates), collapse = '_'), "_stratified_cancer_site_sum2"), output_dir = glue("{path}/output/posthoc/"))
 
+
+
+
+
+
+
+# ------ meta-analysis ------ #
+# additional covariates
+# output_dir = as.character(glue("{path}/output/posthoc/"))
+covariates_meta <- sort(covariates[which(!covariates %in% c(paste0(rep('pc', 20), seq(1, 20)), "study_gxe"))])
+
+covariates_meta <- c(covariates_meta, 'bmi')
+covariates_meta <- c(covariates_meta, 'energytot_imp' )
+covariates_meta <- c(covariates_meta, 'bmi', 'energytot_imp')
+
+create_forest_plot(data_epi = input_data, exposure = exposure, covariates = covariates_meta, hrc_version = hrc_version, path = glue("{path}/output/posthoc/"), strata = "all", forest_height = 15, categorical = F)
+create_forest_plot(data_epi = input_data, exposure = exposure, covariates = covariates_meta, hrc_version = hrc_version, path = glue("{path}/output/posthoc/"), strata = "proximal", forest_height = 13, categorical = F)
+create_forest_plot(data_epi = input_data, exposure = exposure, covariates = covariates_meta, hrc_version = hrc_version, path = glue("{path}/output/posthoc/"), strata = "distal", forest_height = 13, categorical = F)
+create_forest_plot(data_epi = input_data, exposure = exposure, covariates = covariates_meta, hrc_version = hrc_version, path = glue("{path}/output/posthoc/"), strata = "rectal", forest_height = 13, categorical = F)
+create_forest_plot(data_epi = input_data, exposure = exposure, covariates = covariates_meta, hrc_version = hrc_version, path = glue("{path}/output/posthoc/"), strata = "female", forest_height = 13, categorical = F)
+create_forest_plot(data_epi = input_data, exposure = exposure, covariates = covariates_meta, hrc_version = hrc_version, path = glue("{path}/output/posthoc/"), strata = "male", forest_height = 13, categorical = F)
+
+
+# ------- stratified pooled analysis ------- #
+pooled_analysis_glm(input_data, exposure = exposure, hrc_version = hrc_version, covariates = covariates, strata = 'sex', filename_suffix = paste0(paste0(sort(covariates), collapse = '_'), "_stratified_sex"), output_dir = glue("{path}/output/posthoc/"))
+
+pooled_analysis_glm(input_data, exposure = exposure, hrc_version = hrc_version, covariates = covariates, strata = 'study_design', filename_suffix = paste0(paste0(sort(covariates), collapse = '_'), "_stratified_study_design"), output_dir = glue("{path}/output/posthoc/"))
+
+pooled_analysis_multinom(input_data, exposure = exposure, hrc_version = hrc_version, covariates = covariates, filename_suffix = paste0(paste0(sort(covariates), collapse = '_'), "_stratified_cancer_site_sum2"), output_dir = glue("{path}/output/posthoc/"))
 
 
 
@@ -215,9 +246,6 @@ covariates_sets <- list(covariates)
 snps <- c("6:31917540:T:C", "8:138788813:C:A")
 walk(snps, ~ fit_gxe_stratified(data_epi = input_data, exposure = exposure, snp = .x, covariates = covariates, method = "chiSqGxE", strata = 'sex', path = glue("{path}/output")))
 walk(snps, ~ fit_gxe_stratified(data_epi = input_data, exposure = exposure, snp = .x, covariates = covariates, method = "chiSqGxE", strata = 'cancer_site_sum2', path = glue("{path}/output")))
-walk(snps, ~ fit_gxe_stratified(data_epi = input_data, exposure = exposure, snp = .x, covariates = covariates, method = "chiSqGxE", strata = 'study_design', path = glue("{path}/output")))
-
-
 
 
 snps <- c("6:32006886:G:A")
@@ -246,30 +274,16 @@ walk(snps, ~ reri_wrapper(data_epi = input_data, exposure = exposure, snp = .x, 
 
 
 
-# recreate iplot wrapper (interaction plot)
-# in order to use rescaled variable
-
-iplot_wrapper(data_epi = input_data, 
-              exposure = exposure, 
-              hrc_version = hrc_version ,
-              covariates = covariates, 
-              snp = "8:138788813:C:A", 
-              path = '/media/work/gwis_test/smk_aveday/output')
-
 # ================================================================== #
 # ======= rmarkdown reports ---- 
 # ================================================================== #
 
 main_effects_report(exposure = exposure, hrc_version = hrc_version, covariates = covariates, path = path)
 
-gwis_report(exposure = exposure, 
-            hrc_version = hrc_version, 
-            covariates = covariates)
 
-posthoc_report(exposure = exposure, 
-               hrc_version = hrc_version,
-               covariates = covariates,
-               path = path)
+gwis_report(exposure = exposure, hrc_version = hrc_version, covariates = covariates)
+
+posthoc_report(exposure = exposure)
 
 
 

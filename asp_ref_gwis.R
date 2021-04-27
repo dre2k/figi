@@ -1,5 +1,5 @@
 #=============================================================================#
-# FIGI GxE bmi5 results
+# FIGI GxE asp_ref results
 #=============================================================================#
 library(tidyverse)
 library(data.table)
@@ -183,8 +183,32 @@ snps <- c( "6:32560631:C:T", "5:40252294:C:T")
 walk(snps, ~ reri_wrapper(data_epi = tmp_flip, exposure = exposure, snp = .x, covariates = covariates, path = glue("{path}/output")))
 
 
+# SNP information
+snp_info <- qread("/media/work/FIGI_RsqEstimate_chrALL.qs") %>% 
+  filter(id %in%  c("6:12577203:T:C", "6:32560631:C:T", "5:40252294:C:T"))
+
+ff <- do.call(c, lapply(strsplit(snps, split = ":"), function(x) paste(x[1], as.numeric(x[2])-1, x[2],  sep = ':')))
+
+snp_mart = useMart(biomart = "ENSEMBL_MART_SNP", 
+                   host    = "grch37.ensembl.org", 
+                   path    = "/biomart/martservice", 
+                   dataset = "hsapiens_snp")
+
+rsid = getBM(attributes = c("refsnp_id", "allele", "chr_name", "chrom_end"),
+             filters = c("chromosomal_region"),
+             values = ff, mart=snp_mart)
 
 
+snp_info$rsid <- rsid$refsnp_id
+
+snp_info_out <- snp_info %>% 
+  separate(SNP, into = c("chr", "bp", "REF", "ALT"), remove= F) %>%
+  rename(ALT_AF = GxESet_AltAlleleFreq, 
+         MAF = maf, 
+         Imputation_Rsq = GxESet_Rsq) %>% 
+  dplyr::select(SNP, rsid, REF, ALT, ALT_AF , MAF, Imputation_Rsq )
+
+saveRDS(snp_info_out, glue("{path}/output/posthoc/gwis_snp_info.rds"))
 
 # ================================================================== #
 # ======= rmarkdown reports ---- 
@@ -200,6 +224,94 @@ posthoc_report(exposure = exposure,
                hrc_version = hrc_version,
                covariates = covariates,
                path = path)
+
+
+
+
+
+# ================================================================== #
+# ======= functional follow? ---- 
+# ================================================================== #
+
+hrc <- readRDS("~/data/HRC_rsID/HRC.r1-1.GRCh37.wgs.mac5.sites.tab.chr5.rds")
+
+# Chromosome 5
+tmp1 <- fread(glue("~/Dropbox/FIGI/Annotation_Workflow/example_input/figi_{exposure}_{hrc_version}_chr5_40252294.ld"))
+tmp2 <- filter(hrc, POS %in% tmp1$BP_B) %>% 
+  mutate(V1 = paste0("chr", `#CHROM`), 
+         V2 = POS - 1, 
+         V3 = POS, 
+         V4 = paste(`#CHROM`, POS, REF, ALT, sep = "-")) %>% 
+  dplyr::select(V1, V2, V3, V4)
+
+write.table(tmp2, file = glue("~/Dropbox/FIGI/Annotation_Workflow/example_input/figi_{exposure}_{hrc_version}_chr5_40252294.bed"), quote = F, row.names = F, col.names = F, sep = '\t')
+
+
+
+gtex <- fread("~/Dropbox/FIGI/Annotation_Workflow/example_output/figi_asp_ref_v2.4_chr5_40252294_eQTL_overlap_summary.tsv",  header = F)
+vep <- fread("~/Dropbox/FIGI/Annotation_Workflow/example_input/figi_asp_ref_v2.4_chr5_40252294_vep.txt",  header = T)
+out <- inner_join(gtex, vep, by = c("V1"="#Uploaded_variation")) %>% 
+  mutate(BP_B = as.integer(unlist(lapply(strsplit(V1, split = '-'), function(x) x[2])) )) %>% 
+  inner_join(tmp1[, c('BP_B', 'R2')], by = "BP_B") %>% 
+  arrange(desc(R2))
+
+
+write_tsv(out, file = "~/Dropbox/FIGI/Annotation_Workflow/example_output/figi_asp_ref_v2.4_chr5_40252294_output.tsv", quote = F)
+
+
+
+# Chromosome 6
+hrc <- readRDS("~/data/HRC_rsID/HRC.r1-1.GRCh37.wgs.mac5.sites.tab.chr6.rds")
+tmp1 <- fread(glue("~/Dropbox/FIGI/Annotation_Workflow/example_input/figi_{exposure}_{hrc_version}_chr6_12577203.ld"))
+tmp2 <- filter(hrc, POS %in% tmp1$BP_B) %>% 
+  mutate(V1 = paste0("chr", `#CHROM`), 
+         V2 = POS - 1, 
+         V3 = POS, 
+         V4 = paste(`#CHROM`, POS, REF, ALT, sep = "-")) %>% 
+  dplyr::select(V1, V2, V3, V4)
+
+write.table(tmp2, file = glue("~/Dropbox/FIGI/Annotation_Workflow/example_input/figi_{exposure}_{hrc_version}_chr6_12577203.bed"), quote = F, row.names = F, col.names = F, sep = '\t')
+
+
+
+gtex <- fread("~/Dropbox/FIGI/Annotation_Workflow/example_output/figi_aspirin_v2.4_chr6_12577203_eQTL_overlap_summary.tsv",  header = F)
+vep <- fread("~/Dropbox/FIGI/Annotation_Workflow/example_input/figi_aspirin_v2.4_chr6_12577203_vep.txt",  header = T)
+out <- inner_join(gtex, vep, by = c("V1"="#Uploaded_variation"))
+
+
+
+
+
+
+
+# Chromosome 6
+hrc <- readRDS("~/data/HRC_rsID/HRC.r1-1.GRCh37.wgs.mac5.sites.tab.chr6.rds")
+tmp1 <- fread(glue("~/Dropbox/FIGI/Annotation_Workflow/example_input/figi_{exposure}_{hrc_version}_chr6_32560631.ld"))
+tmp2 <- filter(hrc, POS %in% tmp1$BP_B) %>% 
+  mutate(V1 = paste0("chr", `#CHROM`), 
+         V2 = POS - 1, 
+         V3 = POS, 
+         V4 = paste(`#CHROM`, POS, REF, ALT, sep = "-")) %>% 
+  dplyr::select(V1, V2, V3, V4)
+
+write.table(tmp2, file = glue("~/Dropbox/FIGI/Annotation_Workflow/example_input/figi_{exposure}_{hrc_version}_chr6_32560631.bed"), quote = F, row.names = F, col.names = F, sep = '\t')
+
+
+
+gtex <- fread("~/Dropbox/FIGI/Annotation_Workflow/example_output/figi_aspirin_v2.4_chr6_32560631_eQTL_overlap_summary.tsv",  header = F)
+vep <- fread("~/Dropbox/FIGI/Annotation_Workflow/example_input/figi_aspirin_v2.4_chr6_32560631_vep.txt",  header = T)
+out <- inner_join(gtex, vep, by = c("V1"="#Uploaded_variation")) %>% 
+  mutate(BP_B = as.integer(unlist(lapply(strsplit(V1, split = '-'), function(x) x[2])) )) %>% 
+  inner_join(tmp1[, c('BP_B', 'R2')], by = "BP_B") %>% 
+  arrange(desc(R2))
+
+write_tsv(out, file = "~/Dropbox/FIGI/Annotation_Workflow/example_output/figi_asp_ref_v2.4_chr6_32560631_output.tsv", quote = F)
+
+
+
+
+
+
 
 
 

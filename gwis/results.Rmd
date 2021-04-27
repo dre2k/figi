@@ -190,24 +190,34 @@ Approach to begin incorporating functional annotation in GWIS. Using SVM scores 
 ```{r child = 'results_manhattan.Rmd' }
 ```
 
-## Two-step Plots {.tabset}
-**Notes**
-- Step 1 D|G uses statistics estimated from the exposure GxE subset population. Models are adjusted by the exposure variable
-<!-- - All plots have a counterpart that excludes the 140 GWAS loci identified in Huygue 2019 (Nat Gen) -->
-```{r child = 'results_two_step.Rmd' }
-```
+<!-- ## Two-step Plots {.tabset} -->
+<!-- **Notes** -->
+<!-- - Step 1 D|G uses statistics estimated from the exposure GxE subset population. Models are adjusted by the exposure variable -->
+<!-- <!-- - All plots have a counterpart that excludes the 140 GWAS loci identified in Huygue 2019 (Nat Gen) --> -->
+<!-- ```{r child = 'results_two_step.Rmd' } -->
+<!-- ``` -->
 
-## Two-step Plots - Gao {.tabset}
-**Notes**
-```{r child = 'results_two_step_eh_gao.Rmd' }
-```
+<!-- ## Two-step Plots - Gao (c = 99.5%) {.tabset} -->
+<!-- **Notes** -->
+<!-- ```{r child = 'results_two_step_eh_gao.Rmd' } -->
+<!-- ``` -->
 
+<!-- ## Two-step Plots - Gao (c = 97.5%) {.tabset} -->
+<!-- **Notes** -->
+<!-- ```{r child = 'results_two_step_eh_gao_975.Rmd' } -->
+<!-- ``` -->
 
-## Two-step Plots - Li/Ji {.tabset}
-```{r child = 'results_two_step_eh_liji.Rmd' }
-```
+<!-- ## Two-step Plots - Li/Ji {.tabset} -->
+<!-- ```{r child = 'results_two_step_eh_liji.Rmd' } -->
+<!-- ``` -->
 
+<!-- ## Two-step Plots - Galwey {.tabset} -->
+<!-- ```{r child = 'results_two_step_eh_galwey.Rmd' } -->
+<!-- ``` -->
 
+<!-- ## Two-step Plots - LEA {.tabset} -->
+<!-- ```{r child = 'results_two_step_eh_lea.Rmd' } -->
+<!-- ``` -->
 
 
 <!-- ## Two-step GECCO {.tabset} -->

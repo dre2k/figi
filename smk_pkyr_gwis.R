@@ -23,58 +23,36 @@ library(flextable)
 library(jtools)
 library(interactions)
 library(msm)
+library(qs)
 rm(list = ls())
-source("functions.R")
-
-
 
 # input variables
 exposure = 'smk_pkyr'
 hrc_version = 'v2.3'
-output_dir = paste0("/media/work/gwis/posthoc/", exposure, "/")
-annotation_file <- 'gwas_141_ld_annotation_july2020.txt'
-
+annotation_file <- 'gwas_200_ld_annotation_feb2021.txt'
 covariates <- sort(c('age_ref_imp', 'sex', 'study_gxe', 'pc1', 'pc2', 'pc3'))
-covariates_set1 <- covariates
-# covariates_set2 <- sort(c(covariates_set1, 'bmi', 'smk_ever', 'fruitqc2', 'vegetableqc2'))
-covariates_list <- list(covariates)
-mod <- 'age_ref_imp+sex+energytot_imp+pc1+pc2+pc3+study_gxe'
+path = glue("/media/work/gwis_test/{exposure}/")
 
-exclude_gwas <- fread("~/data/Annotations/gwas_141_ld_annotation_july2020.txt") %>%
-  mutate(SNP2 = paste0(Chr, ":", Pos)) %>%
-  pull(SNP2)
 
 # input data
-esubset <- readRDS(glue("/media/work/gwis/data/FIGI_EpiData/FIGI_{hrc_version}_gxeset_{exposure}_basic_covars_glm.rds")) %>% 
+esubset <- readRDS(glue("/media/work/gwis_test/{exposure}/data/FIGI_{hrc_version}_gxeset_{exposure}_basic_covars_glm.rds")) %>% 
   pull(vcfid)
-input_data <- readRDS(glue("/media/work/gwis/data/FIGI_EpiData/FIGI_{hrc_version}_gxeset_analysis_data_glm.rds")) %>% 
-  filter(vcfid%in% esubset) %>% 
-  mutate(smk_pkyr = scale(smk_pkyr))
 
-table(input_data$study_gxe)
+input_data <- readRDS(glue("/media/work/gwis_test/data/FIGI_{hrc_version}_gxeset_analysis_data_glm.rds")) %>% 
+  filter(vcfid%in% esubset) %>%
+  mutate(smk_pkyr = smk_pkyr / 20)
 
-
-input_data <- input_data %>% 
-  filter(!grepl("MECC", study_gxe))
-
-# let's toy with recoding the exposure... 
-# summary(input_data$smk_pkyr)
-# hist(input_data$smk_pkyr)
-# 
-# test <- scale(input_data$smk_pkyr)
-# 
-# input_data$test <- scale(input_data$smk_pkyr)
-
-# model1 <- glm(outcome ~ smk_pkyr + age_ref_imp + sex + pc1 + pc2 + pc3, data = input_data, family = 'binomial')
-# summary(model1)
-# exp(coef(model1))
-# model2 <- glm(outcome ~ test + age_ref_imp + sex + pc1 + pc2 + pc3, data = input_data, family = 'binomial')
-# summary(model2)
-# exp(coef(model2))
+input_data %>% 
+  mutate(smk_pkyr = as.numeric(smk_pkyr)) %>% 
+  filter(smk_pkyr != 0) %>% 
+  mutate(study = fct_reorder(study, smk_pkyr, .fun='median')) %>% 
+  ggplot(aes(x=study, y=smk_pkyr, fill = study)) + 
+  geom_boxplot(outlier.color = 'red') + 
+  theme_bw() + 
+  theme(axis.text.x = element_text(angle = 270))
 
 
-# gxescan output
-gxe <- readRDS(glue("/media/work/gwis/results/{exposure}/processed/FIGI_{hrc_version}_gxeset_{exposure}_basic_covars_gxescan_results.rds")) 
+
 
 
 #-----------------------------------------------------------------------------#
@@ -86,20 +64,27 @@ gxe <- readRDS(glue("/media/work/gwis/results/{exposure}/processed/FIGI_{hrc_ver
 
 
 # ------ meta-analysis ------ #
-covariates_meta <- sort(covariates[which(!covariates %in% c(paste0(rep('pc', 20), seq(1, 20)), 'study_gxe'))])
-meta_analysis_execute(dataset = input_data, exposure = exposure, hrc_version = hrc_version, covariates = covariates_meta, output_dir = output_dir, filename_suffix2 = "")
+output_dir = as.character(glue("{path}/output/posthoc/"))
+covariates_meta <- sort(covariates[which(!covariates %in% c(paste0(rep('pc', 20), seq(1, 20)), "study_gxe"))])
+
+create_forest_plot(data_epi = input_data, exposure = exposure, covariates = covariates_meta, hrc_version = hrc_version, path = glue("{path}/output/posthoc/"), strata = "all", forest_height = 15, categorical = F)
+create_forest_plot(data_epi = input_data, exposure = exposure, covariates = covariates_meta, hrc_version = hrc_version, path = glue("{path}/output/posthoc/"), strata = "proximal", forest_height = 13, categorical = F)
+create_forest_plot(data_epi = input_data, exposure = exposure, covariates = covariates_meta, hrc_version = hrc_version, path = glue("{path}/output/posthoc/"), strata = "distal", forest_height = 13, categorical = F)
+create_forest_plot(data_epi = input_data, exposure = exposure, covariates = covariates_meta, hrc_version = hrc_version, path = glue("{path}/output/posthoc/"), strata = "rectal", forest_height = 13, categorical = F)
+create_forest_plot(data_epi = input_data, exposure = exposure, covariates = covariates_meta, hrc_version = hrc_version, path = glue("{path}/output/posthoc/"), strata = "female", forest_height = 13, categorical = F)
+create_forest_plot(data_epi = input_data, exposure = exposure, covariates = covariates_meta, hrc_version = hrc_version, path = glue("{path}/output/posthoc/"), strata = "male", forest_height = 13, categorical = F)
 
 
-# ------- pooled analysis ------- #
-## basic covariates
-covariates_pooled <- sort(covariates[which(!covariates %in% c(paste0(rep('pc', 20), seq(1, 20))))])
-covariates_pooled <- covariates
-pooled_analysis_glm(input_data, exposure = exposure, covariates = covariates_pooled, strata = 'sex', 
-                    filename_suffix = paste0(paste0(sort(covariates), collapse = '_'), "_stratified_sex"), output_dir = output_dir)
-pooled_analysis_glm(input_data, exposure = exposure, covariates = covariates_pooled, strata = 'study_design', 
-                    filename_suffix = paste0(paste0(sort(covariates), collapse = '_'), "_stratified_study_design"), output_dir = output_dir)
-pooled_analysis_multinom(input_data, exposure = exposure, covariates = covariates_pooled, 
-                         filename_suffix = paste0(paste0(sort(covariates), collapse = '_'), "_stratified_cancer_site_sum2"), output_dir = output_dir)
+# ------- stratified pooled analysis ------- #
+pooled_analysis_glm(input_data, exposure = exposure, hrc_version = hrc_version, covariates = covariates, strata = 'sex', filename_suffix = paste0(paste0(sort(covariates), collapse = '_'), "_stratified_sex"), output_dir = glue("{path}/output/posthoc/"))
+
+pooled_analysis_glm(input_data, exposure = exposure, hrc_version = hrc_version, covariates = covariates, strata = 'study_design', filename_suffix = paste0(paste0(sort(covariates), collapse = '_'), "_stratified_study_design"), output_dir = glue("{path}/output/posthoc/"))
+
+pooled_analysis_multinom(input_data, exposure = exposure, hrc_version = hrc_version, covariates = covariates, filename_suffix = paste0(paste0(sort(covariates), collapse = '_'), "_stratified_cancer_site_sum2"), output_dir = glue("{path}/output/posthoc/"))
+
+
+
+
 
 #-----------------------------------------------------------------------------#
 # main effects additional ----
@@ -312,11 +297,13 @@ posthoc_create_plots(snps_filter, 'chiSq3df')
 # ================================================================== #
 # ======= rmarkdown reports ---- 
 # ================================================================== #
-gwis_report(exposure = exposure, 
-            hrc_version = hrc_version, 
-            covariates = c('age_ref_imp', 'sex' , 'pc1', 'pc2', 'pc3', 'study_gxe'))
+main_effects_report(exposure = exposure, hrc_version = hrc_version, covariates = covariates, path = path)
 
- posthoc_report(exposure = exposure)
+
+gwis_report(exposure = exposure, hrc_version = hrc_version, covariates = covariates)
+
+posthoc_report(exposure = exposure)
+
 
 
 

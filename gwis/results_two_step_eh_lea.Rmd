@@ -61,39 +61,39 @@ significant_results_table_wrapper <- function(exposure, step1_statistic, eh_meth
 
 ```
 
-### Step1 D|G (Li/Ji)
+### Step1 D|G (LEA)
 ```{r , echo=FALSE, out.width = '100%'}
-twostep_wrapper(exposure = params$exposure, hrc_version = params$hrc_version, eh_method = "liji", step1_statistic = 'chiSqG')
-significant_results_table_wrapper(exposure = params$exposure, eh_method = "liji", hrc_version = params$hrc_version, step1_statistic = 'chiSqG')
+twostep_wrapper(exposure = params$exposure, hrc_version = params$hrc_version, eh_method = "lea", step1_statistic = 'chiSqG')
+significant_results_table_wrapper(exposure = params$exposure, eh_method = "lea", hrc_version = params$hrc_version, step1_statistic = 'chiSqG')
 ```
 
-### Step1 G|E (Li/Ji)
+### Step1 G|E (LEA)
 ```{r , echo=FALSE, out.width = '100%'}
-twostep_wrapper(exposure = params$exposure, hrc_version = params$hrc_version, eh_method = "liji", step1_statistic = 'chiSqGE')
-significant_results_table_wrapper(exposure = params$exposure, eh_method = "liji", hrc_version = params$hrc_version, step1_statistic = 'chiSqGE')
+twostep_wrapper(exposure = params$exposure, hrc_version = params$hrc_version, eh_method = "lea", step1_statistic = 'chiSqGE')
+significant_results_table_wrapper(exposure = params$exposure, eh_method = "lea", hrc_version = params$hrc_version, step1_statistic = 'chiSqGE')
 ```
 
-### Step1 EDGE (Li/Ji)
+### Step1 EDGE (LEA)
 ```{r , echo=FALSE, out.width = '100%'}
-twostep_wrapper(exposure = params$exposure, hrc_version = params$hrc_version, eh_method = "liji", step1_statistic = 'chiSqEDGE')
-significant_results_table_wrapper(exposure = params$exposure, eh_method = "liji", hrc_version = params$hrc_version, step1_statistic = 'chiSqEDGE')
+twostep_wrapper(exposure = params$exposure, hrc_version = params$hrc_version, eh_method = "lea", step1_statistic = 'chiSqEDGE')
+significant_results_table_wrapper(exposure = params$exposure, eh_method = "lea", hrc_version = params$hrc_version, step1_statistic = 'chiSqEDGE')
 ```
 
-### Step1 D|G (Li/Ji) - Exclude GWAS
+### Step1 D|G (LEA) - Exclude GWAS
 ```{r , echo=FALSE, out.width = '100%'}
-twostep_wrapper(exposure = params$exposure, hrc_version = params$hrc_version, eh_method = "liji", step1_statistic = 'chiSqG', exclude_gwas = T)
-significant_results_table_wrapper(exposure = params$exposure, eh_method = "liji", hrc_version = params$hrc_version, step1_statistic = 'chiSqG', exclude_gwas = T)
+twostep_wrapper(exposure = params$exposure, hrc_version = params$hrc_version, eh_method = "lea", step1_statistic = 'chiSqG', exclude_gwas = T)
+significant_results_table_wrapper(exposure = params$exposure, eh_method = "lea", hrc_version = params$hrc_version, step1_statistic = 'chiSqG', exclude_gwas = T)
 ```
 
-### Step1 G|E (Li/Ji) - Exclude GWAS
+### Step1 G|E (LEA) - Exclude GWAS
 ```{r , echo=FALSE, out.width = '100%'}
-twostep_wrapper(exposure = params$exposure, hrc_version = params$hrc_version, eh_method = "liji", step1_statistic = 'chiSqGE', exclude_gwas = T)
-significant_results_table_wrapper(exposure = params$exposure, eh_method = "liji", hrc_version = params$hrc_version, step1_statistic = 'chiSqGE', exclude_gwas = T)
+twostep_wrapper(exposure = params$exposure, hrc_version = params$hrc_version, eh_method = "lea", step1_statistic = 'chiSqGE', exclude_gwas = T)
+significant_results_table_wrapper(exposure = params$exposure, eh_method = "lea", hrc_version = params$hrc_version, step1_statistic = 'chiSqGE', exclude_gwas = T)
 ```
 
-### Step1 EDGE (Li/Ji) - Exclude GWAS
+### Step1 EDGE (LEA) - Exclude GWAS
 ```{r , echo=FALSE, out.width = '100%'}
-twostep_wrapper(exposure = params$exposure, hrc_version = params$hrc_version, eh_method = "liji", step1_statistic = 'chiSqEDGE', exclude_gwas = T)
-significant_results_table_wrapper(exposure = params$exposure, eh_method = "liji", hrc_version = params$hrc_version, step1_statistic = 'chiSqEDGE', exclude_gwas = T)
+twostep_wrapper(exposure = params$exposure, hrc_version = params$hrc_version, eh_method = "lea", step1_statistic = 'chiSqEDGE', exclude_gwas = T)
+significant_results_table_wrapper(exposure = params$exposure, eh_method = "lea", hrc_version = params$hrc_version, step1_statistic = 'chiSqEDGE', exclude_gwas = T)
 ```
 

@@ -14,6 +14,7 @@ params:
   exposure: "smk_ever"
   covariates: !r c("age_ref_imp", "sex", "pc1", "pc2", "pc3", "study_gxe")
   hrc_version: "v2.3"
+  path: "/media/work/gwis_test"
 ---
 
 ```{r setup, include=FALSE}
@@ -67,6 +68,8 @@ path = glue("/media/work/gwis_test/{params$exposure}")
 # child method variable
 assign("method", "chiSqGxE", child_env)
 
+
+
 # # SNPs
 # snps_clumped <- fread(glue("{path}/data/FIGI_{hrc_version}_gxeset_{exposure}_chiSqGxE_ldclump.clumped"), header = T, stringsAsFactors = F)
 # snps_out <- readRDS(glue("{path}/output/manhattan_{exposure}_{hrc_version}_chiSqGxE_df.rds")) %>%
@@ -77,7 +80,7 @@ assign("method", "chiSqGxE", child_env)
 #   dplyr::pull(snps)
 #
 
-snps_out <- c("chr1_151700227_G_A")
+snps_out <- c("chr1_151700227_G_A", "chr15_83613505_A_T")
 
 # Call child Rmd script
 res <- lapply(snps_out, function(snp) {
@@ -88,6 +91,36 @@ res <- lapply(snps_out, function(snp) {
 
 cat(unlist(res), sep = '\n')
 ```
+
+
+# Two-step
+```{r, results = 'asis'}
+# child method variable
+assign("method", "chiSqGxE", child_env)
+
+# # SNPs
+# snps_clumped <- fread(glue("{path}/data/FIGI_{hrc_version}_gxeset_{exposure}_chiSqGxE_ldclump.clumped"), header = T, stringsAsFactors = F)
+# snps_out <- readRDS(glue("{path}/output/manhattan_{exposure}_{hrc_version}_chiSqGxE_df.rds")) %>%
+#   dplyr::filter(SNP %in% snps_clumped$SNP,
+#                 chiSqGxE_p < 5e-8) %>%
+#   dplyr::arrange(Chromosome, Location) %>%
+#   dplyr::mutate(snps = paste0('chr', gsub("\\:", "\\_", SNP))) %>%
+#   dplyr::pull(snps)
+#
+
+snps_out <- c("chr2_136407479_A_G")
+
+# Call child Rmd script
+res <- lapply(snps_out, function(snp) {
+  assign("snp", snp, child_env)
+  knitr::knit_child('posthoc/posthoc_child.Rmd', envir = child_env, quiet = TRUE)
+  }
+)
+
+cat(unlist(res), sep = '\n')
+```
+
+
 
 
 # 3DF
@@ -116,59 +149,5 @@ res <- lapply(snps_out, function(snp) {
 
 cat(unlist(res), sep = '\n')
 ```
-
-
-
-
-<!-- # Two-step method (expectation based) -->
-<!-- ```{r, results = 'asis'} -->
-<!-- # child method variable -->
-<!-- assign("method", "chiSqGxE", child_env) -->
-
-<!-- # SNPs -->
-<!-- # snps_clumped <- fread(glue("{path}/data/FIGI_{hrc_version}_gxeset_{exposure}_chiSqGxE_ldclump.clumped"), header = T, stringsAsFactors = F) -->
-<!-- # snps_out <- readRDS(glue("{path}/output/twostep_liji_{exposure}_{hrc_version}_chiSqG_df.rds")) %>% -->
-<!-- #   dplyr::arrange(Chromosome, Location) %>% -->
-<!-- #   dplyr::mutate(snps = paste0('chr', gsub("\\:", "\\_", SNP))) %>% -->
-<!-- #   dplyr::pull(snps) -->
-
-<!-- snps_out <- c("chr2_136407479_A_G") -->
-
-<!-- # Call child Rmd script -->
-<!-- res <- lapply(snps_out, function(snp) { -->
-<!--   assign("snp", snp, child_env) -->
-<!--   knitr::knit_child('posthoc/posthoc_child.Rmd', envir = child_env, quiet = TRUE) -->
-<!--   } -->
-<!-- ) -->
-
-<!-- cat(unlist(res), sep = '\n') -->
-<!-- ``` -->
-
-
-<!-- # GxE suggestive -->
-<!-- Output models stratified by sex or tumor site to check for differences in associations -->
-<!-- (consider adding locuszoom plots?) -->
-<!-- ```{r, results = 'asis'} -->
-<!-- # child method variable -->
-<!-- assign("method", "chiSqGxE", child_env) -->
-
-<!-- # SNPs -->
-<!-- snps_clumped <- fread(glue("{path}/data/FIGI_{hrc_version}_gxeset_{exposure}_chiSqGxE_ldclump.clumped"), header = T, stringsAsFactors = F) -->
-<!-- snps_out <- readRDS(glue("{path}/output/manhattan_{exposure}_{hrc_version}_chiSqGxE_df.rds")) %>% -->
-<!--   dplyr::filter(SNP %in% snps_clumped$SNP,  -->
-<!--                 chiSqGxE_p < 5e-6 | chiSqGxE_p > 5e-8) %>%  -->
-<!--   dplyr::arrange(Chromosome, Location) %>% -->
-<!--   dplyr::mutate(snps = paste0('chr', gsub("\\:", "\\_", SNP))) %>% -->
-<!--   dplyr::pull(snps) -->
-
-<!-- # Call child Rmd script -->
-<!-- res <- lapply(snps_out, function(snp) { -->
-<!--   assign("snp", snp, child_env) -->
-<!--   knitr::knit_child('test_suggestive.Rmd', envir = child_env, quiet = TRUE) -->
-<!--   } -->
-<!-- ) -->
-
-<!-- cat(unlist(res), sep = '\n') -->
-<!-- ``` -->
 
 

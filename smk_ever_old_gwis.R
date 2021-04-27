@@ -1,5 +1,5 @@
 #=============================================================================#
-# FIGI GxE procmeatqc2 results
+# FIGI GxE smk_ever results
 #=============================================================================#
 library(tidyverse)
 library(data.table)
@@ -27,15 +27,15 @@ rm(list = ls())
 source("functions.R")
 
 # input variables
-exposure = 'procmeatqc2'
+exposure = 'smk_ever'
 hrc_version = 'v2.3'
 annotation_file <- 'gwas_200_ld_annotation_feb2021.txt'
-covariates <- sort(c('age_ref_imp', 'sex', 'energytot_imp', 'study_gxe', 'pc1', 'pc2', 'pc3'))
-path = glue("/media/work/gwis_test/{exposure}/")
+covariates <- sort(c('age_ref_imp', 'sex', 'study_gxe', 'pc1', 'pc2', 'pc3'))
+path = glue("/media/work/gwis_test/{exposure}_old/")
 
 
 # input data
-esubset <- readRDS(glue("/media/work/gwis_test/{exposure}/data/FIGI_{hrc_version}_gxeset_{exposure}_basic_covars_glm.rds")) %>% 
+esubset <- readRDS(glue("/media/work/gwis_test/{exposure}_old/data/FIGI_{hrc_version}_gxeset_{exposure}_basic_covars_glm.rds")) %>% 
   pull(vcfid)
 
 input_data <- readRDS(glue("/media/work/gwis_test/data/FIGI_{hrc_version}_gxeset_analysis_data_glm.rds")) %>% 
@@ -151,9 +151,19 @@ walk(significant_snps, ~ reri_wrapper(data_epi = input_data, exposure = exposure
 # ================================================================== #
 main_effects_report(exposure = exposure, hrc_version = hrc_version, covariates = covariates, path = path)
 
+
+gwis_report_alt <- function(exposure, hrc_version, covariates) 
+{
+  rmarkdown::render("~/git/figi/gwis/results.Rmd", params = list(exposure = exposure, 
+                                                                 hrc_version = hrc_version, covariates = covariates), 
+                    output_file = glue("~/Dropbox/FIGI/Results/{exposure}_old_gwis.html"))
+}
+
+
 gwis_report(exposure = exposure, 
             hrc_version = hrc_version, 
-            covariates = covariates)
+            covariates = covariates, 
+            output_file = glue("~/Dropbox/FIGI/Results/{exposure}_old_gwis.html"))
 
 posthoc_report(exposure = exposure, 
                hrc_version = hrc_version,

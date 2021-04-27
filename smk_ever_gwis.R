@@ -23,6 +23,7 @@ library(flextable)
 library(jtools)
 library(interactions)
 library(msm)
+library(qs)
 rm(list = ls())
 source("functions.R")
 
@@ -59,11 +60,11 @@ create_forest_plot(data_epi = input_data, exposure = exposure, covariates = cova
 
 
 # ------- stratified pooled analysis ------- #
-pooled_analysis_glm(input_data, exposure = exposure, hrc_version = hrc_version, covariates = covariates_pooled, strata = 'sex', filename_suffix = paste0(paste0(sort(covariates), collapse = '_'), "_stratified_sex"), output_dir = glue("{path}/output/posthoc/"))
+pooled_analysis_glm(input_data, exposure = exposure, hrc_version = hrc_version, covariates = covariates, strata = 'sex', filename_suffix = paste0(paste0(sort(covariates), collapse = '_'), "_stratified_sex"), output_dir = glue("{path}/output/posthoc/"))
 
-pooled_analysis_glm(input_data, exposure = exposure, hrc_version = hrc_version, covariates = covariates_pooled, strata = 'study_design', filename_suffix = paste0(paste0(sort(covariates), collapse = '_'), "_stratified_study_design"), output_dir = glue("{path}/output/posthoc/"))
+pooled_analysis_glm(input_data, exposure = exposure, hrc_version = hrc_version, covariates = covariates, strata = 'study_design', filename_suffix = paste0(paste0(sort(covariates), collapse = '_'), "_stratified_study_design"), output_dir = glue("{path}/output/posthoc/"))
 
-pooled_analysis_multinom(input_data, exposure = exposure, hrc_version = hrc_version, covariates = covariates_pooled, filename_suffix = paste0(paste0(sort(covariates), collapse = '_'), "_stratified_cancer_site_sum2"), output_dir = glue("{path}/output/posthoc/"))
+pooled_analysis_multinom(input_data, exposure = exposure, hrc_version = hrc_version, covariates = covariates, filename_suffix = paste0(paste0(sort(covariates), collapse = '_'), "_stratified_cancer_site_sum2"), output_dir = glue("{path}/output/posthoc/"))
 
 
 # ------- main effects additional analyses ------- #
@@ -127,11 +128,11 @@ plot(inf.analysis, "i2")
 #-----------------------------------------------------------------------------#
 # GxE additional analysis ---- 
 #-----------------------------------------------------------------------------#
-source(glue("/media/work/gwis_test/R/01_process.R"))
-source(glue("/media/work/gwis_test/R/02_plots.R"))
-source(glue("/media/work/gwis_test/R/03_posthoc.R"))
-source(glue("/media/work/gwis_test/R/03_posthoc_iplot.R"))
-source(glue("/media/work/gwis_test/R/03_posthoc_stratified_or.R"))
+source(glue("~/git/figifs/R/01_process.R"))
+source(glue("~/git/figifs/R/02_plots.R"))
+source(glue("~/git/figifs/R/03_posthoc.R"))
+source(glue("~/git/figifs/R/03_posthoc_iplot.R"))
+source(glue("~/git/figifs/R/03_posthoc_stratified_or.R"))
 
 
 
@@ -141,26 +142,38 @@ source(glue("/media/work/gwis_test/R/03_posthoc_stratified_or.R"))
 
 
 # output RERI plots (can't install package on CARC yet)
-significant_snps <- c("2:136407479:A:G", "1:151700227:G:A", "3:85461302:G:A", "4:147966066:G:A") 
+significant_snps <- c("2:136407479:A:G", "1:151700227:G:A", "3:85461302:G:A", "4:147966066:G:A", "15:83613505:A:T") 
 significant_snps <- c("3:85461302:G:A", "4:147966066:G:A") 
 walk(significant_snps, ~ reri_wrapper(data_epi = input_data, exposure = exposure, snp = .x, covariates = covariates, path = glue("{path}/output")))
+
+
+
+
+
+
+
+
+
+
+
 
 
 # ================================================================== #
 # ======= rmarkdown reports ---- 
 # ================================================================== #
+main_effects_report(exposure = exposure, hrc_version = hrc_version, covariates = covariates, path = path)
 
-rmarkdown::render("~/git/figi/main_effects/main_effects.Rmd", 
-                  params = list(exposure = exposure, hrc_version = hrc_version, covariates = covariates, path = glue("{path}/output/posthoc/")), 
-                  output_file = glue("~/Dropbox/FIGI/Results/{exposure}_main_effects.html"))
+gwis_report(exposure = exposure, 
+            hrc_version = hrc_version, 
+            covariates = covariates)
 
- 
-gwis_report(exposure = exposure, hrc_version = hrc_version, covariates = covariates)
+posthoc_report(exposure = exposure, 
+               hrc_version = hrc_version,
+               covariates = covariates,
+               path = path)
+
 
 posthoc_report(exposure = exposure)
-
-
-
 
 
 
