@@ -5,9 +5,9 @@
 twostep_wrapper <- function(exposure, step1_statistic, eh_method, hrc_version, filename_suffix = "", exclude_gwas = F) {
   
   if(exclude_gwas) {
-    filename = glue("/media/work/gwis_test/{exposure}/output/twostep_{eh_method}_excludeGWAS_{exposure}_{hrc_version}_{step1_statistic}.png")
+    filename = glue("{path}/output/twostep_{eh_method}_excludeGWAS_{exposure}_{hrc_version}_{step1_statistic}.png")
   } else {
-    filename = glue("/media/work/gwis_test/{exposure}/output/twostep_{eh_method}_{exposure}_{hrc_version}_{step1_statistic}.png")
+    filename = glue("{path}/output/twostep_{eh_method}_{exposure}_{hrc_version}_{step1_statistic}.png")
   }
   
   knitr::include_graphics(filename)
@@ -17,9 +17,9 @@ twostep_wrapper <- function(exposure, step1_statistic, eh_method, hrc_version, f
 significant_results_table_wrapper <- function(exposure, step1_statistic, eh_method, hrc_version, filename_suffix = "", exclude_gwas = F) {
   
   if(exclude_gwas) {
-    filename = glue("/media/work/gwis_test/{exposure}/output/twostep_{eh_method}_excludeGWAS_{exposure}_{hrc_version}_{step1_statistic}_df.rds")
+    filename = glue("{path}/output/twostep_{eh_method}_excludeGWAS_{exposure}_{hrc_version}_{step1_statistic}_df.rds")
   } else {
-    filename = glue("/media/work/gwis_test/{exposure}/output/twostep_{eh_method}_{exposure}_{hrc_version}_{step1_statistic}_df.rds")
+    filename = glue("{path}/output/twostep_{eh_method}_{exposure}_{hrc_version}_{step1_statistic}_df.rds")
   }
   
   # output

@@ -69,9 +69,15 @@ pooled_analysis_multinom(input_data, exposure = exposure, hrc_version = hrc_vers
 #-----------------------------------------------------------------------------#
 # GxE additional analysis ---- 
 #-----------------------------------------------------------------------------#
+source(glue("~/git/figifs/R/01_process.R"))
+source(glue("~/git/figifs/R/02_plots.R"))
+source(glue("~/git/figifs/R/03_posthoc.R"))
+source(glue("~/git/figifs/R/03_posthoc_iplot.R"))
+source(glue("~/git/figifs/R/03_posthoc_stratified_or.R"))
+
 
 # output RERI plots (can't install package on CARC yet)
-snps <- c("14:74029409:C:T")
+snps <- c("14:74029409:C:T", "14:74029049:G:C")
 walk(snps, ~ reri_wrapper(data_epi = input_data, exposure = exposure, snp = .x, covariates = covariates, path = glue("{path}/output")))
 
 
@@ -137,6 +143,93 @@ create_manhattanplot_ramwas(data = gxe_better, exposure = exposure, statistic = 
 create_manhattanplot_ramwas(data = gxe_better, exposure = exposure, statistic = 'chiSq2df', hrc_version = 'v2.3', path = "~/Dropbox/", sig_line = 5e-8)
 
 
+
+
+
+
+
+
+
+
+
+# need allele frequency by study_gxe to confirm finding (and sensitivity analysis)
+tmp <- qread("/media/work/gwis_test/fruitqc2/output/posthoc/dosage_chr14_74029409.qs") %>% 
+  inner_join(input_data, 'vcfid')
+
+aaf <- function(x) {
+  sum(x) / nrow(x)
+}
+
+out <- tmp %>% 
+  group_by(study_gxe) %>% 
+  summarise(total = n(), 
+            study_aaf = sum(chr14_74029409_C_T_dose) / (total*2)) %>% 
+  arrange(study_aaf) %>% 
+  mutate(study_gxe = fct_reorder(study_gxe, study_aaf))
+
+ggplot(aes(x = study_gxe, y = study_aaf), data = out) + 
+  geom_point() + 
+  theme_bw() + 
+  theme(axis.text.x = element_text(angle = 270)) + 
+  xlab("Study") + 
+  ylab("Alternate Allele Frequency")
+
+
+# would results change if you remove mecc (note wald statistic)
+model1 <- glm(glue("outcome ~ {exposure}*chr14_74029409_C_T_dose + {glue_collapse(covariates, sep = '+')}"), data = tmp, family = 'binomial')
+summary(model1)
+
+tmp2 <- dplyr::filter(tmp, !grepl("UKB_1", study_gxe))
+model2 <- glm(glue("outcome ~ {exposure}*chr14_74029409_C_T_dose + {glue_collapse(covariates, sep = '+')}"), data = tmp2, family = 'binomial')
+summary(model2)
+
+tmp3 <- dplyr::filter(tmp, grepl("UKB_1", study_gxe))
+covariates_nostudy <- covariates[which(covariates != "study_gxe")]
+model3 <- glm(glue("outcome ~ {exposure}*chr14_74029409_C_T_dose + {glue_collapse(covariates_nostudy, sep = '+')}"), data = tmp3, family = 'binomial')
+summary(model3)
+
+
+
+
+
+
+
+
+# need allele frequency by study_gxe to confirm finding (and sensitivity analysis)
+tmp <- qread("/media/work/gwis_test/fruitqc2/output/posthoc/dosage_chr14_74029409.qs") %>% 
+  inner_join(input_data, 'vcfid')
+
+aaf <- function(x) {
+  sum(x) / nrow(x)
+}
+
+out <- tmp %>% 
+  group_by(study_gxe) %>% 
+  summarise(total = n(), 
+            study_aaf = sum(chr14_74029409_C_T_dose) / (total*2)) %>% 
+  arrange(study_aaf) %>% 
+  mutate(study_gxe = fct_reorder(study_gxe, study_aaf))
+
+ggplot(aes(x = study_gxe, y = study_aaf), data = out) + 
+  geom_point() + 
+  theme_bw() + 
+  theme(axis.text.x = element_text(angle = 270)) + 
+  xlab("Study") + 
+  ylab("Alternate Allele Frequency")
+
+
+# would results change if you remove mecc (note wald statistic)
+model1 <- glm(glue("outcome ~ {exposure}*chr14_74029409_C_T_dose + {glue_collapse(covariates, sep = '+')}"), data = tmp, family = 'binomial')
+summary(model1)
+
+tmp2 <- dplyr::filter(tmp, !grepl("UKB_1", study_gxe))
+model2 <- glm(glue("outcome ~ {exposure}*chr14_74029409_C_T_dose + {glue_collapse(covariates, sep = '+')}"), data = tmp2, family = 'binomial')
+summary(model2)
+
+tmp3 <- dplyr::filter(tmp, grepl("UKB_1", study_gxe))
+covariates_nostudy <- covariates[which(covariates != "study_gxe")]
+model3 <- glm(glue("outcome ~ {exposure}*chr14_74029409_C_T_dose + {glue_collapse(covariates_nostudy, sep = '+')}"), data = tmp3, family = 'binomial')
+summary(model3)
 
 
 

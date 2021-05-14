@@ -6,9 +6,9 @@ manhattan_wrapper <- function(exposure, hrc_version, statistic, nogwas = F) {
   
   # input files
   if(nogwas == T) {
-    manhattan_plot <- glue("/media/work/gwis_test/{exposure}/output/manhattan_{exposure}_{hrc_version}_{statistic}_no_gwas.png")
+    manhattan_plot <- glue("{path}/output/manhattan_{exposure}_{hrc_version}_{statistic}_no_gwas.png")
   } else {
-    manhattan_plot <- glue("/media/work/gwis_test/{exposure}/output/manhattan_{exposure}_{hrc_version}_{statistic}.png")
+    manhattan_plot <- glue("{path}/output/manhattan_{exposure}_{hrc_version}_{statistic}.png")
   }
   
   knitr::include_graphics(manhattan_plot)
@@ -21,11 +21,11 @@ significant_results_table_wrapper <- function(exposure, hrc_version, statistic, 
   
   # input files
   if(nogwas == T) {
-    clump_file <- glue("/media/work/gwis_test/{exposure}/data/FIGI_{hrc_version}_gxeset_{exposure}_{statistic}_no_gwas_ldclump.clumped")
-    manhattan_file <- glue("/media/work/gwis_test/{exposure}/output/manhattan_{exposure}_{hrc_version}_{statistic}_no_gwas_df.rds")
+    clump_file <- glue("{path}/data/FIGI_{hrc_version}_gxeset_{exposure}_{statistic}_no_gwas_ldclump.clumped")
+    manhattan_file <- glue("{path}/output/manhattan_{exposure}_{hrc_version}_{statistic}_no_gwas_df.rds")
   } else {
-    clump_file <- glue("/media/work/gwis_test/{exposure}/data/FIGI_{hrc_version}_gxeset_{exposure}_{statistic}_ldclump.clumped")
-    manhattan_file <- glue("/media/work/gwis_test/{exposure}/output/manhattan_{exposure}_{hrc_version}_{statistic}_df.rds")
+    clump_file <- glue("{path}/data/FIGI_{hrc_version}_gxeset_{exposure}_{statistic}_ldclump.clumped")
+    manhattan_file <- glue("{path}/output/manhattan_{exposure}_{hrc_version}_{statistic}_df.rds")
   }
   
   

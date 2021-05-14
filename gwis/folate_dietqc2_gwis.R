@@ -1,5 +1,5 @@
 #=============================================================================#
-# FIGI GxE vegetableqc2 results
+# FIGI GxE fiberqc2 results
 #=============================================================================#
 library(tidyverse)
 library(data.table)
@@ -26,19 +26,17 @@ library(msm)
 rm(list = ls())
 
 # input variables
-exposure = 'vegetableqc2'
-hrc_version = 'v2.3'
+exposure = 'folate_dietqc2'
+hrc_version = 'v3.0'
 annotation_file <- 'gwas_200_ld_annotation_feb2021.txt'
 path = glue("/media/work/gwis_test/{exposure}/")
 
 covariates <- sort(c('age_ref_imp', 'sex', 'energytot_imp', 'study_gxe', 'pc1', 'pc2', 'pc3'))
 
 # input data
-# # input data
 esubset <- readRDS(glue("{path}/data/FIGI_{hrc_version}_gxeset_{exposure}_basic_covars_glm.rds")) %>% pull(vcfid)
 input_data <- readRDS(glue("/media/work/gwis/data/FIGI_EpiData/FIGI_{hrc_version}_gxeset_analysis_data_glm.rds")) %>% 
   filter(vcfid%in% esubset)
-
 
 
 #-----------------------------------------------------------------------------#
@@ -63,9 +61,6 @@ pooled_analysis_glm(input_data, exposure = exposure, hrc_version = hrc_version, 
 pooled_analysis_glm(input_data, exposure = exposure, hrc_version = hrc_version, covariates = covariates, strata = 'study_design', filename_suffix = paste0(paste0(sort(covariates), collapse = '_'), "_stratified_study_design"), output_dir = glue("{path}/output/posthoc/"))
 
 pooled_analysis_multinom(input_data, exposure = exposure, hrc_version = hrc_version, covariates = covariates, filename_suffix = paste0(paste0(sort(covariates), collapse = '_'), "_stratified_cancer_site_sum2"), output_dir = glue("{path}/output/posthoc/"))
-
-
-
 
 
 
@@ -128,7 +123,6 @@ plot(inf.analysis, "es")
 plot(inf.analysis, "i2")
 
 
-
 #-----------------------------------------------------------------------------#
 # SNP followup ---- 
 #-----------------------------------------------------------------------------#
@@ -138,6 +132,12 @@ source("/home/rak/Dropbox/FIGI/FIGI_code/results/posthoc/posthoc_01_combine_resu
 # on HPC:
 # - extract dosage information on HPC
 # - calculate clumped statistics - gxe, 2/3df if necessary
+
+
+
+
+
+
 
 
 # ================================================================== #
@@ -154,121 +154,6 @@ posthoc_report(exposure = exposure,
                covariates = covariates,
                path = path)
 
-
-
-
-
-
-
-
-
-
-
-
-
-#-----------------------------------------------------------------------------#
-# SNP followup (models and plots) ---- 
-#-----------------------------------------------------------------------------#
-
-# make sure 1-28g/d is the reference group !
-figi <- posthoc_input(exposure, hrc_version, glue('gwis_sig_results_output_{exposure}.rds')) %>% 
-  mutate(vegetableqc2 = abs(vegetableqc2 - 3))
-
-snps <- readRDS(glue(output_dir, "gwis_sig_results_input_{exposure}.rds"))
-table(snps$method)
-
-
-# ------- GxE 1DF suggestive findings ------- #
-snps_filter <- snps %>% 
-  dplyr::filter(method == glue("manhattan_chiSqGxE_{exposure}_clump_df")) %>% 
-  dplyr::mutate(snps = paste0('chr', gsub("\\:", "\\_", SNP))) %>% 
-  pull(snps)
-
-posthoc_run_models(snps_filter, 'chiSqGxE')
-posthoc_run_reri_plot(snps_filter)
-posthoc_create_plots(snps_filter, 'chiSqGxE')
-
-
-
-
-# ------- 2DF/3DF clumped removing GWAS and or EG (to check 'novel' D|G results) ------- #
-# as first pass, only generate locuszoom plots to gauge whether the region is already capture by GECCO meta-analysis
-
-
-snps_filter <- readRDS(glue(output_dir, "manhattan_chiSq2df_{exposure}_no_gwas_clump_df.rds")) %>% 
-  dplyr::mutate(snps = paste0('chr', gsub("\\:", "\\_", SNP))) %>% 
-  pull(snps)
-posthoc_create_plots(snps_filter, 'chiSq2df')
-
-snps_filter <- readRDS(glue(output_dir, "manhattan_chiSq3df_{exposure}_no_gwas_no_ge_clump_df.rds")) %>% 
-  dplyr::mutate(snps = paste0('chr', gsub("\\:", "\\_", SNP))) %>% 
-  pull(snps)
-posthoc_create_plots(snps_filter, 'chiSq3df')
-
-
-
-
-# ------ 2df findings ------- #
-snps_filter <- readRDS(glue(output_dir, "manhattan_chiSq2df_{exposure}_no_gwas_clump_df.rds")) %>% 
-  dplyr::filter(SNP == "1:71040166:G:T") %>% 
-  dplyr::mutate(snps = paste0('chr', gsub("\\:", "\\_", SNP))) %>% 
-  pull(snps)
-
-
-posthoc_run_models(snps_filter, 'chiSq2df')
-posthoc_run_reri_plot(snps_filter)
-posthoc_create_plots(snps_filter, 'chiSq2df')
-
-
-# ------ 3df findings ------- #
-snps_filter <- readRDS(glue(output_dir, "manhattan_chiSq3df_{exposure}_no_gwas_no_ge_clump_df.rds")) %>% 
-  dplyr::filter(SNP %in% c("1:71035970:G:T", "6:117816093:A:G")) %>% 
-  dplyr::mutate(snps = paste0('chr', gsub("\\:", "\\_", SNP))) %>% 
-  pull(snps)
-
-posthoc_run_models(snps_filter, 'chiSq3df')
-posthoc_run_reri_plot(snps_filter)
-posthoc_create_plots(snps_filter, 'chiSq3df')
-
-
-
-
-
-
-
-
-# ------- 2DF/3DF clumped removing GWAS and or EG (to check 'novel' D|G results) ------- #
-# - locuszoom plots
-# - conditional analyses??? (more involved.. but maybe worthwhile if they request it)
-
-snps_2df <- readRDS(glue(output_dir, "manhattan_chiSq2df_{exposure}_no_gwas_clump_df.rds")) %>% 
-  dplyr::mutate(snps = paste0('chr', gsub("\\:", "\\_", SNP))) %>% 
-  pull(snps)
-
-posthoc_run_models(snps_2df, 'chiSq2df')
-posthoc_run_reri_plot(snps_2df)
-posthoc_create_plots(snps_2df[1], 'chiSqG')
-
-
-
-snps_3df <- readRDS(glue(output_dir, "manhattan_chiSq3df_{exposure}_no_gwas_no_ge_clump_df.rds")) %>% 
-  dplyr::mutate(snps = paste0('chr', gsub("\\:", "\\_", SNP))) %>% 
-  pull(snps)
-
-posthoc_run_models(snps_3df, 'chiSq3df')
-posthoc_run_reri_plot(snps_3df)
-posthoc_create_plots(snps_3df, 'chiSq3df')
-
-
-# ------- Expectation based hybrid... (just do all...) -------- #
-snps_filter <- snps %>% 
-  dplyr::filter(method == glue("twostep_wht_chiSqG_{exposure}_expectation_hybrid_df")) %>% 
-  dplyr::mutate(snps = paste0('chr', gsub("\\:", "\\_", SNP))) %>% 
-  pull(snps)
-
-posthoc_run_models(snps_filter, 'chiSqGxE')
-posthoc_run_reri_plot(snps_filter)
-posthoc_create_plots(snps_filter, 'chiSqGxE')
 
 
 

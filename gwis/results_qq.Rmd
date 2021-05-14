@@ -3,7 +3,7 @@
 
 # qq plots
 qq_wrapper <- function(exposure, hrc_version, statistic, filename_suffix = "") {
-  knitr::include_graphics(glue("/media/work/gwis_test/{exposure}/output/qq_{exposure}_{hrc_version}_{statistic}.png"))
+  knitr::include_graphics(glue("{path}/output/qq_{exposure}_{hrc_version}_{statistic}.png"))
 }
 ```
 

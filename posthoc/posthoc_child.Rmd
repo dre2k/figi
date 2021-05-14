@@ -5,7 +5,7 @@ output: html_document
 
 ``` {r}
 # make sure stratified odds ratios tables are only output for binary variables (exclude Q4)
-if(exposure %in% c("redmeatqc2", "procmeatqc2", "calcium_totqc2", "calcium_dietqc2", "folate_dietqc2", "folate_totqc2", "fruitqc2", "vegetableqc2", "fiberqc2")) {
+if(exposure %in% c("redmeatqc2", "procmeatqc2", "calcium_totqc2", "calcium_dietqc2", "folate_dietqc2", "folate_totqc2", "fruitqc2", "vegetableqc2", "fiberqc2", "bmi5")) {
   stratified_or_eval = F
 } else {
   stratified_or_eval = T
@@ -25,31 +25,32 @@ cat(paste0("## ", snp, " {.tabset}"), collapse = '\n')
 ```
 
 
-```{r, results = 'asis',  eval = stratified_sex}
-cat(paste0("### GxE stratified by sex"), collapse = '\n')
+<!-- ```{r, results = 'asis',  eval = stratified_sex} -->
+<!-- cat(paste0("### GxE stratified by sex"), collapse = '\n') -->
 
-rawHTML <- paste(readLines(glue("{path}/output/posthoc/gxe_models_{exposure}_{hrc_version}_{snp}_dose_{glue_collapse(sort(covariates), sep = '_')}_stratified_by_sex.html")))
-cat(paste(rawHTML, collapse = "\n"), "\n")
-```
-
-
-```{r, results = 'asis',  eval = stratified_sex}
-cat(paste0("### GxE stratified by tumor site"), collapse = '\n')
-
-rawHTML <- paste(readLines(glue("{path}/output/posthoc/gxe_models_{exposure}_{hrc_version}_{snp}_dose_{glue_collapse(sort(covariates), sep = '_')}_stratified_by_cancer_site_sum2.html")))
-cat(paste(rawHTML, collapse = "\n"), "\n")
-```
+<!-- rawHTML <- paste(readLines(glue("{path}/output/posthoc/gxe_models_{exposure}_{hrc_version}_{snp}_dose_{glue_collapse(sort(covariates), sep = '_')}_stratified_by_sex.html"))) -->
+<!-- cat(paste(rawHTML, collapse = "\n"), "\n") -->
+<!-- ``` -->
 
 
-```{r, results = 'asis',  eval = stratified_sex}
-cat(paste0("### GxE stratified by study design"), collapse = '\n')
+<!-- ```{r, results = 'asis',  eval = stratified_sex} -->
+<!-- cat(paste0("### GxE stratified by tumor site"), collapse = '\n') -->
 
-rawHTML <- paste(readLines(glue("{path}/output/posthoc/gxe_models_{exposure}_{hrc_version}_{snp}_dose_{glue_collapse(sort(covariates), sep = '_')}_stratified_by_study_design.html")))
-cat(paste(rawHTML, collapse = "\n"), "\n")
-```
+<!-- rawHTML <- paste(readLines(glue("{path}/output/posthoc/gxe_models_{exposure}_{hrc_version}_{snp}_dose_{glue_collapse(sort(covariates), sep = '_')}_stratified_by_cancer_site_sum2.html"))) -->
+<!-- cat(paste(rawHTML, collapse = "\n"), "\n") -->
+<!-- ``` -->
 
 
+<!-- ```{r, results = 'asis',  eval = stratified_sex} -->
+<!-- cat(paste0("### GxE stratified by study design"), collapse = '\n') -->
 
+<!-- rawHTML <- paste(readLines(glue("{path}/output/posthoc/gxe_models_{exposure}_{hrc_version}_{snp}_dose_{glue_collapse(sort(covariates), sep = '_')}_stratified_by_study_design.html"))) -->
+<!-- cat(paste(rawHTML, collapse = "\n"), "\n") -->
+<!-- ``` -->
+
+
+<!-- NO INCLUDE UNLESS REQUESTED -->
+<!-- NO INCLUDE UNLESS REQUESTED -->
 <!-- NO INCLUDE UNLESS REQUESTED -->
 <!-- ```{r, results = 'asis',  eval = stratified_sex} -->
 <!-- cat(paste0("### GxE by covariate sets"), collapse = '\n') -->
@@ -74,27 +75,27 @@ cat(paste(rawHTML, collapse = "\n"), "\n")
 <!-- ``` -->
 
 
-```{r, echo = F, results = 'asis'}
-cat(paste0("### RERI"), collapse = '\n')
-```
-```{r}
-# just read in the file and run flextable
-readRDS(glue("{path}/output/posthoc/reri_{exposure}_{hrc_version}_{snp}_dose_{glue_collapse(covariates, sep = '_')}.rds"))
-```
+<!-- ```{r, echo = F, results = 'asis'} -->
+<!-- cat(paste0("### RERI"), collapse = '\n') -->
+<!-- ``` -->
+<!-- ```{r} -->
+<!-- # just read in the file and run flextable -->
+<!-- readRDS(glue("{path}/output/posthoc/reri_{exposure}_{hrc_version}_{snp}_dose_{glue_collapse(covariates, sep = '_')}.rds")) -->
+<!-- ``` -->
 
 
-```{r, echo = F, results = 'asis'}
-cat(paste0("### Interaction Plot"), collapse = '\n')
-```
-```{r, out.width = '125%'}
-# remove ref/alt info from snp
-snpfix <- substr(snp, 1, nchar(snp)-4)
+<!-- ```{r, echo = F, results = 'asis'} -->
+<!-- cat(paste0("### Interaction Plot"), collapse = '\n') -->
+<!-- ``` -->
+<!-- ```{r, out.width = '125%'} -->
+<!-- # remove ref/alt info from snp -->
+<!-- snpfix <- substr(snp, 1, nchar(snp)-4) -->
 
-# interaction plot
-interactionplot_file <- glue("{path}/output/posthoc/interaction_plot_{exposure}_{hrc_version}_{snp}_dose_{glue_collapse(sort(covariates), sep = '_')}.png")
-knitr::include_graphics(interactionplot_file)
+<!-- # interaction plot -->
+<!-- interactionplot_file <- glue("{path}/output/posthoc/interaction_plot_{exposure}_{hrc_version}_{snp}_dose_{glue_collapse(sort(covariates), sep = '_')}.png") -->
+<!-- knitr::include_graphics(interactionplot_file) -->
 
-```
+<!-- ``` -->
 
 
 ```{r, echo = F, results = 'asis'}
