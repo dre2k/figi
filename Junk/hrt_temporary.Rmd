@@ -1,0 +1,315 @@
+---
+title: "pure HRT variable creation and summary"
+output: html_document
+theme: readable
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, include = F}
+library(tidyverse)
+library(data.table)
+library(lmtest)
+library(expss)
+library(glue)
+
+# figi_gxe <- readRDS("/media/work/gwis/results/input/FIGI_v2.3_gxeset_analysis_data_glm.rds")
+figi_gxe <- readRDS("/media/work/gwis/data/FIGI_EpiData/FIGI_v2.3_gxeset_analysis_data_glm.rds")
+snps <- readRDS("/media/work/gwis/posthoc/gwis_sig_results_output_ep_ref_pm_gxe.rds")
+figi_gxe_snp <- inner_join(figi_gxe, snps, 'vcfid')
+# snp <- "X1.53785007.C.T_dose"
+
+# original ep_ref_pm_gxe
+ep_ref_pm_gxe <- readRDS("/media/work/gwis/results/input/FIGI_v2.3_gxeset_ep_ref_pm_gxe_basic_covars_glm.rds") %>% 
+  rename_all(tolower) %>% 
+  inner_join(snps, 'vcfid')
+eo_ref_pm_gxe <- readRDS("/media/work/gwis/results/input/FIGI_v2.3_gxeset_eo_ref_pm_gxe_basic_covars_glm.rds") %>% 
+   rename_all(tolower) %>% 
+  inner_join(snps, 'vcfid')
+```
+
+
+Variable summary from Yi:
+
+From Yi and Yu:
+
+| Ever                   | Description                                                             |
+|------------------------|-------------------------------------------------------------------------|
+| hrt_ref_pm2No          | 1= no EO and no EP and no any HRT; 0= any EO,EP,any HRT                 |
+| pure_eo_allNo          | 1= no EO and no EP and no any HRT; 0= pure EO and no EP and no any HRT  |
+| pure_eo_anyNo          | 1= no EO or  no EP or  no any HRT; 0 = pure EO and no EP and no any HRT |
+| pure_ep_allNo          | 1= no EO and no EP and no any HRT; 0 = pure EP and no EO and no any HRT |
+| pure_ep_anyNo          | 1= no EO or  no EP or  no any HRT; 0 = pure EP and no EO and no any HRT |
+| eo_allNo               | 1= no EO and no EP and no any HRT;0 =  EO regardless  EP/any HRT        |
+| eo_anyNo               | 1= no EO or  no EP or  no any HRT; 0 =  EO regardless  EP/any HRT       |
+| ep_allNo               | 1= no EO and no EP and no any HRT; 0 =  EP regardless  EP/any HRT       |
+| ep_anyNo               | 1= no EO or  no EP or  no any HRT; 0 = EP regardless  EP/any HRT        |
+| eo_ref_pm              | Post menopausal EO use                                                  |
+| ep_ref_pm              | Post menopausal EP use                                                  |
+| horm_ref_pm            | Post menopausal any hormone use                                         |
+| hrt_ref_pm2            | 0= no EO and no EP and no any HRT; 1= any EO,EP,any HRT                 |
+| pure_eo_all            | 0= no EO and no EP and no any HRT; 1 = pure EO and no EP and no any HRT |
+| pure_ep_all            | 0= no EO and no EP and no any HRT; 1 = pure EO and no EP and no any HRT |
+| eo_all (eo_ref_pm_gxe) | 0= no EO and no EP and no any HRT;1 =  EO regardless  EP/any HRT        |
+| ep_all (ep_ref_pm_gxe) | 0= no EO and no EP and no any HRT; 1 =  EP regardless  EP/any HRT       |
+
+
+
+Request from Yu:
+
+> I would like to request for re-analyzing GxE based on pure definition for EO and EP? Because we have found a significant SNP (rs79439591) by EP but neither SNPs in LD with it nor functional annotation, I guess the SNP could be gone if we use stringent EP definition. You could only check for this SNP first, don’t have to run analysis for all.   
+
+
+<br> 
+
+----
+
+<br>
+
+
+# recode variables and calculate associations
+
+## E+P
+
+### ep_ref_pm == "Yes"
+```{r}
+ep_yes <- filter(figi_gxe, ep_ref_pm == "Yes")
+cro(ep_yes$eo_ref_pm, ep_yes$hrt_ref_pm2)
+```
+
+### ep_ref_pm == "No"
+```{r}
+ep_no <- filter(figi_gxe, ep_ref_pm == "No")
+cro(ep_no$eo_ref_pm, ep_no$hrt_ref_pm2)
+```
+
+
+`ep_ref_pm_gxe` includes individuals that were treated with ONLY ESTROGEN. Exclude from definition to create `pure_ep_allNo`: 
+
+### pure_ep_allNo:
+```{r}
+tmp <- figi_gxe %>% 
+  mutate(pure_ep_allNo = ifelse(ep_ref_pm == "Yes" & eo_ref_pm == "No", "Yes",
+                       ifelse(ep_ref_pm == "No" & hrt_ref_pm2 == "No" & eo_ref_pm == "No", "No", NA)))
+
+cro(tmp$study_gxe, tmp$pure_ep_allNo)
+```
+
+Remove studies that only have either 0 or 1 pure_ep_allNo value or very sparse cells e.g. CLUEII. While this isn't necessary for GLM, I do it for GxEScanR so let me keep things consistent just in case:
+```{r}
+drops <- data.frame(table(tmp$outcome, tmp[, 'pure_ep_allNo'], tmp$study_gxe)) %>% 
+  filter(Freq <= 0)
+figi_gxe_pure_ep <- tmp %>% 
+  filter(!study_gxe %in% unique(drops$Var3)) %>% 
+  dplyr::mutate(study_gxe = fct_drop(study_gxe)) %>% 
+  dplyr::select(vcfid, outcome, age_ref_imp, sex, study_gxe, pure_ep_allNo, pc1, pc2, pc3) %>% 
+  filter(complete.cases(.))
+
+
+cro(figi_gxe_pure_ep$study_gxe, figi_gxe_pure_ep$pure_ep_allNo)
+```
+
+
+
+
+
+<br>
+
+----
+
+<br>
+
+
+
+
+
+
+## E only
+
+### eo_ref_pm == "Yes"
+```{r}
+eo_yes <- filter(figi_gxe, eo_ref_pm == "Yes")
+cro(eo_yes$ep_ref_pm, eo_yes$hrt_ref_pm2)
+```
+
+### eo_ref_pm == "No"
+```{r}
+eo_no <- filter(figi_gxe, eo_ref_pm == "No")
+cro(eo_no$ep_ref_pm, eo_no$hrt_ref_pm2)
+```
+
+
+similar to estrogen+progesterone variable, `eo_ref_pm_gxe` includes individuals that were treated with E+P. Exclude from definition to create `pure_eo_allNo`: 
+
+### pure_eo_allNo:
+```{r}
+tmp <- figi_gxe %>% 
+  mutate(pure_eo_allNo = ifelse(eo_ref_pm == "Yes" & ep_ref_pm == "No", "Yes",
+                       ifelse(eo_ref_pm == "No" & hrt_ref_pm2 == "No" & ep_ref_pm == "No", "No", NA)))
+
+cro(tmp$study_gxe, tmp$pure_eo_allNo)
+```
+
+Again, remove studies that only have either 0 or 1 pure_eo_allNo value or very sparse cells:
+```{r}
+drops <- data.frame(table(tmp$outcome, tmp[, 'pure_eo_allNo'], tmp$study_gxe)) %>% 
+  filter(Freq <= 0)
+figi_gxe_pure_eo <- tmp %>% 
+  filter(!study_gxe %in% unique(drops$Var3)) %>% 
+  dplyr::mutate(study_gxe = fct_drop(study_gxe)) %>% 
+  dplyr::select(vcfid, outcome, age_ref_imp, sex, study_gxe, pure_eo_allNo, pc1, pc2, pc3) %>% 
+  filter(complete.cases(.))
+
+cro(figi_gxe_pure_eo$study_gxe, figi_gxe_pure_eo$pure_eo_allNo)
+```
+
+
+
+<br>
+
+----
+
+<br>
+
+# Association with rs79439591 (1:53785007:C:T)
+
+
+## start with `pure_ep_allNo`
+```{r}
+exposure <- "pure_ep_allNo"
+snp <- "X1.53785007.C.T_dose"
+
+dat <- inner_join(figi_gxe_pure_ep, snps, 'vcfid')
+
+model     <- glm(glue("outcome ~ {exposure}*{snp} + age_ref_imp + pc1 + pc2 + pc3 + study_gxe"), data = dat, family = 'binomial')
+model_ref <- glm(glue("outcome ~ {exposure}+{snp} + age_ref_imp + pc1 + pc2 + pc3 + study_gxe"), data = dat, family = 'binomial')
+summary(model)
+lrtest(model, model_ref)
+
+
+# original ep_ref_pm_gxe variable:
+exposure <- "ep_ref_pm_gxe"
+
+model     <- glm(glue("outcome ~ {exposure}*{snp} + age_ref_imp + pc1 + pc2 + pc3 + study_gxe"), data = ep_ref_pm_gxe, family = 'binomial')
+model_ref <- glm(glue("outcome ~ {exposure}+{snp} + age_ref_imp + pc1 + pc2 + pc3 + study_gxe"), data = ep_ref_pm_gxe, family = 'binomial')
+summary(model)
+lrtest(model, model_ref)
+
+```
+
+
+<br> 
+
+---- 
+
+<br> 
+
+
+## `pure_ep_allNo` - 2DF results
+```{r}
+exposure <- "pure_ep_allNo"
+snp <- "X1.53785007.C.T_dose"
+
+dat <- inner_join(figi_gxe_pure_ep, snps, 'vcfid')
+
+model     <- glm(glue("outcome ~ {exposure}*{snp} + age_ref_imp + pc1 + pc2 + pc3 + study_gxe"), data = dat, family = 'binomial')
+model_ref <- glm(glue("outcome ~ {exposure}       + age_ref_imp + pc1 + pc2 + pc3 + study_gxe"), data = dat, family = 'binomial')
+summary(model)
+lrtest(model, model_ref)
+
+
+# original ep_ref_pm_gxe variable:
+exposure <- "ep_ref_pm_gxe"
+
+model     <- glm(glue("outcome ~ {exposure}*{snp} + age_ref_imp + pc1 + pc2 + pc3 + study_gxe"), data = ep_ref_pm_gxe, family = 'binomial')
+model_ref <- glm(glue("outcome ~ {exposure}       + age_ref_imp + pc1 + pc2 + pc3 + study_gxe"), data = ep_ref_pm_gxe, family = 'binomial')
+summary(model)
+lrtest(model, model_ref)
+
+```
+
+
+
+<br> 
+
+---- 
+
+<br> 
+
+
+
+## `pure_ep_allNo` - 3DF results
+
+The more straightforward way to do this would be to reparameterize the model so that you can test all 3 components jointly (D|G, GxE, and E|G -- see Gauderman 2019). However, the way GxEScanR does it is to calculate 2DF and E|G separately, and then adding the chi-square statistics to calculate the p-value. So this is what I'll do here: 
+
+
+```{r}
+exposure <- "pure_ep_allNo"
+snp <- "X1.53785007.C.T_dose"
+
+dat <- inner_join(figi_gxe_pure_ep, snps, 'vcfid') %>% 
+  mutate(pure_ep_allNo = ifelse(pure_ep_allNo == "Yes", 1, 0))
+
+
+# GxE chi-square statistic
+model     <- glm(glue("outcome ~ {exposure}*{snp} + age_ref_imp + pc1 + pc2 + pc3 + study_gxe"), data = dat, family = 'binomial')
+model_ref <- glm(glue("outcome ~ {exposure}       + age_ref_imp + pc1 + pc2 + pc3 + study_gxe"), data = dat, family = 'binomial')
+summary(model)
+lrtest(model, model_ref) 
+
+chisq_2df = 32.063
+
+# E|G chi-square statistic
+model     <- glm(glue("{exposure} ~ {snp} + age_ref_imp + pc1 + pc2 + pc3 + study_gxe"), data = dat, family = 'binomial')
+model_ref <- glm(glue("{exposure} ~       + age_ref_imp + pc1 + pc2 + pc3 + study_gxe"), data = dat, family = 'binomial')
+summary(model)
+lrtest(model, model_ref)
+
+chisq_eg = 0.3319
+
+chisq_3df = chisq_2df + chisq_eg
+
+# 3DF P-VALUE: 
+pchisq(chisq_3df, lower.tail = F, df = 3)
+
+
+```
+
+
+<br> 
+
+---- 
+
+<br> 
+
+
+
+## Question about two-step .. 
+
+To interpret this finding, need to put in context of two-step approach. This is the marginal association for this SNP, keeping in mind that it's adjusted by the exposure variable:
+
+```{r}
+# pure EP
+exposure <- "pure_ep_allNo"
+snp <- "X1.53785007.C.T_dose"
+
+dat <- inner_join(figi_gxe_pure_ep, snps, 'vcfid')
+
+model     <- glm(glue("outcome ~ {exposure} + {snp} + age_ref_imp + pc1 + pc2 + pc3 + study_gxe"), data = dat, family = 'binomial')
+model_ref <- glm(glue("outcome ~ {exposure}         + age_ref_imp + pc1 + pc2 + pc3 + study_gxe"), data = dat, family = 'binomial')
+summary(model)
+lrtest(model, model_ref)
+
+
+# original ep_ref_pm_gxe variable
+exposure <- "ep_ref_pm_gxe"
+
+model     <- glm(glue("outcome ~ {exposure} + {snp} + age_ref_imp + pc1 + pc2 + pc3 + study_gxe"), data = ep_ref_pm_gxe, family = 'binomial')
+model_ref <- glm(glue("outcome ~ {exposure}         + age_ref_imp + pc1 + pc2 + pc3 + study_gxe"), data = ep_ref_pm_gxe, family = 'binomial')
+summary(model)
+lrtest(model, model_ref)
+```
+
+I'm not sure if this SNP would be significant because assignment to the first Bin depends on the other SNPs with high D|G associations. I need to investigate all the SNPs in the first few bins to be sure. But for now, can say that D|G and GxE statistics are slight attenutated using the pure EP definition.  

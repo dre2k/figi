@@ -1,0 +1,169 @@
+---
+title: "Comparison between GxEScanR and GLM for 2df/3df models"
+date: '`r paste("Updated on", Sys.Date())`'
+output: pdf_document
+  # html_document:
+    # toc: true
+    # toc_float: true
+    # toc_depth: 2
+    # theme: "united"
+geometry: margin=0.5in
+params:
+  exposure: "diab"
+  # covariates: !r c("age_ref_imp", "study_gxe", "pc1", "pc2", "pc3")
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = F, message = F, warning = F, error = F)
+knitr::opts_chunk$set(comment = NA)
+```
+
+<style type="text/css">
+.main-container {
+  max-width: 1800px !important;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+table, td, th {
+  border: none;
+  padding-left: 1em;
+  padding-right: 1em;
+  margin-top: 1em;
+  margin-bottom: 1em;
+}
+
+/* Whole document: */
+body{
+  font-family: Helvetica;
+  font-size: 14pt;
+}
+/* Headers */
+/* h1,h2,h3,h4,h5,h6{ */
+/*  font-size: 24pt; */
+}
+
+</style>
+
+```{r package_setup, include = F}
+# load packages and define wrapper functions
+library(tidyverse)
+library(data.table)
+library(forcats)
+library(ggplot2)
+library(qqman)
+library(rlang)
+library(figifs)
+library(DT)
+library(grid)
+library(stargazer)
+library(kableExtra)
+library(lmtest)
+```
+
+
+# Goal
+
+For post-hoc analyses, need to validate hits by fitting various models (GxE, joint models) with additional covariates. In the process, noticed that 3DF results have very small differences between GLM and GxEScanR  
+
+In here, I'm summarizing 2DF/3DF results for 10 SNPs from the Type II Diabetes GWIS, for both GxEScanR and GLM  
+
+## Models for likelihood ratio test
+
+### 2DF joint test
+- base model: $Outcome \sim SNP + E + age + sex + pc1 + pc2 + pc3 + study$
+- interaction model: $Outcome \sim SNP + E + SNP*E + age + sex + pc1 + pc2 + pc3 + study$
+
+### 3DF joint test
+- base model: $SNP \sim age + sex + pc1 + pc2 + pc3 + study$
+- interaction model: $SNP \sim Outcome + E + Outcome*E + age + sex + pc1 + pc2 + pc3 + study$
+
+<br>
+
+
+# P-values
+
+```{r, fig.width=7} 
+x <- readRDS("/media/work/tmp/comparison_gxescan_vs_glm_2df_3df.rds") %>% 
+  mutate(pval_gxescan_2df = formatC(pval_gxescan_2df, format = "e", digits = 5),
+         pval_gxescan_3df = formatC(pval_gxescan_3df, format = "e", digits = 5),
+         pval_glm_2df = formatC(pval_glm_2df, format = "e", digits = 5),
+         pval_glm_3df = formatC(pval_glm_3df, format = "e", digits = 5)) %>% 
+  dplyr::select(SNP, Subjects, pval_gxescan_2df, pval_glm_2df, pval_gxescan_3df, pval_glm_3df )
+
+kable(x) %>% 
+  kable_styling(bootstrap_options = "striped", full_width = F, position = 'left', latex_options = "scale_down")
+```
+
+# chi-square values
+
+```{r, fig.width=7} 
+x <- readRDS("/media/work/tmp/comparison_gxescan_vs_glm_2df_3df_chisq.rds") %>%  
+  dplyr::select(SNP, Subjects, chiSqGE, chiSq2df, chiSq_glm_2df, chiSq3df , chiSq_glm_3df)
+
+kable(x) %>% 
+  kable_styling(bootstrap_options = "striped", full_width = F, position = 'left', latex_options = "scale_down")
+```
+
+
+You can see results for 2DF are essentially the same, while there are slight differences for 3DF. What do you think? Is this small difference acceptable? 
+
+
+
+# Fixed
+
+Using GLM I'll simply calculate 3DF pvalues the same exact way as gxescan e.g. adding E|G (linear) to 2DF chiSq and calculalate 3df p values. Once i do that the chiSq 3DF values are consistent:  
+
+```{r, fig.width=7} 
+x <- readRDS("/media/work/tmp/comparison_gxescan_vs_glm_2df_3df_chisq_alt.rds") %>%  
+  dplyr::select(SNP, Subjects, chiSqGE, chiSq2df, chiSq_glm_2df, chiSq3df, chiSq_glm_3df)
+
+kable(x) %>% 
+  kable_styling(bootstrap_options = "striped", full_width = F, position = 'left', latex_options = "scale_down")
+```
+
+
+
+
+<!-- ```{r include=F} -->
+
+<!-- # just get it done -->
+<!-- env <- 'diab' -->
+
+<!-- vcfid_list <- x <- readRDS(paste0("~/data/GxEScanR_PhenotypeFiles/FIGI_v2.3_gxeset_", env, "_basic_covars_glm.rds"))[,'vcfid'] -->
+
+<!-- geno <- readRDS(paste0("/media/work/tmp/posthoc/gwis_sig_results_output_", env, ".rds")) %>%  -->
+<!--   dplyr::select(-contains('p0'),  -->
+<!--                 -contains('p1'), -->
+<!--                 -contains('p2')) -->
+
+<!-- # editing covariates that are specific to diabetes request -->
+<!-- figi <- readRDS("~/data/FIGI_EpiData_rdata/FIGI_results_exposure_main_effects.rds") %>%  -->
+<!--   rename_all(tolower) %>% -->
+<!--   rename(EUR_subset = eur_subset) %>%  -->
+<!--   inner_join(geno, 'vcfid') %>%  -->
+<!--   filter(vcfid %in% vcfid_list) %>%  -->
+<!--   mutate(redmeatqc2 = factor(redmeatqc2), -->
+<!--          vigmodlns = as.numeric(vigmodlns)) -->
+<!-- ``` -->
+
+<!-- ```{r, echo=FALSE, results='asis'} -->
+
+<!-- snp_list <- c("X1.71040166.G.T_dose",   "X3.185510884.A.C_dose" , "X6.20688121.T.A_dose" ,  "X7.28189411.T.C_dose",   "X8.118185025.G.A_dose" , -->
+<!-- "X10.114754071.T.C_dose", "X10.114784926.C.T_dose", "X12.4384844.T.G_dose" ,  "X16.53811788.A.G_dose",  "X20.6442961.G.A_dose") -->
+
+<!-- # snp_list <- snp_list[1] -->
+
+<!-- res <- lapply(snp_list, function(snp) { -->
+<!--   knitr::knit_child( -->
+<!--     'posthoc_report_tmp_diab_helper.Rmd', envir = environment(), quiet = TRUE -->
+<!--   ) -->
+<!-- }) -->
+
+<!-- cat(unlist(res), sep = '\n') -->
+<!-- ``` -->
+
+
+
+
+

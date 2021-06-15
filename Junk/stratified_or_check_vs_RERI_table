@@ -1,0 +1,115 @@
+# for Q4 variables, results are more different between dosage and genotype probabilities models... 
+# probably cleaner not to present stratified odds ratios? I'm not sure
+
+
+
+
+
+xx <- figi %>% 
+  mutate(redmeatqc2_factor = as.factor(redmeatqc2))
+
+
+
+
+model = glm(outcome ~ redmeatqc2*chr3_79166316_G_A + age_ref_imp + sex + energytot_imp + pc1 + pc2 + pc3 + study_gxe, data = xx, family = 'binomial')
+
+exp(coef(model)[2])
+exp(coef(model)[3])
+exp(-1.119e-01)
+
+
+
+
+
+
+
+huh <- wtf(model, modx = 'redmeatqc2' , pred = 'chr3_79166316_G_A', outcome.scale = 'link', modx.values = c(0,1,2,3))$predicted %>% 
+  filter(chr3_79166316_G_A %in% c(0,1,2))
+
+
+#$ let's see.. 
+#
+# first sanity check (rm 1 vs 0 when snps == 0)
+exp(-0.07142704) / exp(-0.17825476) # ok 
+
+
+
+
+# redmeat 3 vs 0 when SNPs = 0
+exp(0.14222839) / exp(-0.17825476)
+
+
+# redmeat 3 vs 0 when SNPs = 2
+exp(-0.15067524) / exp(0.20035877) # should be protective... so wtf. 
+
+# exactly same as this --- 
+exp(coef(model)[2]*3)
+exp(coef(model)[2]*3  + (6*-1.119e-01))
+
+
+
+
+
+# estimates are different when you fit a factor model.. 
+
+model_q4 <- glm(outcome ~ redmeatqc2_factor*chr3_79166316_G_A_p1 + redmeatqc2_factor*chr3_79166316_G_A_p2 + age_ref_imp + sex + energytot_imp + pc1 + pc2 + pc3 + study_gxe, data = xx, family = 'binomial')
+
+summary(model_q4)
+table(xx$redmeatqc2_factor, xx$redmeatqc2)
+
+# E ORs
+exp(coef(model_q4)[2])
+exp(coef(model_q4)[3])
+exp(coef(model_q4)[4]) # 1.38376
+
+# G ORs
+exp(coef(model_q4)[5])
+exp(coef(model_q4)[6])
+
+
+# odds ratios when genotype == 2 should be opposite, let's check
+coefs <- coef(model_q4)
+
+# redmeatqc2 3 vs 0 when SNP == 0 
+exp(coefs[4]) # 1.38 -- pretty close to continuous model
+
+
+# redmeatqc2 3 vs 0 when SNP == 2
+exp(coefs[4] + 1.922e-01 +  -5.959e-02)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#### old version of checking for having to recode reference allele
+  # check if SNP has to be recoded (for consistency with RERI model)
+  model_check <- glm(glue("outcome ~ {exposure}*{snp} + {glue_collapse(covariates, sep = '+')}"), family = 'binomial', data = x)
+  
+  
+  if (model_check[[1]][snp] < 0) {
+    snp_old <- snp
+    snp_tmp <- strsplit(snp, split = "_")
+    chr <- snp_tmp[[1]][1]
+    bp <- snp_tmp[[1]][2]
+    a1 <- snp_tmp[[1]][3]
+    a2 <- snp_tmp[[1]][4]
+    snp_new <- glue("{chr}_{bp}_{a2}_{a1}_flipped")
+    x[[snp_new]] <- abs(2-x[, snp_old])
+  } else {
+    snp_new <- snp
+  }
+  
+  model <- glm(glue("outcome ~ {exposure}*{snp_new} + {glue_collapse(covariates, sep = '+')}"), family = binomial(link = "logit"), data = x)
+  # summary(model)
+  

@@ -1,0 +1,245 @@
+\PassOptionsToPackage{unicode=true}{hyperref} % options for packages loaded elsewhere
+\PassOptionsToPackage{hyphens}{url}
+%
+\documentclass[]{article}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provides euro and other symbols
+\else % if luatex or xelatex
+  \usepackage{unicode-math}
+  \defaultfontfeatures{Ligatures=TeX,Scale=MatchLowercase}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{%
+\usepackage[]{microtype}
+\UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\IfFileExists{parskip.sty}{%
+\usepackage{parskip}
+}{% else
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+}
+\usepackage{hyperref}
+\hypersetup{
+            pdftitle={Comparison between GxEScanR and GLM for 2df/3df models},
+            pdfborder={0 0 0},
+            breaklinks=true}
+\urlstyle{same}  % don't use monospace font for urls
+\usepackage[margin=0.5in]{geometry}
+\usepackage{graphicx,grffile}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{0}
+% Redefines (sub)paragraphs to behave more like sections
+\ifx\paragraph\undefined\else
+\let\oldparagraph\paragraph
+\renewcommand{\paragraph}[1]{\oldparagraph{#1}\mbox{}}
+\fi
+\ifx\subparagraph\undefined\else
+\let\oldsubparagraph\subparagraph
+\renewcommand{\subparagraph}[1]{\oldsubparagraph{#1}\mbox{}}
+\fi
+
+% set default figure placement to htbp
+\makeatletter
+\def\fps@figure{htbp}
+\makeatother
+
+\usepackage{etoolbox}
+\makeatletter
+\providecommand{\subtitle}[1]{% add subtitle to \maketitle
+  \apptocmd{\@title}{\par {\large #1 \par}}{}{}
+}
+\makeatother
+% https://github.com/rstudio/rmarkdown/issues/337
+\let\rmarkdownfootnote\footnote%
+\def\footnote{\protect\rmarkdownfootnote}
+
+% https://github.com/rstudio/rmarkdown/pull/252
+\usepackage{titling}
+\setlength{\droptitle}{-2em}
+
+\pretitle{\vspace{\droptitle}\centering\huge}
+\posttitle{\par}
+
+\preauthor{\centering\large\emph}
+\postauthor{\par}
+
+\predate{\centering\large\emph}
+\postdate{\par}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{wrapfig}
+\usepackage{float}
+\usepackage{colortbl}
+\usepackage{pdflscape}
+\usepackage{tabu}
+\usepackage{threeparttable}
+\usepackage{threeparttablex}
+\usepackage[normalem]{ulem}
+\usepackage{makecell}
+\usepackage{xcolor}
+
+\title{Comparison between GxEScanR and GLM for 2df/3df models}
+\date{Updated on 2020-04-07}
+
+\begin{document}
+\maketitle
+
+\hypertarget{goal}{%
+\section{Goal}\label{goal}}
+
+For post-hoc analyses, need to validate hits by fitting various models
+(GxE, joint models) with additional covariates. In the process, noticed
+that 3DF results have very small differences between GLM and GxEScanR
+
+In here, I'm summarizing 2DF/3DF results for 10 SNPs from the Type II
+Diabetes GWIS, for both GxEScanR and GLM
+
+\hypertarget{models-for-likelihood-ratio-test}{%
+\subsection{Models for likelihood ratio
+test}\label{models-for-likelihood-ratio-test}}
+
+\hypertarget{df-joint-test}{%
+\subsubsection{2DF joint test}\label{df-joint-test}}
+
+\begin{itemize}
+\tightlist
+\item
+  base model:
+  \(Outcome \sim SNP + E + age + sex + pc1 + pc2 + pc3 + study\)
+\item
+  interaction model:
+  \(Outcome \sim SNP + E + SNP*E + age + sex + pc1 + pc2 + pc3 + study\)
+\end{itemize}
+
+\hypertarget{df-joint-test-1}{%
+\subsubsection{3DF joint test}\label{df-joint-test-1}}
+
+\begin{itemize}
+\tightlist
+\item
+  base model: \(SNP \sim age + sex + pc1 + pc2 + pc3 + study\)
+\item
+  interaction model:
+  \(SNP \sim Outcome + E + Outcome*E + age + sex + pc1 + pc2 + pc3 + study\)
+\end{itemize}
+
+\hypertarget{p-values}{%
+\section{P-values}\label{p-values}}
+
+\resizebox{\linewidth}{!}{
+\begin{tabular}{l|r|l|l|l|l}
+\hline
+SNP & Subjects & pval\_gxescan\_2df & pval\_glm\_2df & pval\_gxescan\_3df & pval\_glm\_3df\\
+\hline
+1:71040166:G:T & 74390 & 1.77074e-07 & 1.77072e-07 & 1.25551e-09 & 1.57517e-09\\
+\hline
+10:114754071:T:C & 74390 & 6.01701e-01 & 6.01701e-01 & 2.45775e-49 & 1.89116e-49\\
+\hline
+10:114784926:C:T & 74390 & 2.82608e-01 & 2.82608e-01 & 4.83087e-08 & 4.21936e-08\\
+\hline
+12:4384844:T:G & 74390 & 6.61997e-04 & 6.61980e-04 & 4.42451e-10 & 6.31504e-10\\
+\hline
+16:53811788:A:G & 74390 & 9.87860e-01 & 9.87860e-01 & 4.72788e-08 & 4.76705e-08\\
+\hline
+20:6442961:G:A & 74390 & 2.67526e-07 & 2.67523e-07 & 3.89925e-08 & 5.62870e-08\\
+\hline
+3:185510884:A:C & 74390 & 2.57710e-01 & 2.57710e-01 & 1.02726e-11 & 1.31501e-11\\
+\hline
+6:20688121:T:A & 74390 & 3.75289e-05 & 3.75294e-05 & 2.75143e-11 & 2.28556e-11\\
+\hline
+7:28189411:T:C & 74390 & 4.66363e-01 & 4.66362e-01 & 5.74195e-10 & 4.32742e-10\\
+\hline
+8:118185025:G:A & 74390 & 2.75634e-03 & 2.75633e-03 & 7.87174e-11 & 6.06649e-10\\
+\hline
+\end{tabular}}
+
+\hypertarget{chi-square-values}{%
+\section{chi-square values}\label{chi-square-values}}
+
+\resizebox{\linewidth}{!}{
+\begin{tabular}{l|r|r|r|r|r|r}
+\hline
+SNP & Subjects & chiSqGE & chiSq2df & chiSq\_glm\_2df & chiSq3df & chiSq\_glm\_3df\\
+\hline
+1:71040166:G:T & 74390 & 13.28280 & 31.0934000 & 31.0934149 & 44.37620 & 43.91250\\
+\hline
+10:114754071:T:C & 74390 & 227.82900 & 1.0159900 & 1.0159894 & 228.84499 & 229.37138\\
+\hline
+10:114784926:C:T & 74390 & 34.37270 & 2.5273900 & 2.5273899 & 36.90009 & 37.17790\\
+\hline
+12:4384844:T:G & 74390 & 31.86660 & 14.6405000 & 14.6405494 & 46.50710 & 45.78045\\
+\hline
+16:53811788:A:G & 74390 & 36.91990 & 0.0244291 & 0.0244291 & 36.94433 & 36.92739\\
+\hline
+20:6442961:G:A & 74390 & 7.07173 & 30.2681000 & 30.2681184 & 37.33983 & 36.58628\\
+\hline
+3:185510884:A:C & 74390 & 51.46790 & 2.7118400 & 2.7118440 & 54.17974 & 53.67686\\
+\hline
+6:20688121:T:A & 74390 & 31.79210 & 20.3808000 & 20.3807719 & 52.17290 & 52.55087\\
+\hline
+7:28189411:T:C & 74390 & 44.44920 & 1.5255800 & 1.5255850 & 45.97478 & 46.55241\\
+\hline
+8:118185025:G:A & 74390 & 38.24250 & 11.7877000 & 11.7877140 & 50.03020 & 45.86247\\
+\hline
+\end{tabular}}
+
+You can see results for 2DF are essentially the same, while there are
+slight differences for 3DF. What do you think? Is this small difference
+acceptable?
+
+\hypertarget{fixed}{%
+\section{Fixed}\label{fixed}}
+
+Using GLM I'll simply calculate 3DF pvalues the same exact way as
+gxescan e.g.~adding E\textbar{}G (linear) to 2DF chiSq and calculalate
+3df p values. Once i do that the chiSq 3DF values are consistent:
+
+\resizebox{\linewidth}{!}{
+\begin{tabular}{l|r|r|r|r|r|r}
+\hline
+SNP & Subjects & chiSqGE & chiSq2df & chiSq\_glm\_2df & chiSq3df & chiSq\_glm\_3df\\
+\hline
+1:71040166:G:T & 74390 & 13.28280 & 31.0934000 & 31.0934149 & 44.37620 & 44.37617\\
+\hline
+10:114754071:T:C & 74390 & 227.82900 & 1.0159900 & 1.0159894 & 228.84499 & 228.84546\\
+\hline
+10:114784926:C:T & 74390 & 34.37270 & 2.5273900 & 2.5273899 & 36.90009 & 36.90013\\
+\hline
+12:4384844:T:G & 74390 & 31.86660 & 14.6405000 & 14.6405494 & 46.50710 & 46.50714\\
+\hline
+16:53811788:A:G & 74390 & 36.91990 & 0.0244291 & 0.0244291 & 36.94433 & 36.94436\\
+\hline
+20:6442961:G:A & 74390 & 7.07173 & 30.2681000 & 30.2681184 & 37.33983 & 37.33984\\
+\hline
+3:185510884:A:C & 74390 & 51.46790 & 2.7118400 & 2.7118440 & 54.17974 & 54.17970\\
+\hline
+6:20688121:T:A & 74390 & 31.79210 & 20.3808000 & 20.3807719 & 52.17290 & 52.17289\\
+\hline
+7:28189411:T:C & 74390 & 44.44920 & 1.5255800 & 1.5255850 & 45.97478 & 45.97475\\
+\hline
+8:118185025:G:A & 74390 & 38.24250 & 11.7877000 & 11.7877140 & 50.03020 & 50.03022\\
+\hline
+\end{tabular}}
+
+\end{document}
