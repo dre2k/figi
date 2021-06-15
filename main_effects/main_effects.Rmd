@@ -90,8 +90,8 @@ body{
 <br>
 
 
-<!-- ```{r child = paste0("results_descriptive_ver2.Rmd")} -->
-<!-- ``` -->
+```{r child = paste0("results_descriptive_ver2.Rmd")}
+```
 
 ## Meta analysis {.tabset}
 ```{r child = 'results_meta.Rmd'}

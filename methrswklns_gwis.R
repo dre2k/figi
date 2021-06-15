@@ -29,7 +29,7 @@ rm(list = ls())
 exposure = 'methrswklns'
 hrc_version = 'v3.0'
 annotation_file <- 'gwas_200_ld_annotation_feb2021.txt'
-covariates <- sort(c('age_ref_imp', 'sex', 'study_gxe', 'pc1', 'pc2', 'pc3'))
+covariates <- sort(c('age_ref_imp', 'sex', 'study_gxe', 'pc1', 'pc2', 'pc3', 'bmi'))
 path = glue("/media/work/gwis_test/{exposure}/")
 
 
@@ -39,7 +39,7 @@ esubset <- readRDS(glue("/media/work/gwis_test/{exposure}/data/FIGI_{hrc_version
 
 input_data <- readRDS(glue("/media/work/gwis_test/data/FIGI_{hrc_version}_gxeset_analysis_data_glm.rds")) %>% 
   filter(!is.na(methrswklns)) %>% 
-  mutate(methrswklns = as.numeric(methrswklns) / 5)
+  mutate(methrswklns = as.numeric(methrswklns) / 10)
   # filter(vcfid%in% esubset) %>%
   # mutate(smk_aveday = smk_aveday / 10)
 # mutate(smk_aveday = scale(smk_aveday))
@@ -55,8 +55,18 @@ input_data %>%
   theme_bw() + 
   theme(axis.text.x = element_text(angle = 270))
 
+input_data %>% 
+  mutate(methrswklns = as.numeric(methrswklns)) %>% 
+  filter(methrswklns != 0) %>% 
+  mutate(study = fct_reorder(study, methrswklns, .fun='median')) %>% 
+  ggplot(aes(x=study_gxe, y=methrswklns, fill = study)) + 
+  geom_boxplot(outlier.color = 'red') + 
+  theme_bw() + 
+  theme(axis.text.x = element_text(angle = 270))
 
 
+
+ggsave("~/Dropbox/methrswklns_boxplot.png", width = 8, height = 6)
 
 
 
@@ -74,6 +84,9 @@ create_forest_plot(data_epi = input_data, exposure = exposure, covariates = cova
 create_forest_plot(data_epi = input_data, exposure = exposure, covariates = covariates_meta, hrc_version = hrc_version, path = glue("{path}/output/posthoc/"), strata = "rectal", forest_height = 13, categorical = F)
 create_forest_plot(data_epi = input_data, exposure = exposure, covariates = covariates_meta, hrc_version = hrc_version, path = glue("{path}/output/posthoc/"), strata = "female", forest_height = 13, categorical = F)
 create_forest_plot(data_epi = input_data, exposure = exposure, covariates = covariates_meta, hrc_version = hrc_version, path = glue("{path}/output/posthoc/"), strata = "male", forest_height = 13, categorical = F)
+
+
+
 
 
 # ------- stratified pooled analysis ------- #

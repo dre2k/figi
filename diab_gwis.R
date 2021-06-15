@@ -46,6 +46,12 @@ input_data <- readRDS(glue("/media/work/gwis/data/FIGI_EpiData/FIGI_{hrc_version
   filter(vcfid%in% esubset)
 
 
+
+input_data_bmi <- filter(input_data, 
+                         !is.na(bmi))
+table(input_data$outcome)
+table(input_data_bmi$outcome)
+
 #-----------------------------------------------------------------------------#
 # main effects ----
 #-----------------------------------------------------------------------------#
@@ -195,10 +201,140 @@ walk(suggestive_gxe$SNP, ~ fit_gxe_covars(data_epi = input_data, exposure = expo
 
 # output RERI plots (can't install package on CARC yet)
 reri_wrapper(data_epi = input_data, exposure = exposure, snp = "13:47191972:G:A", covariates = covariates, path = glue("{path}/output"))
+reri_wrapper(data_epi = input_data, exposure = exposure, snp = "8:118185025:G:A", covariates = covariates, path = glue("{path}/output"))
+
+
+
+# ---- calculate 2DF LR TEST ---- #
+# ---- chr13_47191972_G_A_dose ---- #
+
+# need allele frequency by study_gxe to confirm finding (and sensitivity analysis)
+tmp <- qread("/media/work/gwis_test/diab/output/posthoc/dosage_chr13_47191972.qs") %>% 
+  inner_join(input_data, 'vcfid')
+
+
+# calculate 2DF original to confirm
+covariates_original = covariates
+model_base <- glm(glue("outcome ~ diab + {glue_collapse(covariates_original, sep = '+')}"), data = tmp, family = 'binomial')
+model_gxe <- glm(glue("outcome ~ diab * chr13_47191972_G_A_dose + {glue_collapse(covariates_original, sep = '+')}"), data = tmp, family = 'binomial')
+lrtest(model_base, model_gxe)
+
+covariates_bmi = c(covariates_original, 'bmi')
+model_base <- glm(glue("outcome ~ diab + {glue_collapse(covariates_bmi, sep = '+')}"), data = tmp, family = 'binomial')
+model_gxe <- glm(glue("outcome ~ diab * chr13_47191972_G_A_dose + {glue_collapse(covariates_bmi, sep = '+')}"), data = tmp, family = 'binomial')
+lrtest(model_base, model_gxe)
+
+tmp %>% 
+  summarise(total = n(), 
+            study_aaf = sum(chr13_47191972_G_A_dose) / (total*2))
+
+aaf <- function(x) {
+  sum(x) / nrow(x)
+}
+
+out <- tmp %>% 
+  group_by(study_gxe) %>% 
+  summarise(total = n(), 
+            study_aaf = sum(chr13_47191972_G_A_dose) / (total*2)) %>% 
+  arrange(study_aaf) %>% 
+  mutate(study_gxe = fct_reorder(study_gxe, study_aaf))
+
+ggplot(aes(x = study_gxe, y = study_aaf), data = out) + 
+  geom_point() + 
+  theme_bw() + 
+  theme(axis.text.x = element_text(angle = 270)) + 
+  xlab("Study") + 
+  ylab("Alternate Allele Frequency")
 
 
 
 
+
+
+
+
+
+
+# ---- calculate 3DF LR TEST ---- #
+# ---- chr13_47191972_G_A_dose ---- #
+
+# need allele frequency by study_gxe to confirm finding (and sensitivity analysis)
+tmp <- qread("/media/work/gwis_test/diab/output/posthoc/dosage_chr8_118185025.qs") %>% 
+  inner_join(input_data, 'vcfid')
+
+tmp %>% 
+  summarise(total = n(), 
+            study_aaf = sum(chr8_118185025_G_A_dose) / (total*2))
+
+out <- tmp %>% 
+  group_by(study_gxe) %>% 
+  summarise(total = n(), 
+            study_aaf = sum(chr8_118185025_G_A_dose) / (total*2)) %>% 
+  arrange(study_aaf) %>% 
+  mutate(study_gxe = fct_reorder(study_gxe, study_aaf))
+
+ggplot(aes(x = study_gxe, y = study_aaf), data = out) + 
+  geom_point() + 
+  theme_bw() + 
+  theme(axis.text.x = element_text(angle = 270)) + 
+  xlab("Study") + 
+  ylab("Alternate Allele Frequency")
+
+
+# calculate 3DF original to confirm
+
+covariates_original = covariates
+
+model_base <- glm(glue("outcome ~ diab + {glue_collapse(covariates_original, sep = '+')}"), data = tmp, family = 'binomial')
+model_g <- glm(glue("outcome ~ diab + chr8_118185025_G_A_dose + {glue_collapse(covariates_original, sep = '+')}"), data = tmp, family = 'binomial')
+lrtest(model_base, model_g)
+
+model_base_gxe <- glm(glue("outcome ~ diab + chr8_118185025_G_A_dose + {glue_collapse(covariates_original, sep = '+')}"), data = tmp, family = 'binomial')
+model_gxe <- glm(glue("outcome ~ diab * chr8_118185025_G_A_dose + {glue_collapse(covariates_original, sep = '+')}"), data = tmp, family = 'binomial')
+lrtest(model_base_gxe, model_gxe)
+
+model_base_eg <- lm(glue("chr8_118185025_G_A_dose ~ {glue_collapse(covariates_original, sep = '+')}"), data = tmp)
+model_eg <- lm(glue("chr8_118185025_G_A_dose ~ diab + {glue_collapse(covariates_original, sep = '+')}"), data = tmp)
+lrtest(model_base_eg, model_eg)
+
+
+covariates_bmi = c(covariates_original, 'bmi')
+model_base <- glm(glue("outcome ~ diab + {glue_collapse(covariates_bmi, sep = '+')}"), data = tmp, family = 'binomial')
+model_g <- glm(glue("outcome ~ diab + chr8_118185025_G_A_dose + {glue_collapse(covariates_bmi, sep = '+')}"), data = tmp, family = 'binomial')
+lrtest(model_base, model_g)
+
+model_base_gxe <- glm(glue("outcome ~ diab + chr8_118185025_G_A_dose + {glue_collapse(covariates_bmi, sep = '+')}"), data = tmp, family = 'binomial')
+model_gxe <- glm(glue("outcome ~ diab * chr8_118185025_G_A_dose + {glue_collapse(covariates_bmi, sep = '+')}"), data = tmp, family = 'binomial')
+lrtest(model_base_gxe, model_gxe)
+
+model_base_eg <- lm(glue("chr8_118185025_G_A_dose ~ {glue_collapse(covariates_bmi, sep = '+')}"), data = tmp)
+model_eg <- lm(glue("chr8_118185025_G_A_dose ~ diab + {glue_collapse(covariates_bmi, sep = '+')}"), data = tmp)
+lrtest(model_base_eg, model_eg)
+
+pchisq(0.4015+9.696+39.23, df = 3, lower.tail = F)
+
+
+
+# AAF for suggestive hits
+aaf_wrapper <- function(chr, snp) {
+  tmp <- qread(glue("/media/work/gwis_test/diab/output/posthoc/dosage_chr{chr}_{snp}.qs")) %>% 
+    inner_join(input_data, 'vcfid')
+  
+  tmp %>% 
+    summarise(total = n(), 
+              study_aaf = sum(.[, 1]) / (total*2))
+}
+
+dosage_chr13_47191972.qs
+chr8_118185025_G_A_dose
+aaf_wrapper(13, 47191972)
+aaf_wrapper(8, 118185025)
+
+aaf_wrapper(2, 3731978)
+aaf_wrapper(3, 193408847)
+aaf_wrapper(4, 31909491)
+aaf_wrapper(5, 60920832)
+aaf_wrapper(13, 47170118)
 # ================================================================== #
 # ======= interaction stratified by diabetes status ---- 
 # i forget the rationale for this analysis, maybe it's to check D|G association? 
@@ -219,6 +355,22 @@ snps_filter <- snps %>%
 gwis_report(exposure = exposure, hrc_version = hrc_version, covariates = covariates)
 
 posthoc_report(exposure = exposure)
+
+
+
+main_effects_report(exposure = exposure, hrc_version = hrc_version, covariates = covariates, path = path)
+
+
+gwis_report(exposure = exposure, 
+            hrc_version = hrc_version, 
+            covariates = covariates)
+
+posthoc_report(exposure = exposure, 
+               hrc_version = hrc_version,
+               covariates = covariates,
+               path = path)
+
+
 
 
 

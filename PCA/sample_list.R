@@ -51,5 +51,11 @@ figi <- readRDS(glue("/media/work/gwis/data/FIGI_EpiData/FIGI_v3.0_gxeset_analys
 out <- data.frame(id1 = figi$vcfid, id2 = figi$vcfid)
 write.table(out, file = "~/figi_vcfid_gxeset.txt", quote = F, row.names = F)
 
+gwas <- readRDS("~/data/FIGI_EpiData_rdata/")
+
+gwas <- readRDS(glue("/media/work/gwis_test/data/FIGI_v2.3_GWAS.rds")) %>% 
+  mutate(id1 = vcfid, id2 = vcfid) %>% 
+  dplyr::select(id1, id2)
+write.table(gwas, file = "~/figi_vcfid_gwas.txt", quote = F, row.names = F, sep = '\t')
 
 

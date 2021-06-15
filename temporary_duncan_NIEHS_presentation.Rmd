@@ -1,0 +1,122 @@
+---
+title: "Alcohol intake GxE stratified odds ratios"
+date: '`r paste("Updated on", Sys.Date())`'
+output: 
+  html_document:
+    css: posthoc/posthoc_report.css
+    toc: true
+    toc_float:
+      collapsed: false
+      smooth_scroll: false
+    toc_depth: 3
+    theme: "paper"
+params:
+  exposure: "alcoholc_moderate"
+  covariates: !r c("age_ref_imp", "sex", "energytot_imp", "pc1", "pc2", "pc3", "study_gxe")
+  hrc_version: "v2.3"
+  path: "/media/work/gwis_test"
+---
+
+  
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = F, message = F, warning = F, error = F)
+library(tidyverse)
+library(data.table)
+library(forcats)
+library(ggplot2)
+library(qqman)
+library(rlang)
+library(figifs)
+library(DT)
+library(grid)
+library(stargazer)
+library(kableExtra)
+library(formattable)
+library(glue)
+```
+
+
+
+# rs2300985 (G/A, GG genotype is REF)
+
+## Non-drinkers vs moderate 1-28g/day (REF) 
+```{r}
+hrc_version = 'v2.3'
+snp = '10:101476905:G:A'
+snps_out <- paste0('chr', gsub(":", "_", c("10:101476905:G:A")))
+covariates = sort(c('age_ref_imp', 'sex', 'energytot_imp', 'study_gxe', 'pc1', 'pc2', 'pc3'))
+```
+
+
+
+```{r, results = 'asis'}
+exposure = 'alcoholc_moderate'
+path = glue("/media/work/tmp_duncan/{exposure}/")
+
+stratified_or_file <- readRDS(glue("{path}/stratified_oddsratio_{exposure}_{hrc_version}_{snps_out}_{glue_collapse(sort(covariates), sep = '_')}.rds"))
+
+options(knitr.kable.NA = '')
+kable(stratified_or_file) %>%
+  kable_styling('bordered', bootstrap_options = c("striped", "hover", "condensed"), full_width = F, position = 'left') %>%
+  add_header_above(c(" " = 4, "G param by E" = 2, "Counts (Ca/Co)" = 3)) %>%
+  pack_rows("E param by G", 5, 6, indent = F)
+
+```
+
+
+## Moderate 1-28g/day vs  Non-drinkers(REF) 
+
+```{r, results = 'asis'}
+exposure = 'alcoholc_moderate_flip'
+path = glue("/media/work/tmp_duncan/{exposure}/")
+
+stratified_or_file <- readRDS(glue("{path}/stratified_oddsratio_{exposure}_{hrc_version}_{snps_out}_{glue_collapse(sort(covariates), sep = '_')}.rds"))
+
+options(knitr.kable.NA = '')
+kable(stratified_or_file) %>%
+  kable_styling('bordered', bootstrap_options = c("striped", "hover", "condensed"), full_width = F, position = 'left') %>%
+  add_header_above(c(" " = 4, "G param by E" = 2, "Counts (Ca/Co)" = 3)) %>%
+  pack_rows("E param by G", 5, 6, indent = F)
+
+```
+
+
+
+
+## Heavy drinkers > 28g/day vs moderate drinkers 1-28g/day (REF) 
+
+```{r, results = 'asis'}
+exposure = 'alcoholc_heavy_vs_moderate'
+path = glue("/media/work/tmp_duncan/{exposure}/")
+
+stratified_or_file <- readRDS(glue("{path}/stratified_oddsratio_{exposure}_{hrc_version}_{snps_out}_{glue_collapse(sort(covariates), sep = '_')}.rds"))
+
+options(knitr.kable.NA = '')
+kable(stratified_or_file) %>%
+  kable_styling('bordered', bootstrap_options = c("striped", "hover", "condensed"), full_width = F, position = 'left') %>%
+  add_header_above(c(" " = 4, "G param by E" = 2, "Counts (Ca/Co)" = 3)) %>%
+  pack_rows("E param by G", 5, 6, indent = F)
+
+```
+
+
+
+
+## Heavy drinkers > 28g/day vs non-drinkers (REF) 
+
+```{r, results = 'asis'}
+exposure = 'alcoholc_heavy'
+path = glue("/media/work/tmp_duncan/{exposure}/")
+
+stratified_or_file <- readRDS(glue("{path}/stratified_oddsratio_{exposure}_{hrc_version}_{snps_out}_{glue_collapse(sort(covariates), sep = '_')}.rds"))
+
+options(knitr.kable.NA = '')
+kable(stratified_or_file) %>%
+  kable_styling('bordered', bootstrap_options = c("striped", "hover", "condensed"), full_width = F, position = 'left') %>%
+  add_header_above(c(" " = 4, "G param by E" = 2, "Counts (Ca/Co)" = 3)) %>%
+  pack_rows("E param by G", 5, 6, indent = F)
+
+```
+
+
+

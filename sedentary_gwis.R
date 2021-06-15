@@ -30,6 +30,8 @@ exposure = 'sedentary'
 hrc_version = 'v3.0'
 annotation_file <- 'gwas_200_ld_annotation_feb2021.txt'
 covariates <- sort(c('age_ref_imp', 'sex', 'study_gxe', 'pc1', 'pc2', 'pc3'))
+covariates <- sort(c('age_ref_imp', 'sex', 'study_gxe', 'pc1', 'pc2', 'pc3', 'bmi'))
+
 path = glue("/media/work/gwis_test/{exposure}/")
 
 
@@ -44,13 +46,32 @@ input_data <- readRDS(glue("/media/work/gwis_test/data/FIGI_{hrc_version}_gxeset
 # mutate(smk_aveday = smk_aveday / 10)
 # mutate(smk_aveday = scale(smk_aveday))
 
+study_list <- unique(input_data$study)
+
+
+input_data <- readRDS(glue("/media/work/gwis_test/data/FIGI_{hrc_version}_gxeset_analysis_data_glm.rds")) %>% 
+  filter(study %in% study_list) %>%
+  mutate(sedentary = factor(sedentary),
+         sedentary = fct_explicit_na(sedentary))
+
 
 input_data %>% 
   mutate(study = fct_reorder(study, sedentary, .fun = function(.x) mean(.x == "No"))) %>%
   ggplot(aes(x = study, y = sedentary, fill = sedentary )) +
   geom_bar(stat = 'identity') +
   theme_bw() + 
-  theme(axis.text.x = element_text(angle = 270))
+  theme(axis.text.x = element_text(angle = 270)) + 
+  facet_wrap(~ study)
+
+
+input_data %>% 
+  mutate(study = fct_reorder(study, sedentary, .fun = function(.x) mean(.x == "No"))) %>%
+  ggplot(aes(x = sedentary, y = outcome , fill = sedentary)) +
+  geom_bar(stat = 'identity') +
+  theme_bw() + 
+  # theme(axis.text.x = element_text(angle = 270)) + 
+  facet_wrap(~ study)
+ggsave("~/Dropbox/sedentary_barplot.png", width = 8, height = 6)
 
 input_data %>% 
   mutate(sedentary = as.numeric(sedentary)) %>% 
@@ -62,7 +83,7 @@ input_data %>%
   theme(axis.text.x = element_text(angle = 270))
 
 
-
+table(input_data$study, input_data$sedentary)
 
 
 

@@ -86,21 +86,21 @@ body{
 
 <!-- <br> -->
 
-<!-- ```{r child = paste0("results_descriptive_ver2.Rmd")} -->
-<!-- ``` -->
+```{r child = paste0("results_descriptive_ver2.Rmd")}
+```
 
 
-<!-- ## Results -->
+## Results
 
-<!-- Adjusted by age and sex (energy, study/platform, PCs when applicable)   -->
+Adjusted by age and sex (energy, study/platform, PCs when applicable)
 
-<!-- ### Meta analysis {.tabset} -->
-<!-- ```{r child = 'results_meta.Rmd'} -->
-<!-- ``` -->
+### Meta analysis {.tabset}
+```{r child = 'results_meta.Rmd'}
+```
 
-<!-- ### Pooled analysis {.tabset} -->
-<!-- ```{r child = 'results_pooled.Rmd'} -->
-<!-- ``` -->
+### Pooled analysis {.tabset}
+```{r child = 'results_pooled.Rmd'}
+```
 
 
 

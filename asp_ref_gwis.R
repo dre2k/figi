@@ -118,12 +118,10 @@ inf.analysis <- InfluenceAnalysis(x = results_meta,
                                   random = TRUE)
 
 summary(inf.analysis)
-
 plot(inf.analysis, "influence")
 plot(inf.analysis, "baujat")
 plot(inf.analysis, "es")
 plot(inf.analysis, "i2")
-
 
 
 #-----------------------------------------------------------------------------#
@@ -149,11 +147,6 @@ plot_funcannot_wrap(gxe, exposure = exposure, covariates = covariates, output_di
 simplem_wrap2(x = x1, exposure = exposure, covariates = covariates, simplem_step1_statistic = 'chiSqG', output_dir = output_dir, filename_suffix = "_functional_subset")
 simplem_wrap2(x = x1, exposure = exposure, covariates = covariates, simplem_step1_statistic = 'chiSqGE', output_dir = output_dir, filename_suffix = "_functional_subset")
 simplem_wrap2(x = x1, exposure = exposure, covariates = covariates, simplem_step1_statistic = 'chiSqEDGE', output_dir = output_dir, filename_suffix = "_functional_subset")
-
-
-
-
-
 
 
 
@@ -216,6 +209,10 @@ saveRDS(snp_info_out, glue("{path}/output/posthoc/gwis_snp_info.rds"))
 chr6_125 <- qread("/media/work/gwis_test/asp_ref/output/posthoc/dosage_chr6_12577203.qs") %>% 
   inner_join(input_data, 'vcfid')
 
+chr6_125 %>% 
+  summarise(total = n(), 
+            study_aaf = sum(chr6_12577203_T_C_dose) / (total*2))
+
 aaf <- function(x) {
   sum(x) / nrow(x)
 }
@@ -234,15 +231,21 @@ ggplot(aes(x = study_gxe, y = study_aaf), data = out) +
   xlab("Study") + 
   ylab("Alternate Allele Frequency")
 
+ggsave(filename = "~/Dropbox/asp_ref_chr6_12577203_T_C_AAF.png", width = 7.5, height = 4.72)
+
+
 
 # would results change if you remove mecc (note wald statistic)
 model1 <- glm(glue("outcome ~ {exposure}*chr6_12577203_T_C_dose + {glue_collapse(covariates, sep = '+')}"), data = chr6_125, family = 'binomial')
+summary(model1)
 
 chr6_125b <- dplyr::filter(chr6_125, !grepl("MECC", study_gxe))
 model2 <- glm(glue("outcome ~ {exposure}*chr6_12577203_T_C_dose + {glue_collapse(covariates, sep = '+')}"), data = chr6_125b, family = 'binomial')
 summary(model2)
 
 
+model3 <- glm(glue("outcome ~ chr6_12577203_T_C_dose + {glue_collapse(covariates, sep = '+')}"), data = chr6_125, family = 'binomial')
+summary(model3)
 
 
 
@@ -272,11 +275,11 @@ ggplot(aes(x = study_gxe, y = study_aaf), data = out) +
   xlab("Study") + 
   ylab("Alternate Allele Frequency")
 
-ggsave(filename = "~/Dropbox/asp_ref_chr6_32560631_C_T_AAF.png")
+ggsave(filename = "~/Dropbox/asp_ref_chr6_32560631_C_T_AAF.png", width = 7.5, height = 4.72)
 
 
 # would results change if you remove mecc (note wald statistic)
-# EXCLUDE --------- 
+# EXCLUDE !!!!!!!!!!!!!
 model1 <- glm(glue("outcome ~ {exposure}*chr6_32560631_C_T_dose + {glue_collapse(covariates, sep = '+')}"), data = chr6_325, family = 'binomial')
 summary(model1)
 
@@ -312,9 +315,12 @@ ggplot(aes(x = study_gxe, y = study_aaf), data = out) +
   xlab("Study") + 
   ylab("Alternate Allele Frequency")
 
+ggsave(filename = "~/Dropbox/asp_ref_chr5_40252294_C_T_AAF.png", width = 7.5, height = 4.72)
+
+
 
 # would results change if you remove mecc (note wald statistic)
-# EXCLUDE --------- 
+# EXCLUDE!!!!!!!!!!!!!!
 model1 <- glm(glue("outcome ~ {exposure}*chr5_40252294_C_T_dose + {glue_collapse(covariates, sep = '+')}"), data = chr5, family = 'binomial')
 summary(model1)
 
@@ -346,6 +352,9 @@ posthoc_report(exposure = exposure,
                hrc_version = hrc_version,
                covariates = covariates,
                path = path)
+
+
+
 
 
 
@@ -439,15 +448,13 @@ write_tsv(out, file = "~/Dropbox/FIGI/Annotation_Workflow/example_output/figi_as
 
 
 # ================================================================== #
-# updated PCs and how it changes results.. 
+# updated PCs and how it changes results ------
 # ================================================================== #
 
 # original GxE findings.. 
 modelb <- glm(outcome ~ chr6_12577203_T_C+asp_ref + age_ref_imp + sex + pc1 + pc2 + pc3 + study_gxe, data = figi, family = 'binomial')
 model1 <- glm(outcome ~ chr6_12577203_T_C*asp_ref + age_ref_imp + sex + pc1 + pc2 + pc3 + study_gxe, data = figi, family = 'binomial')
 lrtest(modelb, model1)
-
-
 
 # let's add updated PCs .. (keep in mind they're calculated using HRC v3.0)
 pcs <- fread("~/figi_gxe_pca_update.eigenvec")
@@ -465,8 +472,6 @@ model1 <- glm(outcome ~ chr6_12577203_T_C*asp_ref + age_ref_imp + sex + PC1 + PC
 summary(model1)
 
 lrtest(modelb, model1)
-
-
 
 
 #  how about the other hit..
@@ -506,9 +511,6 @@ lrtest(modelb, model1)
 # 0.5652
 
 pchisq(24.8402, lower.tail = F, df = 2)
-
-
-
 
 # GxE
 modelb <- glm(outcome ~ chr5_40252294_C_T+asp_ref + age_ref_imp + sex + PC1 + PC2 + PC3 + study_gxe, data = figi_newpc, family = 'binomial')

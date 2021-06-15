@@ -563,6 +563,120 @@ table(y$study_gxe, y$outcome)
 
 
 
+# ------ red/processed meat - median values for quartiles ------
+# 4/15/2021
+
+# redmeatqcm
+exclude = c("PPS3", "PPS4")
+wrap(figi_gwas, 'redmeatqcm', vars_to_exclude = c(""), vars_to_include = c(""), studies_to_exclude = exclude, is_e_categorical = F)
+x <- readRDS("~/data/GxEScanR_PhenotypeFiles/FIGI_v2.3_gxeset_redmeatqcm_basic_covars_glm.rds")
+table(x$study_gxe, x$outcome)
+
+# some studies have only two values in the quartile variable (2,3)
+# these need to be included in the analysis
+asterisk <- filter(figi_gwas, 
+                   !(is.na(redmeatqcm)), 
+                   EUR_subset == 1,
+                   study_gxe == "ASTERISK")
+table(asterisk$outcome, asterisk$redmeatqcm)
+
+
+colo23 <- filter(figi_gwas, 
+                 !(is.na(redmeatqcm)), 
+                 EUR_subset == 1,
+                 study_gxe == "Colo23")
+table(colo23$outcome, colo23$redmeatqcm)
+
+
+# to add the above studies, let me just fix it here directly with rbinds
+# # i might not need to do thsi with redmeatqcm.. 
+# tmp <- figi_gxe %>% 
+#   dplyr::filter(!is.na(redmeatqcm), 
+#                 EUR_subset == 1,
+#                 study_gxe %in% c("ASTERISK", "Colo23")) %>% 
+#   dplyr::mutate(outcome = ifelse(outcome == "Control", 0, 1),
+#                 sex = ifelse(sex == "Female", 0, 1),
+#                 redmeatqcm = as.numeric(redmeatqcm) - 1 ) %>% 
+#   dplyr::select(vcfid, outcome, redmeatqc2, age_ref_imp, sex, energytot_imp, study_gxe, PC1, PC2, PC3)
+# 
+
+
+
+# out <- rbind(x, tmp)
+# saveRDS(out, "~/data/GxEScanR_PhenotypeFiles/FIGI_v2.3_gxeset_redmeatqc2_basic_covars_glm.rds")
+
+cov_gxescan <- format_data_gxescan(x, 'redmeatqcm') %>% 
+  mutate(redmeatqcm = as.numeric(redmeatqcm))
+saveRDS(cov_gxescan, file = paste0("~/data/GxEScanR_PhenotypeFiles/FIGI_v2.3_gxeset_", "redmeatqcm", "_basic_covars_gxescan.rds"), version = 2)
+
+# final check
+y <- readRDS("~/data/GxEScanR_PhenotypeFiles/FIGI_v2.3_gxeset_redmeatqc2_basic_covars_glm.rds")
+table(y$study_gxe, y$outcome)
+y <- readRDS("~/data/GxEScanR_PhenotypeFiles/FIGI_v2.3_gxeset_redmeatqc2_basic_covars_gxescan.rds")
+head(y)
+
+
+# procmeatqc2
+exclude = c("PPS3", "PPS4")
+wrap(figi_gwas, 'procmeatqcm', vars_to_exclude = c(""), vars_to_include = c(""), studies_to_exclude = exclude, is_e_categorical = F)
+x <- readRDS("~/data/GxEScanR_PhenotypeFiles/FIGI_v2.3_gxeset_procmeatqcm_basic_covars_glm.rds")
+table(x$study_gxe, x$outcome)
+
+# # Colo23, HPFS, MECC, NHS, 
+# colo23 <- filter(figi_gwas, 
+#                  !(is.na(procmeatqc2)), 
+#                  EUR_subset == 1,
+#                  study_gxe == "Colo23")
+# table(colo23$outcome, colo23$procmeatqc2)
+# 
+# hpfs <- filter(figi_gwas, 
+#                !(is.na(procmeatqc2)), 
+#                EUR_subset == 1,
+#                grepl("HPFS", study_gxe))
+# table(hpfs$outcome, hpfs$procmeatqc2)
+# 
+# mecc <- filter(figi_gwas, 
+#                !(is.na(procmeatqc2)), 
+#                EUR_subset == 1,
+#                grepl("MECC", study_gxe))
+# table(mecc$outcome, mecc$procmeatqc2)
+# 
+# nhs <- filter(figi_gwas, 
+#               !(is.na(procmeatqc2)), 
+#               EUR_subset == 1,
+#               grepl("NHS", study_gxe))
+# table(nhs$outcome, nhs$procmeatqc2)
+# 
+# 
+# 
+# # to add the above studies, let me just fix it here directly with rbinds
+# tmp <- figi_gxe %>% 
+#   dplyr::filter(!is.na(procmeatqc2), 
+#                 EUR_subset == 1,
+#                 study_gxe %in% c("Colo23", "HPFS_1_2", "HPFS_3_AD", "HPFS_4", "HPFS_5_AD", "MECC_1", "MECC_2", "MECC_3", "NHS_1_2", "NHS_3_AD", "NHS_4", "NHS_5_AD")) %>% 
+#   dplyr::mutate(outcome = ifelse(outcome == "Control", 0, 1),
+#                 sex = ifelse(sex == "Female", 0, 1),
+#                 procmeatqc2 = as.numeric(procmeatqc2) - 1 ) %>% 
+#   dplyr::select(vcfid, outcome, procmeatqc2, age_ref_imp, sex, energytot_imp, study_gxe, PC1, PC2, PC3)
+# 
+# out <- rbind(x, tmp)
+# saveRDS(out, "~/data/GxEScanR_PhenotypeFiles/FIGI_v2.3_gxeset_procmeatqc2_basic_covars_glm.rds")
+
+cov_gxescan <- format_data_gxescan(x, 'procmeatqcm') %>% 
+  mutate(procmeatqcm = as.numeric(procmeatqcm))
+saveRDS(cov_gxescan, file = paste0("~/data/GxEScanR_PhenotypeFiles/FIGI_v2.3_gxeset_", "procmeatqcm", "_basic_covars_gxescan.rds"), version = 2)
+
+
+# final check
+y <- readRDS("~/data/GxEScanR_PhenotypeFiles/FIGI_v2.3_gxeset_procmeatqc2_basic_covars_glm.rds")
+table(y$study_gxe, y$outcome)
+y <- readRDS("~/data/GxEScanR_PhenotypeFiles/FIGI_v2.3_gxeset_procmeatqc2_basic_covars_gxescan.rds")
+table(y$study_gxe, y$outcome)
+
+
+
+
+
 
 # ------ fiber/fruit/veg ------
 
@@ -744,8 +858,11 @@ table(y$study_gxe, y$outcome)
 
 # smk_ever
 exclude = c("ATBC", "PPS3", "PPS4", "NGCCS", "MECC_3")
+exclude = c("ATBC", "PPS3", "PPS4", "NGCCS", "MECC_3", "MECC_1", "MECC_") # updated 03/10/2021
 wrap(figi_gwas, 'smk_ever', vars_to_exclude = c("energytot_imp"), studies_to_exclude = exclude)
 x <- readRDS("~/data/GxEScanR_PhenotypeFiles/FIGI_v2.3_gxeset_smk_ever_basic_covars_glm.rds")
+x <- readRDS("/media/work/gwis_test/smk_ever/data/FIGI_v2.3_gxeset_smk_ever_basic_covars_glm.rds")
+
 table(x$study_gxe, x$outcome)
 table(x$study_gxe, x$smk_ever)
 
@@ -757,13 +874,19 @@ table(nshds$outcome, nshds$smk_ever)
 
 
 
+# do i dare run another scan using the updated PCs...
+pca <- fread("/media/work/gwis_test/PCA/20210222/figi_gxe_pca_update.eigenvec") %>% 
+  rename(vcfid = IID)
+out <- inner_join(x, pca, 'vcfid')
+
+
 
 # smk_aveday
 # this is a continuous variable.. 
 # no smk_aveday should be zero among former and current smokers by definition
 # ~ 62 missing smk_aveday counts
 x <- figi_gxe %>% 
-  filter(smoke != "Never smoked")
+  filter(smoke != "Never smoker")
 
 describeBy(x$smk_aveday, x$smoke)
 summary(x$smk_aveday)
@@ -772,7 +895,7 @@ hist(x$smk_aveday)
 xx <- filter(x, smk_aveday <= 0)
 
 
-exclude = c("PPS3", "PPS4", "NGCCS", "MECC_3")
+exclude = c("PPS3", "PPS4", "NGCCS", "MECC_3", "MECC_2", "MECC_1")
 wrap(x, exposure = 'smk_aveday', is_e_categorical = F, vars_to_exclude = c("energytot_imp"), studies_to_exclude = exclude)
 y <- readRDS("~/data/GxEScanR_PhenotypeFiles/FIGI_v2.3_gxeset_smk_aveday_basic_covars_glm.rds")
 table(y$study_gxe, y$outcome)
@@ -783,7 +906,7 @@ table(y$study_gxe, y$smk_aveday)
 # another continuous variable
 # 125 with zero pkyr
 x <- figi_gxe %>% 
-  filter(smoke != "Never smoked")
+  filter(smoke != "Never smoker")
 
 describeBy(x$smk_pkyr, x$smoke)
 summary(x$smk_pkyr)
@@ -791,7 +914,7 @@ hist(x$smk_pkyr)
 
 xx <- filter(x, smk_pkyr <= 0)
 
-exclude = c("PPS3", "PPS4", "NGCCS", "MECC_3")
+exclude = c("PPS3", "PPS4", "NGCCS", "MECC_3", "MECC_2", "MECC_1")
 wrap(x, exposure = 'smk_pkyr', is_e_categorical = F, vars_to_exclude = c("energytot_imp"), studies_to_exclude = exclude)
 y <- readRDS("~/data/GxEScanR_PhenotypeFiles/FIGI_v2.3_gxeset_smk_pkyr_basic_covars_glm.rds")
 table(y$study_gxe, y$outcome)
@@ -800,23 +923,17 @@ table(y$study_gxe, y$smk_aveday)
 
 
 
-# smk_pkyrqc2 (yi analysis match)
-table(figi_gxe$smk_pkyrqc2, figi_gxe$smk_ever)
+# smk_pkyrqc2
+# another continuous variable
+# 125 with zero pkyr
+table(figi_gxe$smk_ever, figi_gxe$smk_pkyrqc2)
+table(figi_gxe$smoke, figi_gxe$smk_pkyrqc2)
 
-x <- figi_gxe %>% 
-  filter(smoke != "Never smoked")
-
-describeBy(x$smk_pkyr, x$smoke)
-summary(x$smk_pkyr)
-hist(x$smk_pkyr)
-
-xx <- filter(x, smk_pkyr <= 0)
-
-exclude = c("PPS3", "PPS4", "NGCCS", "MECC_3")
-wrap(x, exposure = 'smk_pkyr', is_e_categorical = F, vars_to_exclude = c("energytot_imp"), studies_to_exclude = exclude)
-y <- readRDS("~/data/GxEScanR_PhenotypeFiles/FIGI_v2.3_gxeset_smk_pkyr_basic_covars_glm.rds")
+exclude = c("PPS3", "PPS4", "NGCCS", "MECC_3", "MECC_2", "MECC_1")
+wrap(figi_gxe, exposure = 'smk_pkyrqc2', is_e_categorical = F, vars_to_exclude = c("energytot_imp"), studies_to_exclude = exclude)
+y <- readRDS("~/data/GxEScanR_PhenotypeFiles/FIGI_v2.3_gxeset_smk_pkyrqc2_basic_covars_glm.rds")
 table(y$study_gxe, y$outcome)
-table(y$study_gxe, y$smk_aveday)
+table(y$study_gxe, y$smk_pkyrqc2)
 
 
 # ----- Fruits vegetables and fiber ------ 

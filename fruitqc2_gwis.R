@@ -173,6 +173,7 @@ ggplot(aes(x = study_gxe, y = study_aaf), data = out) +
   theme(axis.text.x = element_text(angle = 270)) + 
   xlab("Study") + 
   ylab("Alternate Allele Frequency")
+ggsave("~/Dropbox/fruitqc2_chr14.png", height = 8, width = 6)
 
 
 # would results change if you remove mecc (note wald statistic)
@@ -230,6 +231,36 @@ tmp3 <- dplyr::filter(tmp, grepl("UKB_1", study_gxe))
 covariates_nostudy <- covariates[which(covariates != "study_gxe")]
 model3 <- glm(glue("outcome ~ {exposure}*chr14_74029409_C_T_dose + {glue_collapse(covariates_nostudy, sep = '+')}"), data = tmp3, family = 'binomial')
 summary(model3)
+
+
+
+
+
+
+
+# need allele frequency by study_gxe to confirm finding (and sensitivity analysis)
+tmp <- qread("/media/work/gwis_test/fruitqc2/output/posthoc/dosage_chr1_72729142.qs") %>% 
+  inner_join(input_data, 'vcfid')
+
+aaf <- function(x) {
+  sum(x) / nrow(x)
+}
+
+out <- tmp %>% 
+  group_by(study_gxe) %>% 
+  summarise(total = n(), 
+            study_aaf = sum(chr1_72729142_A_G_dose) / (total*2)) %>% 
+  arrange(study_aaf) %>% 
+  mutate(study_gxe = fct_reorder(study_gxe, study_aaf))
+
+ggplot(aes(x = study_gxe, y = study_aaf), data = out) + 
+  geom_point() + 
+  theme_bw() + 
+  theme(axis.text.x = element_text(angle = 270)) + 
+  xlab("Study") + 
+  ylab("Alternate Allele Frequency")
+ggsave("~/Dropbox/fruitqc2_chr14.png", height = 8, width = 6)
+
 
 
 

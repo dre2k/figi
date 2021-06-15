@@ -80,33 +80,6 @@ table(y$study_gxe, y$outcome)
 
 
 
-# ------ aspirin ------- #
-# let's try updated PCs
-
-
-pc_val <- fread("~/figi_gxe_pca_update.eigenval") %>%
-  mutate(pc = seq(1,10))
-
-plot(pc_val$pc, pc_val$V1)
-lines(pc_val$pc, pc_val$V1)
-
-# still 3 PCs looks ok
-
- 
-head(figi_gxe)
-pc_new <- fread("~/figi_gxe_pca_update.eigenvec") %>% 
-  dplyr::select(-`#FID`)
-
-
-tmp <- figi_gxe %>% 
-  dplyr::select(-starts_with("PC")) %>% 
-  dplyr::inner_join(pc_new, c("vcfid" = "IID"))
-
-wrap(tmp, 'aspirin', studies_to_exclude = exclude)
-y <- readRDS("/media/work/gwis/data/FIGI_EpiData/FIGI_v3.0_gxeset_aspirin_basic_covars_glm.rds")
-
-
-temp2 <- inner_join(pc_new, y, c("IID" = "vcfid")) # just checking that the wraper didn't accidentally introduce the old PCs back or something
 
 # ------ Calcium ------
 # 
