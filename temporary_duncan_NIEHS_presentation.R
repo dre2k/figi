@@ -309,7 +309,6 @@ I3 =  rep(1,3)
 # GE<- c(eg0,e0g,beta.eg1,se.eg1,beta.eg2,se.eg2)
 
 
-
 covs = COV[c(e1, p1 , glue(e1, ':', p1)), c(e1, p1, glue(e1, ':', p1))]
 se.e1g1 = sqrt(t(I3)%*%covs%*%I3)
 
@@ -335,14 +334,19 @@ OR_e2g1 = glue("{rnd2(exp(beta.e2g1))} ({rnd2(exp(beta.e2g1 - qnorm(0.975)*se.e2
 OR_e1g2 = glue("{rnd2(exp(beta.e1g2))} ({rnd2(exp(beta.e1g2 - qnorm(0.975)*se.e1g2))} - {rnd2(exp(beta.e1g2 + qnorm(0.975)*se.e1g2))})")
 OR_e2g2 = glue("{rnd2(exp(beta.e2g2))} ({rnd2(exp(beta.e2g2 - qnorm(0.975)*se.e2g2))} - {rnd2(exp(beta.e2g2 + qnorm(0.975)*se.e2g2))})")
 
-OR_e1g0
-OR_e2g0
+
+
+
+
 OR_e0g1
 OR_e0g2
 
+OR_e1g0
 OR_e1g1
-OR_e2g1
 OR_e1g2
+
+OR_e2g0
+OR_e2g1
 OR_e2g2
 
 
@@ -527,12 +531,22 @@ OR_e2g2 = glue("{rnd2(exp(beta.e2g2))} ({rnd2(exp(beta.e2g2 - qnorm(0.975)*se.e2
 
 OR_e1g0
 OR_e2g0
+
 OR_e0g1
 OR_e0g2
-
 OR_e1g1
 OR_e2g1
 OR_e1g2
+OR_e2g2
+
+
+OR_e1g1
+OR_e1g2
+
+OR_e0g1
+OR_e0g2
+
+OR_e2g1
 OR_e2g2
 
 

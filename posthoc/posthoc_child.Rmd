@@ -61,32 +61,32 @@ cat(paste(rawHTML, collapse = "\n"), "\n")
 
 
 
-```{r, results = 'asis', eval = stratified_or_eval}
-# ok to include header here since setting results = 'asis' is set
-cat(paste0("### Odds Ratios"), collapse = '\n')
+<!-- ```{r, results = 'asis', eval = stratified_or_eval} -->
+<!-- # ok to include header here since setting results = 'asis' is set -->
+<!-- cat(paste0("### Odds Ratios"), collapse = '\n') -->
 
 
-#### ORIGINAL (GENOTYPES)
-# stratified_or_file <- readRDS(glue("{path}/output/posthoc/stratified_oddsratio_{exposure}_{hrc_version}_{snp}_{glue_collapse(sort(covariates), sep = '_')}.rds"))
-# 
-# options(knitr.kable.NA = '')
-# kable(stratified_or_file) %>%
-#   kable_styling('bordered', bootstrap_options = c("striped", "hover", "condensed"), full_width = F, position = 'left') %>%
-#   add_header_above(c(" " = 4, "G param by E" = 2, "Counts (Ca/Co)" = 3)) %>%
-#   pack_rows("E param by G", 5, 6, indent = F)
+<!-- #### ORIGINAL (GENOTYPES) -->
+<!-- # stratified_or_file <- readRDS(glue("{path}/output/posthoc/stratified_oddsratio_{exposure}_{hrc_version}_{snp}_{glue_collapse(sort(covariates), sep = '_')}.rds")) -->
+<!-- #  -->
+<!-- # options(knitr.kable.NA = '') -->
+<!-- # kable(stratified_or_file) %>% -->
+<!-- #   kable_styling('bordered', bootstrap_options = c("striped", "hover", "condensed"), full_width = F, position = 'left') %>% -->
+<!-- #   add_header_above(c(" " = 4, "G param by E" = 2, "Counts (Ca/Co)" = 3)) %>% -->
+<!-- #   pack_rows("E param by G", 5, 6, indent = F) -->
 
 
-#### DOSAGES
-stratified_or_file <- readRDS(glue("{path}/output/posthoc/stratified_oddsratio_{exposure}_{hrc_version}_{snp}_{glue_collapse(sort(covariates), sep = '_')}_dosage.rds"))
+<!-- #### DOSAGES -->
+<!-- stratified_or_file <- readRDS(glue("{path}/output/posthoc/stratified_oddsratio_{exposure}_{hrc_version}_{snp}_{glue_collapse(sort(covariates), sep = '_')}_dosage.rds")) -->
 
-options(knitr.kable.NA = '')
-kable(stratified_or_file) %>%
-  kable_styling('bordered', bootstrap_options = c("striped", "hover", "condensed"), full_width = F, position = 'left') %>%
-  add_header_above(c(" " = 4, "G param by E" = 1, "Counts (Ca/Co)" = 3)) %>%
-  pack_rows("E param by G", 5, 6, indent = F)
+<!-- options(knitr.kable.NA = '') -->
+<!-- kable(stratified_or_file) %>% -->
+<!--   kable_styling('bordered', bootstrap_options = c("striped", "hover", "condensed"), full_width = F, position = 'left') %>% -->
+<!--   add_header_above(c(" " = 4, "G param by E" = 1, "Counts (Ca/Co)" = 3)) %>% -->
+<!--   pack_rows("E param by G", 5, 6, indent = F) -->
 
 
-```
+<!-- ``` -->
 
 
 ```{r, echo = F, results = 'asis'}

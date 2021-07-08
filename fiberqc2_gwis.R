@@ -123,20 +123,83 @@ plot(inf.analysis, "es")
 plot(inf.analysis, "i2")
 
 
+
 #-----------------------------------------------------------------------------#
-# SNP followup ---- 
+# GxE additional analysis ---- 
 #-----------------------------------------------------------------------------#
-# compile significant results into data.frame
-source("/home/rak/Dropbox/FIGI/FIGI_code/results/posthoc/posthoc_01_combine_results.R")
-
-# on HPC:
-# - extract dosage information on HPC
-# - calculate clumped statistics - gxe, 2/3df if necessary
-
+source(glue("~/git/figifs/R/01_process.R"))
+source(glue("~/git/figifs/R/02_plots.R"))
+source(glue("~/git/figifs/R/03_posthoc.R"))
+source(glue("~/git/figifs/R/03_posthoc_iplot.R"))
+source(glue("~/git/figifs/R/03_posthoc_stratified_or.R"))
 
 
+# output RERI plots (can't install package on CARC)
+snps <- c("14:74029409:C:T", "14:74029049:G:C")
+walk(snps, ~ reri_wrapper(data_epi = input_data, exposure = exposure, snp = .x, covariates = covariates, path = glue("{path}/output")))
 
 
+input_data_tmp <- input_data %>% 
+  mutate(fruitqc2 = abs(3 - as.numeric(fruitqc2)))
+snps <- c("1:72729142:A:G")
+walk(snps, ~ reri_wrapper(data_epi = input_data_tmp, exposure = exposure, snp = .x, covariates = covariates, path = glue("{path}/output")))
+
+
+
+
+
+
+
+
+
+# output GxE models adjusted by different covariate sets
+covariates_sets <- list(covariates, 
+                        c(covariates, 'bmi5'), 
+                        c(covariates, 'bmi5', 'smk_ever'), 
+                        c(covariates, 'bmi5', 'smk_ever', 'fruitqc2', 'vegetableqc2'))
+covariates_sets <- list(covariates)
+walk(snps, ~ fit_gxe_covars(data_epi = input_data, exposure = exposure, snp = .x, covariates_list = covariates_sets, method = 'chiSqGxE', path = glue("{path}/output")))
+suggestive_gxe <- fread(glue("{path}/data/FIGI_v2.3_gxeset_diab_chiSqGxE_ldclump.clumped"))
+walk(suggestive_gxe$SNP, ~ fit_gxe_covars(data_epi = input_data, exposure = exposure, snp = .x, covariates_list = covariates_sets, method = 'chiSqGxE', path = glue("{path}/output")))
+
+
+
+# output easystrata manhattan plot for Nikolas that excludes the right set of annotations (200 GWAS instead of 140)
+gxe <- readRDS("/media/work/gwis/results/fruitqc2/processed/FIGI_v2.3_gxeset_fruitqc2_basic_covars_gxescan_results.rds")
+
+create_manhattanplot(x = gxe, exposure = exposure, stat = 'chiSq3df', annotation_file = annotation_file, output_dir = "~/Dropbox")
+gwas <- fread("/home/rak/data/Annotations/gwas_200_ld_annotation_feb2021.txt") %>% 
+  mutate(SNP2 = paste0(Chr, ":", Pos))
+gxe_nogwas <- dplyr::filter(gxe, !SNP2 %in% gwas$SNP2)
+create_manhattanplot(x = gxe, exposure = exposure, stat = 'chiSq3df', annotation_file = annotation_file, output_dir = "~/Dropbox")
+create_manhattanplot(x = gxe_nogwas, exposure = exposure, stat = 'chiSq3df', annotation_file = annotation_file, output_dir = "~/Dropbox")
+
+# try again - remove flanking regions for better visualizaation
+create_manhattanplot_ramwas(data = gxe, exposure = exposure, statistic = 'chiSqGxE', hrc_version = 'v2.3', path = "~/Dropbox/", sig_line = 5e-8)
+gxe_better <- gxe_nogwas %>% 
+  filter(chiSqG_p > 5e-7)
+
+create_manhattanplot_ramwas(data = gxe, exposure = exposure, statistic = 'chiSqGxE', hrc_version = 'v2.3', path = "~/Dropbox/", sig_line = 5e-8)
+create_manhattanplot_ramwas(data = gxe_better, exposure = exposure, statistic = 'chiSq3df', hrc_version = 'v2.3', path = "~/Dropbox/", sig_line = 5e-8)
+create_manhattanplot_ramwas(data = gxe_better, exposure = exposure, statistic = 'chiSq2df', hrc_version = 'v2.3', path = "~/Dropbox/", sig_line = 5e-8)
+
+
+
+
+
+# output RERI plots for suggestive findings
+input_data_recode <- input_data %>% 
+  mutate(fiberqc2 = abs(fiberqc2-3))
+
+snps_out <- fread(glue("{path}/data/FIGI_{hrc_version}_gxeset_{exposure}_chiSqGxE_ldclump.clumped"), header = T, stringsAsFactors = F) %>%
+  dplyr::arrange(CHR, SNP) %>%
+  dplyr::pull(SNP)
+
+walk(snps_out, ~ reri_wrapper(data_epi = input_data_recode, exposure = exposure, snp = .x, covariates = covariates, path = glue("{path}/output")))
+
+
+# output AAF by study_gxe plots for suggestive findings
+walk(snps_out, ~ create_aaf_study_plot(data = input_data_recode, exposure,  hrc_version, snp = .x, path = path))
 
 
 
@@ -155,6 +218,12 @@ posthoc_report(exposure = exposure,
                path = path)
 
 
+
+# ----- suggestive markers ------ # 
+rmarkdown::render(glue("/home/rak/git/figi/{exposure}_posthoc_suggestive.Rmd"), 
+                  params = list(exposure = exposure, hrc_version = hrc_version, 
+                                covariates = covariates, path = path), 
+                  output_file = glue("~/Dropbox/FIGI/Results/{exposure}_posthoc_suggestive.html"))
 
 
 

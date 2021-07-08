@@ -15,11 +15,12 @@ library(forcats)
 library(table1)
 rm(list = ls())
 output_dir <- "/media/work/gwis/data/"
+# output_dir <- "/media/work/gwis_test/data/"
 # setwd(glue("{output_dir}/FIGI_samplefile_epi-201014/"))
 
-# hrc_version = 'v2.3'
+hrc_version = 'v2.3'
 # hrc_version = 'v2.4'
-hrc_version = 'v3.0'
+# hrc_version = 'v3.0'
 
 pca <- "/home/rak/data/PCA/190729/FIGI_GwasSet_190729.eigenvec"
 pc <- fread(pca, skip = 1, col.names = c("FID", "IID", paste0(rep("PC", 20), seq(1,20))))
@@ -292,7 +293,9 @@ figi_gxe <- figi %>%
                 fruitqc2 = as.numeric(fruitqc2)-1, 
                 # meat
                 redmeatqc2 = as.numeric(redmeatqc2)-1,
-                procmeatqc2 = as.numeric(procmeatqc2)-1)
+                procmeatqc2 = as.numeric(procmeatqc2)-1, 
+                # physical activity
+                methrswklns = as.numeric(methrswklns))
                 
 for(x in c("asp_ref", "nsaids", "aspirin", "smk_ever", "alcoholc", "alcoholc_heavy", "alcoholc_moderate", "alcoholc_heavy_vs_moderate", "hrt_ref_pm2", "eo_ref_pm_gxe", "ep_ref_pm_gxe", "diab", "calcium_totqc2", "calcium_dietqc2", "calcium_supp", "folate_totqc2", "folate_dietqc2", "folate_sup_yn", "fiberqc2", "vegetableqc2", "fruitqc2", "redmeatqc2", "procmeatqc2")) {
   print(x)

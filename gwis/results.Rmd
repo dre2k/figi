@@ -86,21 +86,21 @@ body{
 
 <!-- <br> -->
 
-```{r child = paste0("results_descriptive_ver2.Rmd")}
-```
+<!-- ```{r child = paste0("results_descriptive_ver2.Rmd")} -->
+<!-- ``` -->
 
 
-## Results
+<!-- ## Results -->
 
-Adjusted by age and sex (energy, study/platform, PCs when applicable)
+<!-- Adjusted by age and sex (energy, study/platform, PCs when applicable) -->
 
-### Meta analysis {.tabset}
-```{r child = 'results_meta.Rmd'}
-```
+<!-- ### Meta analysis {.tabset} -->
+<!-- ```{r child = 'results_meta.Rmd'} -->
+<!-- ``` -->
 
-### Pooled analysis {.tabset}
-```{r child = 'results_pooled.Rmd'}
-```
+<!-- ### Pooled analysis {.tabset} -->
+<!-- ```{r child = 'results_pooled.Rmd'} -->
+<!-- ``` -->
 
 
 
@@ -171,9 +171,9 @@ Secondly, in Step 2 testing we must now account for multiple testing in each bin
 
 
 
-```{r, eval=grepl("height", params$exposure)}
-print("Results exclude Height GIANT Meta-analysis Summary Statistics (Wood et al, 2018). We filtered genome-wide significant findings + LD SNPs at R2 > 0.15")
-```
+<!-- ```{r, eval=grepl("height", params$exposure)} -->
+<!-- print("Results exclude Height GIANT Meta-analysis Summary Statistics (Wood et al, 2018). We filtered genome-wide significant findings + LD SNPs at R2 > 0.15") -->
+<!-- ``` -->
 
 <!-- ### Functional annotation subset -->
 
@@ -214,9 +214,9 @@ print("Results exclude Height GIANT Meta-analysis Summary Statistics (Wood et al
 ```{r child = 'results_two_step_eh_galwey.Rmd' }
 ```
 
-## Two-step Plots - Li 2012 {.tabset}
-```{r child = 'results_two_step_eh_lea.Rmd' }
-```
+<!-- ## Two-step Plots - Li 2012 {.tabset} -->
+<!-- ```{r child = 'results_two_step_eh_lea.Rmd' } -->
+<!-- ``` -->
 
 
 <!-- ## Two-step GECCO {.tabset} -->

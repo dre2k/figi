@@ -25,7 +25,7 @@ library(interactions)
 library(msm)
 library(qs)
 rm(list = ls())
-source("functions.R")
+# source("functions.R")
 
 # input variables
 exposure = 'smk_ever'

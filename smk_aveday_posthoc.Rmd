@@ -11,7 +11,7 @@ output:
     toc_depth: 3
     theme: "paper"
 params:
-  exposure: "smk_ever"
+  exposure: "smk_aveday"
   covariates: !r c("age_ref_imp", "sex", "pc1", "pc2", "pc3", "study_gxe")
   hrc_version: "v2.3"
   path: "/media/work/gwis_test"

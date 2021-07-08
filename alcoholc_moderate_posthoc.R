@@ -57,16 +57,34 @@ gxe_table1 <-  readRDS(glue("/media/work/gwis_test/data/FIGI_{hrc_version}_gxese
   mutate(outcome_table1 = fct_relevel(outcome_table1, "Cases"), 
          sex = case_when(sex == 0 ~ "Female", 
                          sex == 1 ~ "Male", 
-                         TRUE ~ "")) %>% 
+                         TRUE ~ ""), 
+         alcoholc = factor(alcoholc, labels = c("Light-to-moderate drinkers (>1-28 g/d)", 
+                                               "Non-drinkers (\u2264 1 g/day)", 
+                                               "Heavy drinkers (>28 g/d)")), 
+         methrswklns = as.numeric(methrswklns), 
+         redmeatqc2 = factor(redmeatqc2, labels = c("Q1", "Q2", "Q3", "Q4")),
+         fruitqc2 = factor(fruitqc2, labels = c("Q1", "Q2", "Q3", "Q4")),
+         vegetableqc2 = factor(vegetableqc2, labels = c("Q1", "Q2", "Q3", "Q4"))) %>% 
   filter(vcfid %in% keep) 
 
+label(gxe_table1$alcoholc) = "Alcohol consumption"
+label(gxe_table1$age_ref_imp) = "Age (mean imputed)"
 label(gxe_table1$sex) = "Sex"
+label(gxe_table1$bmi) = "BMI"
 label(gxe_table1$energytot_imp) = "Total energy intake (mean imputed)"
+label(gxe_table1$famhx1) = "Family history of colorectal cancer"
+label(gxe_table1$educ) = "Education (highest completed)"
+label(gxe_table1$smk_ever) = "Smoking"
+label(gxe_table1$methrswklns) = "Physical activity (MET-hr/week)"
+label(gxe_table1$redmeatqc2) = "Total dietary red meat intake"
+label(gxe_table1$fruitqc2) = "Total dietary fruit intake"
+label(gxe_table1$vegetableqc2) = "Total dietary vegetable intake"
+label(gxe_table1$hrt_ref_pm) = "Hormone replacement therapy use"
 
 # include all covariates in every descriptive statistics table
 table_covariates = c("age_ref_imp", "sex", "asp_ref", "heightcm", "bmi", "energytot", "energytot_imp", "famhx1", "educ", "smk_ever", "hrt_ref_pm2", "diab", "calcium_totqc2", "folate_totqc2", "fiberqc2", "redmeatqc2", "procmeatqc2", "fruitqc2", "vegetableqc2", "p_diet_std")
 
-table_covariates = c("alcoholc_moderate", "alcoholc_heavy_vs_moderate", "age_ref_imp", "sex", "bmi", "energytot_imp", "famhx1", "educ", "smk_ever")
+table_covariates = c("alcoholc", "age_ref_imp", "sex", "famhx1", "educ", "energytot_imp", "bmi", "diab",  "smk_ever", "methrswklns", "redmeatqc2", "fruitqc2", "vegetableqc2", "hrt_ref_pm")
 
 
 

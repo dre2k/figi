@@ -1,0 +1,88 @@
+---
+title: "`r params$exposure` posthoc analysis"
+date: '`r paste("Updated on", Sys.Date())`'
+output: 
+  html_document:
+    css: ./posthoc/posthoc_report.css
+    toc: true
+    toc_float:
+      collapsed: true
+      smooth_scroll: false
+    toc_depth: 3
+    theme: "paper"
+params:
+  exposure: "fruitqc2"
+  covariates: !r c("age_ref_imp", "sex", "energytot_imp", "pc1", "pc2", "pc3", "study_gxe")
+  hrc_version: "v2.3"
+  path: "/media/work/gwis_test"
+---
+  
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = F, message = F, warning = F, error = F)
+
+# load packages and define wrapper functions
+library(tidyverse)
+library(data.table)
+library(forcats)
+library(ggplot2)
+library(qqman)
+library(rlang)
+library(figifs)
+library(DT)
+library(grid)
+library(stargazer)
+library(kableExtra)
+library(formattable)
+library(glue)
+library(qs)
+```
+
+
+<!-- # Description -->
+
+<!-- ## Follow-up analyses of GWIS findings   -->
+<!-- - Table of significant and suggestive (1df GxE only) ```r params$exposure``` GWIS findings   -->
+<!-- - GxE models stratified by study_design and tumor site (proximal, distal, rectal)   -->
+<!-- - GxE models with additional covariate sets (might do this for aspirin ..)   -->
+<!-- - Odds ratios stratified by exposure and genotype   -->
+<!-- - Plots of model predicted outcome by 1 unit increase of exposure/allelic dosage   -->
+<!-- - Locuszoom plot    -->
+<!-- - Functional annotation plot    -->
+
+<!-- --- -->
+
+<!-- define variables -->
+```{r, include = F}
+child_env <- new.env()
+assign("exposure",        params$exposure, child_env)
+assign("hrc_version",     params$hrc_version, child_env)
+assign("covariates", sort(params$covariates), child_env)
+# assign("method", "chiSqGxE", child_env)
+
+# exposure working directory path
+path = glue("/media/work/gwis_test/{params$exposure}")
+```
+
+
+# GxE (Suggestive p < 5e-6)
+```{r, results = 'asis'}
+# child method variable
+assign("method", "chiSqGxE", child_env)
+
+# SNPs
+snps_out <- fread(glue("{path}/data/FIGI_{hrc_version}_gxeset_{exposure}_chiSqGxE_ldclump.clumped"), header = T, stringsAsFactors = F) %>%
+  dplyr::filter(SNP != "2:131698423:A:G", 
+                SNP != "10:38739240:C:A") %>% # for some reason these guys don't seem to generate locuszoom plots. 
+  dplyr::arrange(CHR, SNP) %>%
+  dplyr::mutate(snps = paste0('chr', gsub("\\:", "\\_", SNP))) %>%
+  dplyr::pull(snps)
+
+# # Call child Rmd script
+res <- lapply(snps_out, function(snp) {
+  assign("snp", snp, child_env)
+  knitr::knit_child('./posthoc/posthoc_child_suggestive_gxe.Rmd', envir = child_env, quiet = TRUE)
+}
+)
+
+cat(unlist(res), sep = '\n')
+```

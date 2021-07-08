@@ -23,6 +23,7 @@ library(flextable)
 library(jtools)
 library(interactions)
 library(msm)
+library(qs)
 rm(list = ls())
 
 # input variables
@@ -41,6 +42,9 @@ input_data <- readRDS(glue("/media/work/gwis_test/data/FIGI_{hrc_version}_gxeset
   filter(vcfid%in% esubset) %>%
   mutate(smk_aveday = smk_aveday / 10)
   # mutate(smk_aveday = scale(smk_aveday))
+
+
+
 
 
 
@@ -191,13 +195,13 @@ simplem_wrap2(x = x1, exposure = exposure, covariates = covariates, simplem_step
 # source(glue("/media/work/gwis_test/R/03_posthoc_iplot.R"))
 # source(glue("/media/work/gwis_test/R/03_posthoc_stratified_or.R"))
 
-source(glue("/media/work/git/figifs/R/00_main_effects.R"))
-source(glue("/media/work/git/figifs/R/01_process.R"))
-source(glue("/media/work/git/figifs/R/02_plots.R"))
-source(glue("/media/work/git/figifs/R/03_posthoc.R"))
-source(glue("/media/work/git/figifs/R/03_posthoc_iplot.R"))
-source(glue("/media/work/git/figifs/R/03_posthoc_stratified_or.R"))
-source(glue("/media/work/git/figifs/R/04_reports.R"))
+# source(glue("/media/work/git/figifs/R/00_main_effects.R"))
+# source(glue("/media/work/git/figifs/R/01_process.R"))
+# source(glue("/media/work/git/figifs/R/02_plots.R"))
+# source(glue("/media/work/git/figifs/R/03_posthoc.R"))
+# source(glue("/media/work/git/figifs/R/03_posthoc_iplot.R"))
+# source(glue("/media/work/git/figifs/R/03_posthoc_stratified_or.R"))
+# source(glue("/media/work/git/figifs/R/04_reports.R"))
 
 
 # output GxE models adjusted by different covariate sets
@@ -255,6 +259,79 @@ iplot_wrapper(data_epi = input_data,
               covariates = covariates, 
               snp = "8:138788813:C:A", 
               path = '/media/work/gwis_test/smk_aveday/output')
+
+
+
+
+# create stratified odds ratios for smk_aveday scaled to per 10 cigarettes
+fit_stratified_or(data_epi = input_data, exposure = exposure, snp = '6:31917540:T:C', hrc_version = hrc_version, covariates = covariates, dosage = F, path = glue("{path}/output"))
+
+fit_stratified_or(data_epi = input_data, exposure = exposure, snp = '8:138788813:C:A', hrc_version = hrc_version, covariates = covariates, dosage = F, path = glue("{path}/output"))
+
+
+# ================================================================== #
+# ======= AAF check ---- 
+# ================================================================== #
+
+
+
+
+# chr6_31917540_T_C_dose
+tmp <- qread(glue("/media/work/gwis_test/{exposure}/output/posthoc/dosage_chr6_31917540.qs")) %>% 
+  inner_join(input_data, 'vcfid')
+
+tmp %>% 
+  summarise(total = n(), 
+            study_aaf = sum(chr6_31917540_T_C_dose) / (total*2))
+
+out <- tmp %>% 
+  group_by(study_gxe) %>% 
+  summarise(total = n(), 
+            study_aaf = sum(chr6_31917540_T_C_dose) / (total*2)) %>% 
+  arrange(study_aaf) %>% 
+  mutate(study_gxe = fct_reorder(study_gxe, study_aaf))
+
+ggplot(aes(x = study_gxe, y = study_aaf), data = out) + 
+  geom_point() + 
+  theme_bw() + 
+  theme(axis.text.x = element_text(angle = 270)) + 
+  xlab("Study") + 
+  ylab("Alternate Allele Frequency")
+
+
+
+
+
+
+# chr8_138788813_C_A_dose
+tmp <- qread(glue("/media/work/gwis_test/{exposure}/output/posthoc/dosage_chr8_138788813.qs")) %>% 
+  inner_join(input_data, 'vcfid')
+
+tmp %>% 
+  summarise(total = n(), 
+            study_aaf = sum(chr8_138788813_C_A_dose) / (total*2))
+
+out <- tmp %>% 
+  group_by(study_gxe) %>% 
+  summarise(total = n(), 
+            study_aaf = sum(chr8_138788813_C_A_dose) / (total*2)) %>% 
+  arrange(study_aaf) %>% 
+  mutate(study_gxe = fct_reorder(study_gxe, study_aaf))
+
+ggplot(aes(x = study_gxe, y = study_aaf), data = out) + 
+  geom_point() + 
+  theme_bw() + 
+  theme(axis.text.x = element_text(angle = 270)) + 
+  xlab("Study") + 
+  ylab("Alternate Allele Frequency")
+
+
+
+
+
+
+
+
 
 # ================================================================== #
 # ======= rmarkdown reports ---- 
