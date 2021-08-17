@@ -1,0 +1,76 @@
+---
+title: "CCFR Oncoarray preimputation"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(data.table)
+library(tidyverse)
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+7/21/2021
+Documentation for HWE filtering prior to HRC imputation of CCFR Oncoarray samples (N = 1930)
+
+### 1) Find overlap between 101ccfr0.csv (N = 105963)
+1874 matches using compassid, output 56 non-matches to *ccfr_oncoarray_preimputation_qc_101ccfr_non_matches.txt*
+```{r}
+# working from plink files I sent via Aspera on 7/7/2021
+sample_list <- fread("~/ccfr_oncoarray_qc_working/ccfr_oncoarray_hrc_20170828_UW.fam")
+ccfr <- fread("~/ccfr_oncoarray_qc_working/101ccfr0.csv")
+
+# overlap betwen figi_samplefile and sample_list
+out <- ccfr %>% 
+  filter(compassid %in% sample_list$V1)
+
+head(ccfr$compassid)
+table(out$race_self, out$outc, useNA = 'ifany')
+any(duplicated(out$compassid))
+table(out$study_site)
+
+# output non-matching samples 
+non_match <- anti_join(sample_list, out, by = c("V1"= "compassid"))
+write.table(non_match, file = "~/ccfr_oncoarray_qc_working/ccfr_oncoarray_preimputation_qc_101ccfr_non_matches.txt", quote = F, row.names= F, col.names = F)
+
+```
+
+<br>
+
+### 2) filter self_race == "White", output ID list to ccfr_oncoarray_qc_working
+```{r}
+white <- filter(out, race_self == "White")
+write.table(white[, c('compassid', 'compassid')], file = "~/ccfr_oncoarray_qc_working/ccfr_oncoarray_white_974.txt", quote = F, row.names = F, col.names = F, sep = '\t')
+```
+
+
+<br> 
+
+### 3) perform HWE test on EUR samples (cases + controls), output SNP / p-value list to *ccfr_oncoarray_white_hwe.hwe*
+```{bash eval = F}
+plink --bfile ~/ccfr_oncoarray_qc_working/ccfr_oncoarray_hrc_20170828_UW --keep ~/ccfr_oncoarray_qc_working/ccfr_oncoarray_white_974.txt --make-bed --out ~/ccfr_oncoarray_qc_working/ccfr_oncoarray_hrc_20170828_UW_white
+plink --bfile ~/ccfr_oncoarray_qc_working/ccfr_oncoarray_hrc_20170828_UW_white --hardy midp --out ~/ccfr_oncoarray_qc_working/ccfr_oncoarray_white_hwe
+```
+
+<br>
+
+### 4) filter SNPs HWE p < 1e-4
+```{r eval = F}
+hwe <- fread("~/ccfr_oncoarray_qc_working/ccfr_oncoarray_white_hwe.hwe") %>% 
+  dplyr::filter(P < 1e-4)
+
+write.table(hwe[,'SNP'], file = "~/ccfr_oncoarray_qc_working/ccfr_oncoarray_white_hwe_0.0001_snps.txt", quote = F, row.names = F, col.names = F)
+```
+
+<br>
+
+### 5) filter SNPs 
+```{bash eval = F}
+plink --bfile ~/ccfr_oncoarray_qc_working/ccfr_oncoarray_hrc_20170828_UW --exclude ~/ccfr_oncoarray_qc_working/ccfr_oncoarray_white_hwe_0.0001_snps.txt --make-bed --out ccfr_oncoarray_hrc_20170828_UW_HWEFILTER
+```
+
+<br>
+
+### 6) run preimputation qc + upload to michigan imputation server
+
+
+

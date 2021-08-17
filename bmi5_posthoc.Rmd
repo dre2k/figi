@@ -71,7 +71,7 @@ snps_out <- c("chr15_33122966_C_T")
 # Call child Rmd script
 res <- lapply(snps_out, function(snp) {
   assign("snp", snp, child_env)
-  knitr::knit_child('posthoc/posthoc_child.Rmd', envir = child_env, quiet = TRUE)
+  knitr::knit_child('posthoc/posthoc_child_bmi.Rmd', envir = child_env, quiet = TRUE)
   }
 )
 

@@ -1,0 +1,119 @@
+---
+# worth having separate markdown for BMI
+title: ""
+output: html_document
+---
+
+## GxE model stratified by sex
+```{r, results = 'asis'}
+rawHTML <- paste(readLines(glue("{path}/output/posthoc/gxe_models_{exposure}_{hrc_version}_{snp}_dose_{glue_collapse(sort(covariates), sep = '_')}_stratified_by_sex.html")))
+cat(paste(rawHTML, collapse = "\n"), "\n")
+```
+
+## GxE model stratified by tumor site
+```{r, results = 'asis'}
+rawHTML <- paste(readLines(glue("{path}/output/posthoc/gxe_models_{exposure}_{hrc_version}_{snp}_dose_{glue_collapse(sort(covariates), sep = '_')}_stratified_by_cancer_site_sum2.html")))
+cat(paste(rawHTML, collapse = "\n"), "\n")
+```
+
+## GxE model stratified by study design
+```{r, results = 'asis'}
+rawHTML <- paste(readLines(glue("{path}/output/posthoc/gxe_models_{exposure}_{hrc_version}_{snp}_dose_{glue_collapse(sort(covariates), sep = '_')}_stratified_by_study_design.html")))
+cat(paste(rawHTML, collapse = "\n"), "\n")
+```
+
+## GxE model with additional covariates
+```{r, results = 'asis'}
+rawHTML <- paste(readLines(glue("{path}/output/posthoc/gxe_models_{exposure}_{hrc_version}_{snp}_dose_covariate_sets.html")))
+cat(paste(rawHTML, collapse = "\n"), "\n")
+```
+
+
+
+
+
+## Stratified OR
+```{r, results = 'asis'}
+
+stratified_or_file <- readRDS(glue("{path}/output/posthoc/stratified_oddsratio_{exposure}_{hrc_version}_{snp}_{glue_collapse(covariates, sep = '_')}.rds"))
+
+options(knitr.kable.NA = '')
+kable(stratified_or_file) %>%
+  kable_styling('bordered', bootstrap_options = c("striped", "hover", "condensed"), full_width = F, position = 'left') %>%
+  # add_header_above(c(" " = 4, "G param by E" = 2, "Counts (Ca/Co)" = 3)) %>%
+  add_header_above(c(" " = 4, "G param by E" = 2)) %>%
+  pack_rows("E param by G", 5, 6, indent = F)
+
+```
+
+
+## Stratified OR (adj smk_ever)
+```{r, results = 'asis'}
+stratified_or_file <- readRDS(glue("{path}/output/posthoc/stratified_oddsratio_{exposure}_{hrc_version}_{snp}_{glue_collapse(covariates_smk, sep = '_')}.rds"))
+
+options(knitr.kable.NA = '')
+kable(stratified_or_file) %>%
+  kable_styling('bordered', bootstrap_options = c("striped", "hover", "condensed"), full_width = F, position = 'left') %>%
+  # add_header_above(c(" " = 4, "G param by E" = 2, "Counts (Ca/Co)" = 3)) %>%
+  add_header_above(c(" " = 4, "G param by E" = 2)) %>%
+  pack_rows("E param by G", 5, 6, indent = F)
+
+```
+
+
+## Stratified OR (bmic3)
+Categorical BMI - underweight, normal, overweight
+```{r, results = 'asis'}
+stratified_or_file <- readRDS(glue("{path}/output/posthoc/stratified_oddsratio_bmic3f_{hrc_version}_{snp}_{glue_collapse(sort(covariates), sep = '_')}.rds"))
+
+options(knitr.kable.NA = '')
+kable(stratified_or_file) %>%
+  kable_styling('bordered', bootstrap_options = c("striped", "hover", "condensed"), full_width = F, position = 'left') %>%
+  add_header_above(c(" " = 4, "G param by E" = 2, "Counts (Ca/Co)" = 3)) %>%
+  pack_rows("E param by G", 7, 10, indent = F)
+
+```
+
+
+## Stratified OR (bmic3, adj smk_ever)
+Categorical BMI - underweight, normal, overweight
+```{r, results = 'asis'}
+stratified_or_file <- readRDS(glue("{path}/output/posthoc/stratified_oddsratio_bmic3f_{hrc_version}_{snp}_{glue_collapse(sort(covariates_smk), sep = '_')}.rds"))
+
+options(knitr.kable.NA = '')
+kable(stratified_or_file) %>%
+  kable_styling('bordered', bootstrap_options = c("striped", "hover", "condensed"), full_width = F, position = 'left') %>%
+  add_header_above(c(" " = 4, "G param by E" = 2, "Counts (Ca/Co)" = 3)) %>%
+  pack_rows("E param by G", 7, 10, indent = F)
+
+```
+
+
+
+## Regional plot
+```{r}
+# remove ref/alt info from snp
+snpfix <- substr(snp, 1, nchar(snp)-4)
+method = "chiSqGxE"
+
+# locuszoom plot
+locuszoom_png <- glue("{path}/output/locuszoom_plot/locuszoom_plot_{exposure}_{hrc_version}_{method}_{snpfix}.png")
+knitr::include_graphics(locuszoom_png)
+```
+
+## Functional annotation plot
+```{r}
+# remove ref/alt info from snp
+snpfix <- substr(snp, 1, nchar(snp)-4)
+
+# functional annotation plot
+functional_png <- glue("{path}/output/functional_plot/functional_annotation_{snpfix}.png")
+knitr::include_graphics(functional_png)
+```
+
+
+
+
+
+
+

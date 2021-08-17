@@ -24,7 +24,7 @@ library(jtools)
 library(interactions)
 library(msm)
 rm(list = ls())
-source("functions.R")
+# source("functions.R")
 
 # input variables
 exposure = 'procmeatqcm_v2'
@@ -37,7 +37,6 @@ path = glue("/media/work/gwis_test/{exposure}/")
 # input data
 esubset <- readRDS(glue("/media/work/gwis_test/{exposure}/data/FIGI_{hrc_version}_gxeset_{exposure}_basic_covars_glm.rds")) %>% 
   pull(vcfid)
-
 
 input_data <- readRDS(glue("/media/work/gwis_test/data/FIGI_{hrc_version}_gxeset_analysis_data_glm.rds")) %>% 
   filter(vcfid%in% esubset) %>%

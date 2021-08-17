@@ -7,6 +7,10 @@
 #
 # Use principal components calculated 190729
 # - excludes 557 TCGA samples (genotype data N/A)
+#
+#
+# update (8/12/2021) - i'm adding red/proc meat v2 variables (for scan that excludes adenomas)
+# so I'll also update the location for saving the datasets while I'm at it
 #=============================================================================#
 library(tidyverse)
 library(data.table)
@@ -14,15 +18,15 @@ library(figifs)
 library(forcats)
 library(table1)
 rm(list = ls())
-output_dir <- "/media/work/gwis/data/"
+output_dir <- "/media/work/gwis_test/data/"
 # output_dir <- "/media/work/gwis_test/data/"
 # setwd(glue("{output_dir}/FIGI_samplefile_epi-201014/"))
 
-hrc_version = 'v2.3'
+# hrc_version = 'v2.3'
 # hrc_version = 'v2.4'
-# hrc_version = 'v3.0'
+hrc_version = 'v3.0'
 
-pca <- "/home/rak/data/PCA/190729/FIGI_GwasSet_190729.eigenvec"
+pca <- "/home/rak/data/PCA/190729/FIGI_GwasSet_190729.eigenvec" # remember this is the original PCs i've been using
 pc <- fread(pca, skip = 1, col.names = c("FID", "IID", paste0(rep("PC", 20), seq(1,20))))
 
 if(hrc_version == "v2.3") {
@@ -134,7 +138,8 @@ figi_gwas <- inner_join(figi, pc, by = c("vcfid" = "IID")) %>%
 
 
 # saveRDS(figi_gwas, "~/data/FIGI_EpiData_rdata/FIGI_v2.3_GWAS.rds", version = 2)
-saveRDS(figi_gwas, glue("{output_dir}/FIGI_EpiData/FIGI_{hrc_version}_GWAS.rds"), version = 2)
+# saveRDS(figi_gwas, glue("{output_dir}/FIGI_EpiData/FIGI_{hrc_version}_GWAS.rds"), version = 2)
+saveRDS(figi_gwas, glue("{output_dir}/FIGI_{hrc_version}_GWAS.rds"), version = 2)
 
 
 #-----------------------------------------------------------------------------#
@@ -294,6 +299,8 @@ figi_gxe <- figi %>%
                 # meat
                 redmeatqc2 = as.numeric(redmeatqc2)-1,
                 procmeatqc2 = as.numeric(procmeatqc2)-1, 
+                redmeatqcm_v2 = as.numeric(redmeatqcm), 
+                procmeatqcm_v2 = as.numeric(procmeatqcm), # these are for convenience when using targets package on scan exclude adenoma cases (8/13/2021)
                 # physical activity
                 methrswklns = as.numeric(methrswklns))
                 
@@ -304,7 +311,8 @@ for(x in c("asp_ref", "nsaids", "aspirin", "smk_ever", "alcoholc", "alcoholc_hea
 }
 
 # saveRDS(figi_gxe, file = paste0("/media/work/gwis/results/input/FIGI_", hrc_version, "_gxeset_analysis_data_glm.rds"), version = 2)
-saveRDS(figi_gxe, file = glue("{output_dir}/FIGI_EpiData/FIGI_", hrc_version, "_gxeset_analysis_data_glm.rds"), version = 2)
+# saveRDS(figi_gxe, file = glue("{output_dir}/FIGI_EpiData/FIGI_", hrc_version, "_gxeset_analysis_data_glm.rds"), version = 2)
+saveRDS(figi_gxe, file = glue("{output_dir}/FIGI_", hrc_version, "_gxeset_analysis_data_glm.rds"), version = 2)
 
 
 
@@ -384,7 +392,8 @@ label(figi_gxe_table1$smk_pkyr) <- "Smoking, avg pks/yr"
 label(figi_gxe_table1$diab) <- "T2D (ever diagnosed)"
 
 # saveRDS(figi_gxe_table1, file = paste0("/media/work/gwis/results/input/FIGI_", hrc_version, "_gxeset_analysis_data_table1.rds"), version = 2)
-saveRDS(figi_gxe_table1, file = glue("{output_dir}/FIGI_EpiData/FIGI_", hrc_version, "_gxeset_analysis_data_table1.rds"), version = 2)
+# saveRDS(figi_gxe_table1, file = glue("{output_dir}/FIGI_EpiData/FIGI_", hrc_version, "_gxeset_analysis_data_table1.rds"), version = 2)
+saveRDS(figi_gxe_table1, file = glue("{output_dir}/FIGI_", hrc_version, "_gxeset_analysis_data_table1.rds"), version = 2)
 
 
 for(x in paste0(binary_vars, "_table1")) {
@@ -453,7 +462,8 @@ figi_gxe_ggplot <- figi_gxe %>%
 # }
 
 # saveRDS(figi_gxe_ggplot, file = paste0("/media/work/gwis/results/input/FIGI_", hrc_version, "_gxeset_analysis_data_ggplot.rds"), version = 2)
-saveRDS(figi_gxe_ggplot, file = glue("{output_dir}/FIGI_EpiData/FIGI_", hrc_version, "_gxeset_analysis_data_ggplot.rds"), version = 2)
+# saveRDS(figi_gxe_ggplot, file = glue("{output_dir}/FIGI_EpiData/FIGI_", hrc_version, "_gxeset_analysis_data_ggplot.rds"), version = 2)
+saveRDS(figi_gxe_ggplot, file = glue("{output_dir}/FIGI_", hrc_version, "_gxeset_analysis_data_ggplot.rds"), version = 2)
 
 
 

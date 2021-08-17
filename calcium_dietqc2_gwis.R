@@ -24,35 +24,17 @@ library(jtools)
 library(interactions)
 library(msm)
 rm(list = ls())
-source("functions.R")
-
 
 # input variables
 exposure = 'calcium_dietqc2'
 hrc_version = 'v3.0'
-output_dir = paste0("/media/work/gwis/posthoc/", exposure, "/")
-annotation_file <- 'gwas_141_ld_annotation_july2020.txt'
-
+annotation_file <- 'gwas_200_ld_annotation_feb2021.txt'
 covariates <- sort(c('age_ref_imp', 'sex', 'energytot_imp', 'study_gxe', 'pc1', 'pc2', 'pc3'))
-covariates_set1 <- covariates
-# covariates_set2 <- sort(c(covariates_set1, 'bmi', 'smk_ever', 'fruitqc2', 'vegetableqc2'))
-covariates_list <- list(covariates)
-mod <- 'age_ref_imp+sex+energytot_imp+pc1+pc2+pc3+study_gxe'
+path = glue("/media/work/gwis_test/{exposure}/")
 
-exclude_gwas <- fread("~/data/Annotations/gwas_141_ld_annotation_july2020.txt") %>%
-  mutate(SNP2 = paste0(Chr, ":", Pos)) %>%
-  pull(SNP2)
-
-# input data
-esubset <- readRDS(glue("/media/work/gwis/data/FIGI_EpiData/FIGI_{hrc_version}_gxeset_{exposure}_basic_covars_glm.rds")) %>% 
-                     pull(vcfid)
-input_data <- readRDS(glue("/media/work/gwis/data/FIGI_EpiData/FIGI_{hrc_version}_gxeset_analysis_data_glm.rds")) %>% 
+esubset <- readRDS(glue("/media/work/gwis_test/{exposure}/data/FIGI_{hrc_version}_gxeset_{exposure}_basic_covars_glm.rds")) %>% pull(vcfid)
+input_data <- readRDS(glue("/media/work/gwis_test/data/FIGI_{hrc_version}_gxeset_analysis_data_glm.rds")) %>% 
   filter(vcfid%in% esubset)
-# input_data <- readRDS(glue("/media/work/gwis/data/FIGI_EpiData/FIGI_{hrc_version}_gxeset_analysis_data_glm.rds"))
-
-# gxescan output
-gxe <- readRDS(glue("/media/work/gwis/results/{exposure}/processed/FIGI_{hrc_version}_gxeset_{exposure}_basic_covars_gxescan_results.rds")) 
-
 
 #-----------------------------------------------------------------------------#
 # main effects ----
@@ -143,47 +125,6 @@ plot(inf.analysis, "i2")
 
 
 #-----------------------------------------------------------------------------#
-# qq plots, manhattan plots, two-step plots ---- 
-# (should be able to source script since variables are defined here)
-#-----------------------------------------------------------------------------#
-source("~/Dropbox/FIGI/FIGI_code/results/gwis/gwis_02_plots.R")
-
-
-#-----------------------------------------------------------------------------#
-# two-step expectation hybrid ---- 
-#-----------------------------------------------------------------------------#
-# ------ output list of SNPs from each bin (expectation based) to extract dosages
-# exposure subset for step 1 statistics
-twostep_eh_snps(gxe, 'chiSqG')
-twostep_eh_snps(gxe, 'chiSqGE')
-
-# gecco meta analysis for main effects step 1 statistics
-gwas_results <- readRDS("/media/work/gwis/results/gecco/MarginalMeta_gecco_HRC_EUR_only.rds")
-gxe_twostep_gwas_step1 <- gxe %>%
-  dplyr::select(-betaG, -chiSqG, -chiSqEDGE, -chiSq3df) %>%
-  inner_join(gwas_results, 'SNP') %>%
-  mutate(chiSqEDGE = chiSqG + chiSqGE,
-         chiSq3df = chiSqG + chiSqGxE + chiSqGE)
-
-twostep_eh_snps(gxe_twostep_gwas_step1, 'chiSqG', step1_source = "gecco")
-
-
-# ----------------------------------------------------------- #
-# ------- run simpleM and generate plots + results df ------- #
-simplem_wrap(x = gxe, exposure = exposure, covariates = covariates, simplem_step1_statistic = 'chiSqG', output_dir = output_dir)
-simplem_wrap(x = gxe, exposure = exposure, covariates = covariates, simplem_step1_statistic = 'chiSqGE', output_dir = output_dir)
-simplem_wrap(x = gxe, exposure = exposure, covariates = covariates, simplem_step1_statistic = 'chiSqEDGE', output_dir = output_dir)
-simplem_wrap(x = gxe_twostep_gwas_step1, exposure = exposure, covariates = covariates, simplem_step1_statistic = 'chiSqG', output_dir = output_dir, filename_suffix = "_gwas_step1" )
-
-
-simplem_wrap(x = gxe, exposure = exposure, covariates = covariates, simplem_step1_statistic = 'chiSqG', output_dir = output_dir, include_gwas = F, filename_suffix = "_no_gwas")
-simplem_wrap(x = gxe, exposure = exposure, covariates = covariates, simplem_step1_statistic = 'chiSqGE', output_dir = output_dir, include_gwas = F, filename_suffix = "_no_gwas")
-simplem_wrap(x = gxe, exposure = exposure, covariates = covariates, simplem_step1_statistic = 'chiSqEDGE', output_dir = output_dir, include_gwas = F, filename_suffix = "_no_gwas")
-simplem_wrap(x = gxe_twostep_gwas_step1, exposure = exposure, covariates = covariates, simplem_step1_statistic = 'chiSqG', output_dir = output_dir, include_gwas = F, filename_suffix = "_gwas_step1_no_gwas" )
-
-
-
-#-----------------------------------------------------------------------------#
 # functional annotation subset ---- 
 # focus on pooled scores for now
 #-----------------------------------------------------------------------------#
@@ -210,16 +151,6 @@ simplem_wrap2(x = x1, exposure = exposure, covariates = covariates, simplem_step
 
 
 
-
-#-----------------------------------------------------------------------------#
-# SNP followup ---- 
-#-----------------------------------------------------------------------------#
-# compile significant results into data.frame
-source("/home/rak/Dropbox/FIGI/FIGI_code/results/posthoc/posthoc_01_combine_results.R")
-
-# on HPC:
-# - extract dosage information on HPC
-# - calculate clumped statistics - gxe, 2/3df if necessary
 
 
 
@@ -293,6 +224,31 @@ snps_filter <- snps %>%
 posthoc_run_models(snps_filter, 'chiSqGxE')
 posthoc_run_reri_plot(snps_filter)
 posthoc_create_plots(snps_filter, 'chiSqGxE')
+
+
+
+
+#-----------------------------------------------------------------------------#
+# SNP followup (models and plots) ---- 
+# updated version
+#-----------------------------------------------------------------------------#
+
+# stratified odds ratios for two-step hybrid top hit
+x <- readRDS("/media/work/gwis_test/calcium_totqc2/output/posthoc/stratified_oddsratio_calcium_totqc2_v3.0_chr2_135594399_A_C_age_ref_imp_energytot_imp_pc1_pc2_pc3_sex_study_gxe.rds")
+
+kable(x) %>% 
+  kable_styling()
+
+
+
+
+# get MAF plots for suggestive hits 
+suggestive_hits <- fread(glue("/media/work/gwis_test/{exposure}/data/FIGI_{hrc_version}_gxeset_{exposure}_chiSqGxE_ldclump.clumped")) %>% 
+  pull(SNP)
+
+walk(suggestive_hits, ~ output_aaf_plot(dat = input_data, exposure, snp = .x))
+
+
 
 
 

@@ -43,6 +43,7 @@ library(gtools)
 
 # source of files
 output_dir = paste0("/media/work/gwis/posthoc/", params$exposure, "/")
+# output_dir = paste0("/media/work/gwis_test/", params$exspo)
 ```
 
 <style type="text/css">

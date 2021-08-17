@@ -39,7 +39,7 @@ esubset <- readRDS(glue("/media/work/gwis_test/{exposure}/data/FIGI_{hrc_version
   pull(vcfid)
 
 input_data <- readRDS(glue("/media/work/gwis_test/data/FIGI_{hrc_version}_gxeset_analysis_data_glm.rds")) %>% 
-  filter(vcfid%in% esubset) %>%
+  filter(vcfid %in% esubset) %>%
   mutate(smk_aveday = smk_aveday / 10)
   # mutate(smk_aveday = scale(smk_aveday))
 
@@ -189,21 +189,6 @@ simplem_wrap2(x = x1, exposure = exposure, covariates = covariates, simplem_step
 # GxE additional analysis ---- 
 #-----------------------------------------------------------------------------#
 
-# source(glue("/media/work/gwis_test/R/01_process.R"))
-# source(glue("/media/work/gwis_test/R/02_plots.R"))
-# source(glue("/media/work/gwis_test/R/03_posthoc.R"))
-# source(glue("/media/work/gwis_test/R/03_posthoc_iplot.R"))
-# source(glue("/media/work/gwis_test/R/03_posthoc_stratified_or.R"))
-
-# source(glue("/media/work/git/figifs/R/00_main_effects.R"))
-# source(glue("/media/work/git/figifs/R/01_process.R"))
-# source(glue("/media/work/git/figifs/R/02_plots.R"))
-# source(glue("/media/work/git/figifs/R/03_posthoc.R"))
-# source(glue("/media/work/git/figifs/R/03_posthoc_iplot.R"))
-# source(glue("/media/work/git/figifs/R/03_posthoc_stratified_or.R"))
-# source(glue("/media/work/git/figifs/R/04_reports.R"))
-
-
 # output GxE models adjusted by different covariate sets
 covariates_sets <- list(covariates, 
                         c(covariates, 'bmi5'), 
@@ -214,7 +199,6 @@ covariates_sets <- list(covariates)
 
 
 
-
 # stratified by tumor and sex 
 snps <- c("6:31917540:T:C", "8:138788813:C:A")
 walk(snps, ~ fit_gxe_stratified(data_epi = input_data, exposure = exposure, snp = .x, covariates = covariates, method = "chiSqGxE", strata = 'sex', path = glue("{path}/output")))
@@ -222,19 +206,10 @@ walk(snps, ~ fit_gxe_stratified(data_epi = input_data, exposure = exposure, snp 
 walk(snps, ~ fit_gxe_stratified(data_epi = input_data, exposure = exposure, snp = .x, covariates = covariates, method = "chiSqGxE", strata = 'study_design', path = glue("{path}/output")))
 
 
-
-
 snps <- c("6:32006886:G:A")
 walk(snps, ~ fit_gxe_stratified(data_epi = input_data, exposure = exposure, snp = .x, covariates = covariates, method = "chiSq2df", strata = 'sex', path = glue("{path}/output")))
 walk(snps, ~ fit_gxe_stratified(data_epi = input_data, exposure = exposure, snp = .x, covariates = covariates, method = "chiSq2df", strata = 'cancer_site_sum2', path = glue("{path}/output")))
 
-
-
-
-
-
-# snps <- c("6:31917540:T:C", "8:138788813:C:A")
-# walk(snps, ~ fit_gxe_covars(data_epi = input_data, exposure = exposure, snp = .x, covariates_list = covariates_sets, method = 'chiSq3df', path = glue("{path}/output")))
 
 
 
@@ -248,11 +223,8 @@ snps <- c("6:31917540:T:C", "8:138788813:C:A")
 walk(snps, ~ reri_wrapper(data_epi = input_data, exposure = exposure, snp = .x, covariates = covariates, path = glue("{path}/output")))
 
 
-
-
 # recreate iplot wrapper (interaction plot)
 # in order to use rescaled variable
-
 iplot_wrapper(data_epi = input_data, 
               exposure = exposure, 
               hrc_version = hrc_version ,
@@ -261,12 +233,28 @@ iplot_wrapper(data_epi = input_data,
               path = '/media/work/gwis_test/smk_aveday/output')
 
 
-
-
 # create stratified odds ratios for smk_aveday scaled to per 10 cigarettes
 fit_stratified_or(data_epi = input_data, exposure = exposure, snp = '6:31917540:T:C', hrc_version = hrc_version, covariates = covariates, dosage = F, path = glue("{path}/output"))
 
-fit_stratified_or(data_epi = input_data, exposure = exposure, snp = '8:138788813:C:A', hrc_version = hrc_version, covariates = covariates, dosage = F, path = glue("{path}/output"))
+fit_stratified_or(data_epi = input_data, exposure = exposure, snp = '8:138788813:C:A', hrc_version = hrc_version, covariates = covariates, dosage = F, flip_allele = T, path = glue("{path}/output"))
+
+
+
+
+
+# get MAF plots for suggestive hits 
+suggestive_hits <- fread(glue("/media/work/gwis_test/{exposure}/data/FIGI_{hrc_version}_gxeset_{exposure}_chiSqGxE_ldclump.clumped")) %>% 
+  pull(SNP)
+
+hits <- c("6:31917540:T:C")
+hits <- c("8:138788813:C:A")
+
+walk(hits, ~ output_aaf_plot(dat = input_data, exposure, snp = .x))
+
+
+
+
+
 
 
 # ================================================================== #
@@ -328,11 +316,6 @@ ggplot(aes(x = study_gxe, y = study_aaf), data = out) +
 
 
 
-
-
-
-
-
 # ================================================================== #
 # ======= rmarkdown reports ---- 
 # ================================================================== #
@@ -349,8 +332,7 @@ posthoc_report(exposure = exposure,
                path = path)
 
 
-
-
+posthoc_report(exposure = exposure)
 
 
 

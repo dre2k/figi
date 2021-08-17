@@ -173,13 +173,43 @@ simplem_wrap2(x = x1, exposure = exposure, covariates = covariates, simplem_step
 
 # output GxE models adjusted by different covariate sets
 covariates_sets <- list(covariates,
-                        c(covariates, 'bmi5'),
-                        c(covariates, 'bmi5', 'smk_ever'),
-                        c(covariates, 'bmi5', 'smk_ever', 'fruitqc2', 'vegetableqc2', 'fiberqc2'))
-covariates_sets <- list(covariates)
+                        c(covariates, 'bmi', 'smk_ever', 'alcoholc', 'redmeatqc2'))
 
-fit_gxe_covars(data_epi = input_data, exposure = exposure, snp = "5:40252294:C:T", covariates_list = covariates_sets, method = 'chiSqGxE', path = glue("{path}/output"))
 fit_gxe_covars(data_epi = input_data, exposure = exposure, snp = "6:12577203:T:C", covariates_list = covariates_sets, method = 'chiSqGxE', path = glue("{path}/output"))
+fit_gxe_covars(data_epi = input_data, exposure = exposure, snp = "5:40252294:C:T", covariates_list = covariates_sets, method = 'chiSqGxE', path = glue("{path}/output"))
+
+
+
+
+# stratified odds ratio table with additional covariates
+# covariates <- c(covariates, 'bmi', 'smk_ever', 'alcoholc', 'redmeatqc2')
+snps <- c( "6:12577203:T:C", "5:40252294:C:T")
+walk(snps, ~ fit_stratified_or(
+  data_epi = input_data,
+  exposure = exposure,
+  snp = .x,
+  hrc_version = hrc_version,
+  covariates = covariates,
+  path = glue("{path}/output/")))
+
+
+covariates_mult <- c(covariates, 'bmi', 'smk_ever', 'alcoholc', 'redmeatqc2')
+snps <- c( "6:12577203:T:C", "5:40252294:C:T")
+walk(snps, ~ fit_stratified_or(
+  data_epi = input_data,
+  exposure = exposure,
+  snp = .x,
+  hrc_version = hrc_version,
+  covariates = covariates_mult,
+  path = glue("{path}/output/")))
+
+
+
+
+
+
+
+
 
 
 # stratified by tumor and sex 
@@ -201,6 +231,17 @@ walk(significant_snps, ~ reri_wrapper(data_epi = input_data_flip, exposure = exp
 
 
 
+# stratified odds ratio table with additional covariates
+
+covariates_mult <- c(covariates, 'bmi', 'smk_ever', 'alcoholc', 'redmeatqc2')
+
+fit_stratified_or(
+  data_epi = input_data,
+  exposure = exposure,
+  snp = snps,
+  hrc_version = hrc_version,
+  covariates = covariates,
+  path = "output")
 
 
 

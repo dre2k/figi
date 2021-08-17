@@ -10,9 +10,11 @@
 twostep_wrapper <- function(exposure, step1_statistic, hrc_version, filename_suffix = "", exclude_gwas = F) {
   
   if(exclude_gwas) {
-    filename = glue("/media/work/gwis_test/{exposure}/output/twostep_{exposure}_{hrc_version}_{step1_statistic}_nogwas.png")
+    # filename = glue("/media/work/gwis_test/{exposure}/output/twostep_{exposure}_{hrc_version}_{step1_statistic}_nogwas.png")
+    filename = glue("{path}/output/twostep_{exposure}_{hrc_version}_{step1_statistic}_nogwas.png")
   } else {
-    filename = glue("/media/work/gwis_test/{exposure}/output/twostep_{exposure}_{hrc_version}_{step1_statistic}.png")
+    # filename = glue("/media/work/gwis_test/{exposure}/output/twostep_{exposure}_{hrc_version}_{step1_statistic}.png")
+    filename = glue("{path}/output/twostep_{exposure}_{hrc_version}_{step1_statistic}.png")
   }
   
   knitr::include_graphics(filename)
@@ -42,9 +44,10 @@ twostep_wrapper <- function(exposure, step1_statistic, hrc_version, filename_suf
 significant_results_table_wrapper <- function(exposure, step1_statistic, hrc_version, filename_suffix = "", exclude_gwas = F) {
   
   if(exclude_gwas) {
-    filename = glue("/media/work/gwis_test/{exposure}/output/twostep_{exposure}_{hrc_version}_{step1_statistic}_nogwas_df.rds")
+    # filename = glue("/media/work/gwis_test/{exposure}/output/twostep_{exposure}_{hrc_version}_{step1_statistic}_nogwas_df.rds")
+    filename = glue("{path}/output/twostep_{exposure}_{hrc_version}_{step1_statistic}_nogwas_df.rds")
   } else {
-    filename = glue("/media/work/gwis_test/{exposure}/output/twostep_{exposure}_{hrc_version}_{step1_statistic}_df.rds")
+    filename = glue("{path}/output/twostep_{exposure}_{hrc_version}_{step1_statistic}_df.rds")
   }
   
   # output
@@ -81,7 +84,6 @@ significant_results_table_wrapper(exposure = params$exposure, hrc_version = para
 twostep_wrapper(exposure = params$exposure, hrc_version = params$hrc_version, step1_statistic = 'chiSqEDGE')
 significant_results_table_wrapper(exposure = params$exposure, hrc_version = params$hrc_version, step1_statistic = 'chiSqEDGE')
 ```
-
 
 ### Step1 D|G - exclude GWAS
 ```{r , echo=FALSE, out.width = '100%'}

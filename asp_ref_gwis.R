@@ -155,14 +155,35 @@ simplem_wrap2(x = x1, exposure = exposure, covariates = covariates, simplem_step
 # GxE additional analysis ---- 
 #-----------------------------------------------------------------------------#
 
-# output GxE models adjusted by different covariate sets
-covariates_sets <- list(covariates)
 
 
-# stratified by tumor and sex 
-snps <- c("6:12577203:T:C", "6:32560631:C:T", "5:40252294:C:T")
+# interaction model stratified by study design, sex, and tumor site (NOT 3 way interaction)
+snps <- c("6:12577203:T:C", "5:40252294:C:T")
+walk(snps, ~ fit_gxe_stratified(data_epi = input_data, exposure = exposure, snp = .x, covariates = covariates, method = "chiSqGxE", strata = 'study_design', path = glue("{path}/output")))
 walk(snps, ~ fit_gxe_stratified(data_epi = input_data, exposure = exposure, snp = .x, covariates = covariates, method = "chiSqGxE", strata = 'sex', path = glue("{path}/output")))
 walk(snps, ~ fit_gxe_stratified(data_epi = input_data, exposure = exposure, snp = .x, covariates = covariates, method = "chiSqGxE", strata = 'cancer_site_sum2', path = glue("{path}/output")))
+
+covariates_multi = c(covariates, "smk_ever", "bmi", "alcoholc", "redmeatqc2")
+walk(snps, ~ fit_gxe_stratified(data_epi = input_data, exposure = exposure, snp = .x, covariates = covariates_multi, method = "chiSqGxE", strata = 'study_design', path = glue("{path}/output")))
+walk(snps, ~ fit_gxe_stratified(data_epi = input_data, exposure = exposure, snp = .x, covariates = covariates_multi, method = "chiSqGxE", strata = 'sex', path = glue("{path}/output")))
+walk(snps, ~ fit_gxe_stratified(data_epi = input_data, exposure = exposure, snp = .x, covariates = covariates_multi, method = "chiSqGxE", strata = 'cancer_site_sum2', path = glue("{path}/output")))
+
+
+
+
+
+
+# Additional adjustment covariates
+covariates_sets <- list(covariates,
+                        c(covariates, 'bmi', 'smk_ever', 'alcoholc', 'redmeatqc2'))
+
+fit_gxe_covars(data = input_data, exposure = exposure, snp = "6:12577203:T:C", covariates_list = covariates_sets, method = 'chiSqGxE', path = glue("{path}/output"))
+fit_gxe_covars(data = input_data, exposure = exposure, snp = "5:40252294:C:T", covariates_list = covariates_sets, method = 'chiSqGxE', path = glue("{path}/output"))
+
+
+
+wtf <- qread("/media/work/gwis_test/asp_ref/output/posthoc/dosage_chr6_12577203.qs")
+
 
 
 # output RERI plots
@@ -174,6 +195,51 @@ tmp_flip <- input_data %>%
   mutate(asp_ref = fct_relevel(asp_ref, "Yes"))
 snps <- c( "6:32560631:C:T", "5:40252294:C:T")
 walk(snps, ~ reri_wrapper(data_epi = tmp_flip, exposure = exposure, snp = .x, covariates = covariates, path = glue("{path}/output")))
+
+
+
+
+
+# stratified odds ratio table with additional covariates
+# covariates <- c(covariates, 'bmi', 'smk_ever', 'alcoholc', 'redmeatqc2')
+snps <- c( "6:12577203:T:C", "5:40252294:C:T")
+walk(snps, ~ fit_stratified_or(
+  data_epi = input_data,
+  exposure = exposure,
+  snp = .x,
+  hrc_version = hrc_version,
+  covariates = covariates,
+  path = glue("{path}/output/")))
+
+
+covariates_mult <- c(covariates, 'bmi', 'smk_ever', 'alcoholc', 'redmeatqc2')
+snps <- c( "6:12577203:T:C", "5:40252294:C:T")
+walk(snps, ~ fit_stratified_or(
+  data_epi = input_data,
+  exposure = exposure,
+  snp = .x,
+  hrc_version = hrc_version,
+  covariates = covariates_mult,
+  path = glue("{path}/output/")))
+
+
+
+tmp <- readRDS(glue("/media/work/gwis_test/{exposure}/output/posthoc/stratified_oddsratio_{exposure}_v2.4_chr6_12577203_T_C_age_ref_imp_pc1_pc2_pc3_sex_study_gxe.rds")) %>% 
+  setNames(make.unique(names(.))) %>% 
+  separate(N0, into = c("N0_case", "N0_control"), sep = "/") %>% 
+  separate(N1, into = c("N1_case", "N1_control"), sep = "/") %>% 
+  separate(N2, into = c("N2_case", "N2_control"), sep = "/") %>% 
+  mutate(across(.cols = starts_with("N"), ~ round(as.numeric(.x), 0) ))
+
+
+tmp <- readRDS("/media/work/gwis_test/asp_ref/output/posthoc/stratified_oddsratio_asp_ref_v2.4_chr6_12577203_T_C_age_ref_imp_alcoholc_bmi_pc1_pc2_pc3_redmeatqc2_sex_smk_ever_study_gxe.rds") %>% 
+  setNames(make.unique(names(.))) %>% 
+  separate(N0, into = c("N0_case", "N0_control"), sep = "/") %>% 
+  separate(N1, into = c("N1_case", "N1_control"), sep = "/") %>% 
+  separate(N2, into = c("N2_case", "N2_control"), sep = "/") %>% 
+  mutate(across(.cols = starts_with("N"), ~ round(as.numeric(.x), 0) ))
+
+
 
 
 # SNP information
@@ -450,69 +516,46 @@ write_tsv(out, file = "~/Dropbox/FIGI/Annotation_Workflow/example_output/figi_as
 # ================================================================== #
 # updated PCs and how it changes results ------
 # ================================================================== #
+new_pc <- fread("/media/work/gwis_test/PCA/20210602/figi_gwas_pca_v2.3_EUR_131677.eigenvec") %>% 
+  rename(vcfid = `#FID`)
 
-# original GxE findings.. 
-modelb <- glm(outcome ~ chr6_12577203_T_C+asp_ref + age_ref_imp + sex + pc1 + pc2 + pc3 + study_gxe, data = figi, family = 'binomial')
-model1 <- glm(outcome ~ chr6_12577203_T_C*asp_ref + age_ref_imp + sex + pc1 + pc2 + pc3 + study_gxe, data = figi, family = 'binomial')
+figi <- qread("/media/work/gwis_test/asp_ref/output/posthoc/dosage_chr6_12577203.qs") %>% 
+  inner_join(input_data, 'vcfid')
+
+figi <- qread("/media/work/gwis_test/asp_ref/output/posthoc/dosage_chr5_40252294.qs") %>% 
+  inner_join(input_data, 'vcfid')
+
+# just drops one individual, we'll live. 
+figi_newpc <- figi %>% 
+  dplyr::select(-starts_with("pc")) %>% 
+  inner_join(new_pc, 'vcfid')
+
+
+
+
+# original GxE findings (chr6)
+modelb <- glm(outcome ~ chr6_12577203_T_C_dose+asp_ref + age_ref_imp + sex + pc1 + pc2 + pc3 + study_gxe, data = figi, family = 'binomial')
+model1 <- glm(outcome ~ chr6_12577203_T_C_dose*asp_ref + age_ref_imp + sex + pc1 + pc2 + pc3 + study_gxe, data = figi, family = 'binomial')
 lrtest(modelb, model1)
 
-# let's add updated PCs .. (keep in mind they're calculated using HRC v3.0)
-pcs <- fread("~/figi_gxe_pca_update.eigenvec")
-figi_newpc <- inner_join(figi, pcs, by = c('vcfid' = 'IID'))
-
-
-modelb <- glm(outcome ~ chr6_12577203_T_C+asp_ref + age_ref_imp + sex + PC1 + PC2 + PC3 + study_gxe, data = figi_newpc, family = 'binomial')
-model1 <- glm(outcome ~ chr6_12577203_T_C*asp_ref + age_ref_imp + sex + PC1 + PC2 + PC3 + study_gxe, data = figi_newpc, family = 'binomial')
-summary(model1)
-
+modelb <- glm(outcome ~ chr6_12577203_T_C_dose+asp_ref + age_ref_imp + sex + PC1 + PC2 + PC3 + study_gxe, data = figi_newpc, family = 'binomial')
+model1 <- glm(outcome ~ chr6_12577203_T_C_dose*asp_ref + age_ref_imp + sex + PC1 + PC2 + PC3 + study_gxe, data = figi_newpc, family = 'binomial')
 lrtest(modelb, model1)
-
-modelb <- glm(outcome ~ chr6_12577203_T_C+asp_ref + age_ref_imp + sex + PC1 + PC2 + PC3 + PC4 + PC5 + PC6 + PC7 + PC8 + PC9 + PC10 + study_gxe, data = figi_newpc, family = 'binomial')
-model1 <- glm(outcome ~ chr6_12577203_T_C*asp_ref + age_ref_imp + sex + PC1 + PC2 + PC3 + PC4 + PC5 + PC6 + PC7 + PC8 + PC9 + PC10+ study_gxe, data = figi_newpc, family = 'binomial')
-summary(model1)
-
-lrtest(modelb, model1)
-
-
-#  how about the other hit..
-# original GxE findings.. 
-  modelb <- glm(outcome ~ chr6_32560631_C_T+asp_ref + age_ref_imp + sex + pc1 + pc2 + pc3 + study_gxe, data = figi, family = 'binomial')
-model1 <- glm(outcome ~ chr6_32560631_C_T*asp_ref + age_ref_imp + sex + pc1 + pc2 + pc3 + study_gxe, data = figi, family = 'binomial')
-lrtest(modelb, model1)
-
-# let's add updated PCs .. (keep in mind they're calculated using HRC v3.0)
-modelb <- glm(outcome ~ chr6_32560631_C_T+asp_ref + age_ref_imp + sex + PC1 + PC2 + PC3 + study_gxe, data = figi_newpc, family = 'binomial')
-model1 <- glm(outcome ~ chr6_32560631_C_T*asp_ref + age_ref_imp + sex + PC1 + PC2 + PC3 + study_gxe, data = figi_newpc, family = 'binomial')
-summary(model1)
-
-lrtest(modelb, model1)
-
-
 
 
 # chr5_40252294_C_T finding (two step expectation based.. not a 1:1 comparison but just to get an idea)
-wtf <- filter(gxe , Location == 40252294) # EDGE chi-square = 24.32772
-
-figi$asp_ref2 <- as.numeric(figi$asp_ref)
-figi_newpc$asp_ref2 <- as.numeric(figi_newpc$asp_ref)
-
-
 
 # marginal association
-modelb <- glm(outcome ~                     asp_ref + age_ref_imp + sex + PC1 + PC2 + PC3 + study_gxe, data = figi_newpc, family = 'binomial')
-model1 <- glm(outcome ~ chr5_40252294_C_T + asp_ref + age_ref_imp + sex + PC1 + PC2 + PC3 + study_gxe, data = figi_newpc, family = 'binomial')
+modelb <- glm(outcome ~                          asp_ref + age_ref_imp + sex + PC1 + PC2 + PC3 + study_gxe, data = figi_newpc, family = 'binomial')
+model1 <- glm(outcome ~ chr5_40252294_C_T_dose + asp_ref + age_ref_imp + sex + PC1 + PC2 + PC3 + study_gxe, data = figi_newpc, family = 'binomial')
 lrtest(modelb, model1)
-# 24.275 
+# from p-value 1.0930e-06 to 1.085e-06 using new PCs
 
-
-modelb <- lm(asp_ref2 ~                     age_ref_imp + sex + pc1 + pc2 + pc3 + study_gxe, data = figi_newpc)
-model1 <- lm(asp_ref2 ~ chr5_40252294_C_T + age_ref_imp + sex + pc1 + pc2 + pc3 + study_gxe, data = figi_newpc)
-lrtest(modelb, model1)
-# 0.5652
-
-pchisq(24.8402, lower.tail = F, df = 2)
 
 # GxE
-modelb <- glm(outcome ~ chr5_40252294_C_T+asp_ref + age_ref_imp + sex + PC1 + PC2 + PC3 + study_gxe, data = figi_newpc, family = 'binomial')
-model1 <- glm(outcome ~ chr5_40252294_C_T*asp_ref + age_ref_imp + sex + PC1 + PC2 + PC3 + study_gxe, data = figi_newpc, family = 'binomial')
+modelb <- glm(outcome ~ chr5_40252294_C_T_dose+asp_ref + age_ref_imp + sex + PC1 + PC2 + PC3 + study_gxe, data = figi_newpc, family = 'binomial')
+model1 <- glm(outcome ~ chr5_40252294_C_T_dose*asp_ref + age_ref_imp + sex + PC1 + PC2 + PC3 + study_gxe, data = figi_newpc, family = 'binomial')
 lrtest(modelb, model1)
+# from p-value 4.4147e-05 to 4.594e-05 using new PCs 
+
+

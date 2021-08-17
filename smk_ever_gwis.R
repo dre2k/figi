@@ -40,7 +40,7 @@ esubset <- readRDS(glue("/media/work/gwis_test/{exposure}/data/FIGI_{hrc_version
   pull(vcfid)
 
 input_data <- readRDS(glue("/media/work/gwis_test/data/FIGI_{hrc_version}_gxeset_analysis_data_glm.rds")) %>% 
-  filter(vcfid%in% esubset)
+  filter(vcfid %in% esubset)
 
 
 #-----------------------------------------------------------------------------#
@@ -128,18 +128,9 @@ plot(inf.analysis, "i2")
 #-----------------------------------------------------------------------------#
 # GxE additional analysis ---- 
 #-----------------------------------------------------------------------------#
-source(glue("~/git/figifs/R/01_process.R"))
-source(glue("~/git/figifs/R/02_plots.R"))
-source(glue("~/git/figifs/R/03_posthoc.R"))
-source(glue("~/git/figifs/R/03_posthoc_iplot.R"))
-source(glue("~/git/figifs/R/03_posthoc_stratified_or.R"))
-
-
-
 # output GxE models adjusted by different covariate sets (if requested)
 # covariates_sets <- list(covariates)
 # walk(snps, ~ fit_gxe_covars(data_epi = input_data, exposure = exposure, snp = .x, covariates_list = covariates_sets, method = 'chiSq3df', path = glue("{path}/output")))
-
 
 # output RERI plots (can't install package on CARC yet)
 significant_snps <- c("2:136407479:A:G", "1:151700227:G:A", "3:85461302:G:A", "4:147966066:G:A", "15:83613505:A:T") 
@@ -147,6 +138,12 @@ significant_snps <- c("3:85461302:G:A", "4:147966066:G:A")
 walk(significant_snps, ~ reri_wrapper(data_epi = input_data, exposure = exposure, snp = .x, covariates = covariates, path = glue("{path}/output")))
 
 
+# get MAF plots for suggestive hits 
+suggestive_hits <- fread(glue("/media/work/gwis_test/{exposure}/data/FIGI_{hrc_version}_gxeset_{exposure}_chiSqGxE_ldclump.clumped")) %>% 
+  pull(SNP)
+
+hits <- c("1:151700227:G:A", "15:83613505:A:T")
+walk(hits, ~ output_aaf_plot(dat = input_data, exposure, snp = .x))
 
 
 
@@ -156,6 +153,138 @@ walk(significant_snps, ~ reri_wrapper(data_epi = input_data, exposure = exposure
 
 
 
+# ================================================================== # 
+# investigate MECC exclusion/inclusion - some results look borderline when MECC included.. 
+# answer - another case of different MAFs skewing findings
+# ================================================================== #
+
+# INCLUDE mecc
+esubset <- readRDS(glue("/media/work/gwis_test/smk_ever_old/data/FIGI_{hrc_version}_gxeset_{exposure}_basic_covars_glm.rds")) %>% 
+  pull(vcfid)
+dat_all <- readRDS(glue("/media/work/gwis_test/data/FIGI_{hrc_version}_gxeset_analysis_data_glm.rds")) %>% 
+  filter(vcfid%in% esubset)
+
+
+# exclude MECC
+esubset <- readRDS("/media/work/gwis_test/smk_ever/data/FIGI_v2.3_gxeset_smk_ever_basic_covars_glm.rds") %>% 
+  pull(vcfid)
+dat <- readRDS(glue("/media/work/gwis_test/data/FIGI_{hrc_version}_gxeset_analysis_data_glm.rds")) %>% 
+  filter(vcfid%in% esubset)
+
+
+
+
+# 2:136407479:A:G -- nominally high GxE p-value that disappears when excluding mecc
+
+dose <- qread("/media/work/gwis_test/smk_ever/output/posthoc/dosage_chr2_136407479.qs")
+out_all <- inner_join(dat_all, dose, 'vcfid')
+
+model1 <- glm(outcome ~ smk_ever * chr2_136407479_A_G_dose + age_ref_imp + sex + pc1 + pc2 + pc3 + study_gxe, data = out_all, family = 'binomial')
+out <- inner_join(dat, dose, 'vcfid')
+
+
+model2 <- glm(outcome ~ smk_ever * chr2_136407479_A_G_dose + age_ref_imp + sex + pc1 + pc2 + pc3 + study_gxe, data = out, family = 'binomial')
+
+
+summary(model1)
+summary(model2) # p-value much higher (less sig)
+
+
+# is it a MAF influence? 
+
+# first, let's look at estimates for mECC only 
+
+mecc <- filter(out_all, grepl("MECC", study_gxe))
+
+model3 <- glm(outcome ~ smk_ever * chr2_136407479_A_G_dose + age_ref_imp + sex + pc1 + pc2 + pc3 + study_gxe, data = mecc, family = 'binomial')
+summary(model3)
+
+
+
+# compare MAF between studies, first look at all studies and then MECC vs the rest
+
+aaf <- function(x) {
+  sum(x) / nrow(x)
+}
+
+maf_compare <- out_all %>% 
+  group_by(study_gxe) %>% 
+  summarise(total = n(), 
+            study_aaf = sum(chr2_136407479_A_G_dose) / (total*2)) %>% 
+  arrange(study_aaf) %>% 
+  mutate(study_gxe = fct_reorder(study_gxe, study_aaf))
+
+ggplot(aes(x = study_gxe, y = study_aaf), data = maf_compare) + 
+  geom_point() + 
+  theme_bw() + 
+  theme(axis.text.x = element_text(angle = 270)) + 
+  xlab("Study") + 
+  ylab("Alternate Allele Frequency")
+
+
+
+
+
+
+# how about 5:134526551:C:T 
+dose <- qread("/media/work/gwis_test/smk_ever/output/posthoc/dosage_chr5_134526551.qs")
+out_all <- inner_join(dat_all, dose, 'vcfid')
+
+
+aaf <- function(x) {
+  sum(x) / nrow(x)
+}
+
+maf_compare <- out_all %>% 
+  group_by(study_gxe) %>% 
+  summarise(total = n(), 
+            study_aaf = sum(chr5_134526551_C_T_dose) / (total*2)) %>% 
+  arrange(study_aaf) %>% 
+  mutate(study_gxe = fct_reorder(study_gxe, study_aaf))
+
+ggplot(aes(x = study_gxe, y = study_aaf), data = maf_compare) + 
+  geom_point() + 
+  theme_bw() + 
+  theme(axis.text.x = element_text(angle = 270)) + 
+  xlab("Study") + 
+  ylab("Alternate Allele Frequency")
+
+# doesn't look amiss, how about model estimates. 
+
+
+
+model1 <- glm(outcome ~ smk_ever * chr5_134526551_C_T_dose + age_ref_imp + sex + pc1 + pc2 + pc3 + study_gxe, data = out_all, family = 'binomial')
+out <- inner_join(dat, dose, 'vcfid')
+model2 <- glm(outcome ~ smk_ever * chr5_134526551_C_T_dose + age_ref_imp + sex + pc1 + pc2 + pc3 + study_gxe, data = out, family = 'binomial')
+summary(model1)
+summary(model2) # p-value much higher (less sig)
+
+
+
+
+
+# how about 14:59209156:C:T
+
+dose <- qread("/media/work/gwis_test/smk_ever/output/posthoc/dosage_chr14_59209156.qs")
+out_all <- inner_join(dat_all, dose, 'vcfid')
+
+aaf <- function(x) {
+  sum(x) / nrow(x)
+}
+
+maf_compare <- out_all %>% 
+  group_by(study_gxe) %>% 
+  summarise(total = n(), 
+            study_aaf = sum(chr14_59209156_C_T_dose) / (total*2)) %>% 
+  arrange(study_aaf) %>% 
+  mutate(study_gxe = fct_reorder(study_gxe, study_aaf))
+
+ggplot(aes(x = study_gxe, y = study_aaf), data = maf_compare) + 
+  geom_point() + 
+  theme_bw() + 
+  theme(axis.text.x = element_text(angle = 270)) + 
+  xlab("Study") + 
+  ylab("Alternate Allele Frequency")
 
 
 # ================================================================== #

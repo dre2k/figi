@@ -26,13 +26,12 @@ library(msm)
 rm(list = ls())
 
 # input variables
-exposure = 'folate_totqc2'
+exposure = 'folate_diet400qcm'
 hrc_version = 'v3.0'
-hrc_version = 'v2.3'
-
 annotation_file <- 'gwas_200_ld_annotation_feb2021.txt'
 path = glue("/media/work/gwis_test/{exposure}/")
-path = glue("/media/work/gwis_test/folate_totqc2_v23/")
+# path = glue("/media/work/gwis_test/{exposure}_v23/")
+
 covariates <- sort(c('age_ref_imp', 'sex', 'energytot_imp', 'study_gxe', 'pc1', 'pc2', 'pc3'))
 
 # input data
@@ -145,8 +144,7 @@ source("/home/rak/Dropbox/FIGI/FIGI_code/results/posthoc/posthoc_01_combine_resu
 # ================================================================== #
 # ======= rmarkdown reports ---- 
 # ================================================================== #
-main_effects_report <- function (exposure, hrc_version, covariates, path) 
-{
+main_effects_report <- function (exposure, hrc_version, covariates, path) {
   rmarkdown::render("~/git/figi/main_effects/main_effects.Rmd", 
                     params = list(exposure = exposure, hrc_version = hrc_version, 
                                   covariates = covariates, path = path), output_file = glue("~/Dropbox/FIGI/Results/{exposure}_{hrc_version}_main_effects.html"))
@@ -154,21 +152,17 @@ main_effects_report <- function (exposure, hrc_version, covariates, path)
 
 main_effects_report(exposure = exposure, hrc_version = hrc_version, covariates = covariates, path = path)
 
-
-
 gwis_report <- function (exposure, hrc_version, covariates) {
-  rmarkdown::render("~/git/figi/gwis/results.Rmd", params = list(exposure = exposure, 
-                                                                 hrc_version = hrc_version, covariates = covariates), 
+  rmarkdown::render("~/git/figi/gwis/results.Rmd", 
+                    params = list(exposure = exposure, 
+                                  hrc_version = hrc_version, 
+                                  covariates = covariates),
                     output_file = glue("~/Dropbox/FIGI/Results/{exposure}_{hrc_version}_gwis.html"))
 }
 
 gwis_report(exposure = exposure, 
             hrc_version = hrc_version, 
             covariates = covariates)
-
-
-
-
 
 
 posthoc_report(exposure = exposure, 

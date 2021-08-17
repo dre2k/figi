@@ -39,7 +39,12 @@ esubset <- readRDS(glue("/media/work/gwis_test/{exposure}/data/FIGI_{hrc_version
   pull(vcfid)
 
 input_data <- readRDS(glue("/media/work/gwis_test/data/FIGI_{hrc_version}_gxeset_analysis_data_glm.rds")) %>% 
-  filter(vcfid%in% esubset)
+  filter(vcfid%in% esubset) %>% 
+  mutate(bmic4f = case_when(bmi < 18.5 ~ "Underweight", 
+                            between(bmi, 18.5, 24.99) ~ "Normal",
+                            between(bmi, 25, 29.99) ~ "Overweight", 
+                            bmi > 29.99 ~ "Obese"),
+         bmic3f = fct_relevel(factor(bmic3), "Normal", "Overweight", "Obese"))
 
 
 
@@ -162,21 +167,83 @@ simplem_wrap2(x = x1, exposure = exposure, covariates = covariates, simplem_step
 # GxE additional analysis ---- 
 #-----------------------------------------------------------------------------#
 
+snps <- c("15:33122966:C:T", "15:33120215:T:C")
+
 # output GxE models adjusted by different covariate sets
-covariates_sets <- list(covariates)
+covariates_sets <- list(covariates, 
+                        c(covariates, "smk_ever"))
+walk(snps, ~ fit_gxe_covars(data_epi = input_data, exposure = exposure, snp = .x, covariates_list = covariates_sets, method = 'chiSqGxE', path = glue("{path}/output")))
+
+
+
+
 
 
 # stratified by tumor and sex 
-snps <- c("15:33122966:C:T")
+
 walk(snps, ~ fit_gxe_stratified(data_epi = input_data, exposure = exposure, snp = .x, covariates = covariates, method = "chiSqGxE", strata = 'sex', path = glue("{path}/output")))
 walk(snps, ~ fit_gxe_stratified(data_epi = input_data, exposure = exposure, snp = .x, covariates = covariates, method = "chiSqGxE", strata = 'cancer_site_sum2', path = glue("{path}/output")))
 walk(snps, ~ fit_gxe_stratified(data_epi = input_data, exposure = exposure, snp = .x, covariates = covariates, method = "chiSqGxE", strata = 'study_design', path = glue("{path}/output")))
 
 
 
+# stratified odds ratio table with and without smoking
+# covariates_multi <- c(covariates, 'smk_ever')
+snps <- c( "15:33122966:C:T", "15:33120215:T:C")
+walk(snps, ~ fit_stratified_or(
+  data_epi = input_data,
+  exposure = exposure,
+  snp = .x,
+  hrc_version = hrc_version,
+  covariates = covariates,
+  path = glue("{path}/output/")))
+
+
+covariates_multi <- c(covariates, 'smk_ever')
+walk(snps, ~ fit_stratified_or(
+  data_epi = input_data,
+  exposure = exposure,
+  snp = .x,
+  hrc_version = hrc_version,
+  covariates = covariates_multi,
+  path = glue("{path}/output/")))
+
+
+
+
+
+# stratified odds ratio table with and without smoking
+# covariates_multi <- c(covariates, 'smk_ever')
+snps <- c( "15:33122966:C:T", "15:33120215:T:C")
+walk(snps, ~ fit_stratified_or_q3(
+  data_epi = input_data,
+  exposure = 'bmic3f',
+  snp = .x,
+  hrc_version = hrc_version,
+  covariates = covariates,
+  path = glue("{path}/output/")))
+
+
+covariates_multi <- c(covariates, 'smk_ever')
+walk(snps, ~ fit_stratified_or_q3(
+  data_epi = input_data,
+  exposure = 'bmic3f',
+  snp = .x,
+  hrc_version = hrc_version,
+  covariates = covariates_multi,
+  path = glue("{path}/output/")))
+
+
+
+
+
+
+
 # output RERI plots
-snps <- c("15:33122966:C:T")
-walk(snps, ~ reri_wrapper(data_epi = input_data, exposure = exposure, snp = .x, covariates = covariates, path = glue("{path}/output")))
+snps <- c("15:33122966:C:T", "15:33120215:T:C")
+walk(snps, ~ reri_wrapper(data_epi = input_data, exposure = 'bmi3cf', snp = .x, covariates = covariates, path = glue("{path}/output")))
+
+
 
 
 # SNP information
@@ -205,6 +272,16 @@ snp_info_out <- snp_info %>%
   dplyr::select(SNP, rsid, REF, ALT, ALT_AF , MAF, Imputation_Rsq )
 
 saveRDS(snp_info_out, glue("{path}/output/posthoc/gwis_snp_info.rds"))
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -247,7 +324,11 @@ posthoc_report(exposure = exposure,
                path = path)
 
 
+posthoc_report(exposure = exposure)
 
+# test
+rmarkdown::render(glue("/home/rak/git/figi/{exposure}_posthoc_test.Rmd"), 
+                  output_file = glue("~/Dropbox/FIGI/Results/{exposure}_posthoc_test.html"))
 
 
 # ================================================================== #

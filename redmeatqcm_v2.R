@@ -24,7 +24,6 @@ library(jtools)
 library(interactions)
 library(msm)
 rm(list = ls())
-source("functions.R")
 
 # input variables
 exposure = 'redmeatqcm_v2'
@@ -35,9 +34,7 @@ path = glue("/media/work/gwis_test/{exposure}/")
 
 
 # input data
-esubset <- readRDS(glue("/media/work/gwis_test/{exposure}/data/FIGI_{hrc_version}_gxeset_{exposure}_basic_covars_glm.rds")) %>% 
-  pull(vcfid)
-
+esubset <- readRDS(glue("/media/work/gwis_test/{exposure}/data/FIGI_{hrc_version}_gxeset_{exposure}_basic_covars_glm.rds")) %>% pull(vcfid)
 
 input_data <- readRDS(glue("/media/work/gwis_test/data/FIGI_{hrc_version}_gxeset_analysis_data_glm.rds")) %>% 
   filter(vcfid%in% esubset) %>%
@@ -288,6 +285,8 @@ main_effects_report(exposure = exposure, hrc_version = hrc_version, covariates =
 gwis_report(exposure = exposure, 
             hrc_version = hrc_version, 
             covariates = covariates)
+
+posthoc_report(exposure = exposure)
 
 posthoc_report(exposure = exposure, 
                hrc_version = hrc_version,

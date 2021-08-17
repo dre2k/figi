@@ -238,6 +238,23 @@ input_data <-  readRDS(glue("/media/work/gwis_test/data/FIGI_v2.3_gxeset_analysi
   filter(vcfid %in% keep)
 
 
+## double check imputed energylevels... 
+out <- input_data %>% 
+  group_by(study, outcome) %>% 
+  summarise(mean_energyimp = mean(energytot_imp)) %>% 
+  pivot_wider(names_from = outcome, values_from = mean_energyimp) 
+
+out <- input_data %>% 
+  group_by(outcome) %>% 
+  summarise(mean_energyimp = mean(energytot_imp)) 
+
+
+
+out <- input_data %>% 
+  filter(!study %in% c("CzechCCS", "DACHS", "REACH", "SMS", "UKB")) %>% 
+  group_by(outcome) %>% 
+  summarise(mean_energyimp = mean(energytot_imp))
+
 
 
 # for rs2300985 chr10_101476905_G_A

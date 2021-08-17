@@ -64,6 +64,79 @@ wrap <- function(d, exposure, is_e_categorical = T, min_cell_size = 0, vars_to_e
 }
 
 
+# ---- update from 7/27/2021 ---- #
+# this is the format_data_glm / gxescan functions
+
+# ---- functions
+format_data_glm <- function(d, 
+                            exposure, 
+                            is_e_categorical, 
+                            min_cell_size = 0, 
+                            vars_to_exclude = c(), 
+                            vars_to_include = c(), 
+                            eur_only=T) {
+  
+  vars_to_keep <- c("vcfid", "outcome", exposure, "age_ref_imp", "sex", "energytot_imp", "study_gxe", "PC1", "PC2", "PC3", vars_to_include)
+  vars_to_keep <- vars_to_keep[!vars_to_keep %in% vars_to_exclude]
+  
+  # note that in gxe set, outcome+age_ref_imp+sex+study_gxe+energytot_imp do NOT have missing values
+  # OK to subset simply by using is.na(exposure)
+  if(eur_only == T) {
+    tmp <- d %>%
+      dplyr::filter(gxe == 1,
+                    EUR_subset == 1,
+                    !is.na(get(exposure))) # %>%
+    # dplyr::mutate(outcome = ifelse(outcome == "Control", 0, 1),
+    #               sex = ifelse(sex == "Female", 0, 1))
+  } else {
+    tmp <- d %>%
+      dplyr::filter(gxe == 1,
+                    !is.na(get(exposure))) # %>%
+    # dplyr::mutate(outcome = ifelse(outcome == "Control", 0, 1),
+    #               sex = ifelse(sex == "Female", 0, 1))
+  }
+  
+  
+  # drop zero cells, keep vars_to_keep
+  if (is_e_categorical == T) {
+    tmp <- mutate(tmp, {{exposure}} := as.numeric(get(exposure)) - 1)
+    
+    drops <- data.frame(table(tmp$outcome, tmp[, exposure], tmp$study_gxe)) %>%
+      filter(Freq <= min_cell_size)
+    
+    tmp <- filter(tmp, !study_gxe %in% unique(drops$Var3)) %>%
+      dplyr::mutate(study_gxe = fct_drop(study_gxe)) %>%
+      dplyr::select(vars_to_keep) %>%
+      filter(complete.cases(.))}
+  else {
+    drops <- data.frame(table(tmp$outcome, tmp$study_gxe)) %>%
+      filter(Freq <= min_cell_size)
+    tmp <- filter(tmp, !study_gxe %in% unique(drops$Var2)) %>%
+      dplyr::mutate(study_gxe = fct_drop(study_gxe)) %>%
+      dplyr::select(vars_to_keep) %>%
+      filter(complete.cases(.))}
+  
+  return(tmp)
+  
+}
+
+
+
+format_data_gxescan <- function(d, exposure) {
+  
+  tmp <- d
+  ref_study <- as.character(unique(d[, 'study_gxe'])[1])
+  
+  for(t in unique(tmp$study_gxe)) {
+    tmp[paste0(t)] <- ifelse(tmp$study_gxe==t,1,0)
+  }
+  
+  # # tmp <- dplyr::select(tmp, -ref_study, -study_gxe, -exposure, exposure)
+  tmp <- dplyr::select(tmp, -ref_study, -study_gxe, -exposure, exposure)
+  
+}
+
+
 
 
 
