@@ -183,29 +183,64 @@ cat(unlist(res), sep = '\n')
 
 
 
-<!-- # Two-step (D|G) -->
+# 2df (single finding)
 
-<!-- ```{r} -->
-<!-- child_env <- new.env() -->
-<!-- assign("exposure", params$exposure, child_env) -->
-<!-- assign("method", "chiSqGxE", child_env) -->
-<!-- assign("covariates", sort(covariates_set1), child_env) -->
-<!-- ``` -->
+```{r}
+child_env <- new.env()
+assign("exposure", params$exposure, child_env)
+assign("method", "chiSqGxE", child_env)
+assign("covariates", sort(covariates_set1), child_env)
+```
 
-<!-- ```{r, results = 'asis'} -->
-<!-- snps_out <- readRDS(glue(output_dir, "twostep_wht_chiSqG_{params$exposure}_df.rds")) %>%  -->
-<!--   # arrange(Chromosome, Location) %>% -->
-<!--   dplyr::mutate(snps = paste0('chr', gsub("\\:", "\\_", SNP))) %>% -->
-<!--   pull(snps) -->
+```{r, results = 'asis'}
+# snps_out <- readRDS(glue(output_dir, "twostep_gao_0.995_{params$exposure}_v3.0_chiSqEDGE_df.rds")) %>%
+#   arrange(Chromosome, Location) %>%
+#   dplyr::mutate(snps = paste0('chr', gsub("\\:", "\\_", SNP))) %>%
+#   pull(snps)
 
-<!-- res <- lapply(snps_out, function(snp) { -->
-<!--   assign("snp", snp, child_env) -->
-<!--   knitr::knit_child( -->
-<!--     glue('posthoc_child.Rmd'), envir = child_env, quiet = TRUE) -->
-<!--   } -->
-<!-- ) -->
-<!-- cat(unlist(res), sep = '\n') -->
-<!-- ``` -->
+# snps_out <- fread(glue(path, "/data/FIGI_v3.0_gxeset_redmeatqcm_v2_chiSq2df_no_gwas_ldclump.clumped")) %>%
+#   arrange(CHR, BP) %>%
+#   dplyr::mutate(snps = paste0('chr', gsub("\\:", "\\_", SNP))) %>%
+#   pull(snps)
+
+snps_out <- "chr8_122247679_C_G"
+
+res <- lapply(snps_out, function(snp) {
+  assign("snp", snp, child_env)
+  knitr::knit_child(
+    glue('posthoc/posthoc_child.Rmd'), envir = child_env, quiet = TRUE)
+  }
+)
+cat(unlist(res), sep = '\n')
+```
+
+
+
+
+
+# Two-step (EDGE)
+
+```{r}
+child_env <- new.env()
+assign("exposure", params$exposure, child_env)
+assign("method", "chiSqGxE", child_env)
+assign("covariates", sort(covariates_set1), child_env)
+```
+
+```{r, results = 'asis'}
+snps_out <- readRDS(glue(output_dir, "twostep_gao_0.995_{params$exposure}_{hrc_version}_chiSqEDGE_df.rds")) %>%
+  # arrange(Chromosome, Location) %>%
+  dplyr::mutate(snps = paste0('chr', gsub("\\:", "\\_", SNP))) %>%
+  pull(snps)
+
+res <- lapply(snps_out, function(snp) {
+  assign("snp", snp, child_env)
+  knitr::knit_child(
+    glue('posthoc/posthoc_child.Rmd'), envir = child_env, quiet = TRUE)
+  }
+)
+cat(unlist(res), sep = '\n')
+```
 
 
 

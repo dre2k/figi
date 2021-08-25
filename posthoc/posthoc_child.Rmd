@@ -5,7 +5,7 @@ output: html_document
 
 ``` {r}
 # make sure stratified odds ratios tables are only output for binary variables (exclude Q4)
-if(exposure %in% c("redmeatqc2", "procmeatqc2", "calcium_totqc2", "calcium_dietqc2", "folate_dietqc2", "folate_totqc2", "fruitqc2", "vegetableqc2", "fiberqc2", "bmi5", "redmeatqcm_v2")) {
+if(exposure %in% c("redmeatqc2", "procmeatqc2", "calcium_totqc2", "calcium_dietqc2", "folate_dietqc2", "folate_totqc2", "fruitqc2", "vegetableqc2", "fiberqc2", "bmi5")) {
   stratified_or_eval = F
 } else {
   stratified_or_eval = T
@@ -20,33 +20,30 @@ if(exposure %in% c("hrt_ref_pm2")) {
 ```
 
 
-<!-- ``` {r, results = 'asis'} -->
-<!-- cat(paste0("## ", snp, " {.tabset}"), collapse = '\n') -->
-<!-- ``` -->
+``` {r, results = 'asis'}
+cat(paste0("## ", snp, " {.tabset}"), collapse = '\n')
+```
 
+```{r, results = 'asis',  eval = stratified_sex}
+cat(paste0("### GxE stratified by sex"), collapse = '\n')
 
-<!-- ```{r, results = 'asis',  eval = stratified_sex} -->
-<!-- cat(paste0("### GxE stratified by sex"), collapse = '\n') -->
+rawHTML <- paste(readLines(glue("{path}/output/posthoc/gxe_models_{exposure}_{hrc_version}_{snp}_dose_{glue_collapse(sort(covariates), sep = '_')}_stratified_by_sex.html")))
+cat(paste(rawHTML, collapse = "\n"), "\n")
+```
 
-<!-- rawHTML <- paste(readLines(glue("{path}/output/posthoc/gxe_models_{exposure}_{hrc_version}_{snp}_dose_{glue_collapse(sort(covariates), sep = '_')}_stratified_by_sex.html"))) -->
-<!-- cat(paste(rawHTML, collapse = "\n"), "\n") -->
-<!-- ``` -->
+```{r, results = 'asis',  eval = stratified_sex}
+cat(paste0("### GxE stratified by tumor site"), collapse = '\n')
 
+rawHTML <- paste(readLines(glue("{path}/output/posthoc/gxe_models_{exposure}_{hrc_version}_{snp}_dose_{glue_collapse(sort(covariates), sep = '_')}_stratified_by_cancer_site_sum2.html")))
+cat(paste(rawHTML, collapse = "\n"), "\n")
+```
 
-<!-- ```{r, results = 'asis',  eval = stratified_sex} -->
-<!-- cat(paste0("### GxE stratified by tumor site"), collapse = '\n') -->
+```{r, results = 'asis',  eval = stratified_sex}
+cat(paste0("### GxE stratified by study design"), collapse = '\n')
 
-<!-- rawHTML <- paste(readLines(glue("{path}/output/posthoc/gxe_models_{exposure}_{hrc_version}_{snp}_dose_{glue_collapse(sort(covariates), sep = '_')}_stratified_by_cancer_site_sum2.html"))) -->
-<!-- cat(paste(rawHTML, collapse = "\n"), "\n") -->
-<!-- ``` -->
-
-
-<!-- ```{r, results = 'asis',  eval = stratified_sex} -->
-<!-- cat(paste0("### GxE stratified by study design"), collapse = '\n') -->
-
-<!-- rawHTML <- paste(readLines(glue("{path}/output/posthoc/gxe_models_{exposure}_{hrc_version}_{snp}_dose_{glue_collapse(sort(covariates), sep = '_')}_stratified_by_study_design.html"))) -->
-<!-- cat(paste(rawHTML, collapse = "\n"), "\n") -->
-<!-- ``` -->
+rawHTML <- paste(readLines(glue("{path}/output/posthoc/gxe_models_{exposure}_{hrc_version}_{snp}_dose_{glue_collapse(sort(covariates), sep = '_')}_stratified_by_study_design.html")))
+cat(paste(rawHTML, collapse = "\n"), "\n")
+```
 
 
 <!-- NO INCLUDE UNLESS REQUESTED -->
@@ -61,40 +58,45 @@ if(exposure %in% c("hrt_ref_pm2")) {
 
 
 
-<!-- ```{r, results = 'asis', eval = stratified_or_eval} -->
-<!-- # ok to include header here since setting results = 'asis' is set -->
-<!-- cat(paste0("### Odds Ratios"), collapse = '\n') -->
+```{r, results = 'asis', eval = stratified_or_eval}
+# ok to include header here since setting results = 'asis' is set
+cat(paste0("### Odds Ratios"), collapse = '\n')
 
-<!-- #### ORIGINAL (GENOTYPES) -->
-<!-- stratified_or_file <- readRDS(glue("{path}/output/posthoc/stratified_oddsratio_{exposure}_{hrc_version}_{snp}_{glue_collapse(sort(covariates), sep = '_')}.rds")) -->
+#### ORIGINAL (GENOTYPES)
+stratified_or_file <- readRDS(glue("{path}/output/posthoc/stratified_oddsratio_{exposure}_{hrc_version}_{snp}_{glue_collapse(sort(covariates), sep = '_')}.rds"))
 
-<!-- options(knitr.kable.NA = '') -->
-<!-- kable(stratified_or_file) %>% -->
-<!--   kable_styling('bordered', bootstrap_options = c("striped", "hover", "condensed"), full_width = F, position = 'left') %>% -->
-<!--   # add_header_above(c(" " = 4, "G param by E" = 2, "Counts (Ca/Co)" = 3)) %>% -->
-<!--   add_header_above(c(" " = 4, "G param by E" = 2)) %>% -->
-<!--   pack_rows("E param by G", 5, 6, indent = F) -->
+# stratified_or_file <- readRDS("/media/work/gwis_test/redmeatqcm_v2/output/posthoc/stratified_oddsratio_redmeatqcm_v2_v3.0_chr18_46453754_C_T_age_ref_imp_energytot_imp_pc1_pc2_pc3_sex_study_gxe.rds")
+
+# stratified_or_file <- readRDS("/media/work/gwis_test/redmeatqcm_v2/output/posthoc/stratified_oddsratio_redmeatqcm_v2_v3.0_chr8_122247679_C_G_age_ref_imp_energytot_imp_pc1_pc2_pc3_sex_study_gxe.rds")
 
 
-<!-- #### DOSAGES -->
-<!-- # stratified_or_file <- readRDS(glue("{path}/output/posthoc/stratified_oddsratio_{exposure}_{hrc_version}_{snp}_{glue_collapse(sort(covariates), sep = '_')}_dosage.rds")) -->
-<!-- #  -->
-<!-- # options(knitr.kable.NA = '') -->
-<!-- # kable(stratified_or_file) %>% -->
-<!-- #   kable_styling('bordered', bootstrap_options = c("striped", "hover", "condensed"), full_width = F, position = 'left') %>% -->
-<!-- #   add_header_above(c(" " = 4, "G param by E" = 1, "Counts (Ca/Co)" = 3)) %>% -->
-<!-- #   pack_rows("E param by G", 5, 6, indent = F) -->
-
-<!-- ``` -->
+options(knitr.kable.NA = '')
+kable(stratified_or_file) %>%
+  kable_styling('bordered', bootstrap_options = c("striped", "hover", "condensed"), full_width = F, position = 'left') %>%
+  # add_header_above(c(" " = 4, "G param by E" = 2, "Counts (Ca/Co)" = 3)) %>%
+  add_header_above(c(" " = 4, "G param by E" = 2)) %>%
+  pack_rows("E param by G", 5, 6, indent = F)
 
 
-<!-- ```{r, echo = F, results = 'asis'} -->
-<!-- cat(paste0("### RERI"), collapse = '\n') -->
-<!-- ``` -->
-<!-- ```{r} -->
-<!-- # just read in the file and run flextable -->
-<!-- readRDS(glue("{path}/output/posthoc/reri_{exposure}_{hrc_version}_{snp}_dose_{glue_collapse(covariates, sep = '_')}.rds")) -->
-<!-- ``` -->
+#### DOSAGES
+# stratified_or_file <- readRDS(glue("{path}/output/posthoc/stratified_oddsratio_{exposure}_{hrc_version}_{snp}_{glue_collapse(sort(covariates), sep = '_')}_dosage.rds"))
+#
+# options(knitr.kable.NA = '')
+# kable(stratified_or_file) %>%
+#   kable_styling('bordered', bootstrap_options = c("striped", "hover", "condensed"), full_width = F, position = 'left') %>%
+#   add_header_above(c(" " = 4, "G param by E" = 1, "Counts (Ca/Co)" = 3)) %>%
+#   pack_rows("E param by G", 5, 6, indent = F)
+
+```
+
+
+```{r, echo = F, results = 'asis'}
+cat(paste0("### RERI"), collapse = '\n')
+```
+```{r}
+# just read in the file and run flextable
+readRDS(glue("{path}/output/posthoc/reri_{exposure}_{hrc_version}_{snp}_dose_{glue_collapse(covariates, sep = '_')}.rds"))
+```
 
 
 <!-- ```{r, echo = F, results = 'asis'} -->
@@ -111,31 +113,31 @@ if(exposure %in% c("hrt_ref_pm2")) {
 <!-- ``` -->
 
 
-<!-- ```{r, echo = F, results = 'asis'} -->
-<!-- cat(paste0("### Locuszoom"), collapse = '\n') -->
-<!-- ``` -->
-<!-- ```{r} -->
-<!-- # remove ref/alt info from snp -->
-<!-- snpfix <- substr(snp, 1, nchar(snp)-4) -->
+```{r, echo = F, results = 'asis'}
+cat(paste0("### Locuszoom"), collapse = '\n')
+```
+```{r}
+# remove ref/alt info from snp
+snpfix <- substr(snp, 1, nchar(snp)-4)
 
-<!-- # locuszoom plot -->
-<!-- locuszoom_png <- glue("{path}/output/locuszoom_plot/locuszoom_plot_{exposure}_{hrc_version}_{method}_{snpfix}.png") -->
-<!-- knitr::include_graphics(locuszoom_png) -->
-<!-- ``` -->
+# locuszoom plot
+locuszoom_png <- glue("{path}/output/locuszoom_plot/locuszoom_plot_{exposure}_{hrc_version}_{method}_{snpfix}.png")
+knitr::include_graphics(locuszoom_png)
+```
 
 
 
-<!-- ```{r, echo = F, results = 'asis'} -->
-<!-- cat(paste0("### Func Annot"), collapse = '\n') -->
-<!-- ``` -->
-<!-- ```{r} -->
-<!-- # remove ref/alt info from snp -->
-<!-- snpfix <- substr(snp, 1, nchar(snp)-4) -->
+```{r, echo = F, results = 'asis'}
+cat(paste0("### Func Annot"), collapse = '\n')
+```
+```{r}
+# remove ref/alt info from snp
+snpfix <- substr(snp, 1, nchar(snp)-4)
 
-<!-- # functional annotation plot -->
-<!-- functional_png <- glue("{path}/output/functional_plot/functional_annotation_{snpfix}.png") -->
-<!-- knitr::include_graphics(functional_png) -->
-<!-- ``` -->
+# functional annotation plot
+functional_png <- glue("{path}/output/functional_plot/functional_annotation_{snpfix}.png")
+knitr::include_graphics(functional_png)
+```
 
 
 

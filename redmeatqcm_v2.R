@@ -23,6 +23,7 @@ library(flextable)
 library(jtools)
 library(interactions)
 library(msm)
+library(qs)
 rm(list = ls())
 
 # input variables
@@ -72,19 +73,18 @@ pooled_analysis_multinom(input_data, exposure = exposure, hrc_version = hrc_vers
 #-----------------------------------------------------------------------------#
 # GxE additional analysis ---- 
 #-----------------------------------------------------------------------------#
-source(glue("/media/work/gwis_test/figifs/R/01_process.R"))
-source(glue("/media/work/gwis_test/figifs/R/02_plots.R"))
-source(glue("/media/work/gwis_test/figifs/R/03_posthoc.R"))
-source(glue("/media/work/gwis_test/figifs/R/03_posthoc_iplot.R"))
-source(glue("/media/work/gwis_test/figifs/R/03_posthoc_stratified_or.R"))
-
-
 
 # output GxE models adjusted by different covariate sets (if requested)
-# covariates_sets <- list(covariates)
-# walk(snps, ~ fit_gxe_covars(data_epi = input_data, exposure = exposure, snp = .x, covariates_list = covariates_sets, method = 'chiSq3df', path = glue("{path}/output")))
+covariates_sets <- list(covariates)
+snps <- c("8:122247679:C:G")
+walk(snps, ~ fit_gxe_covars(data_epi = input_data, exposure = exposure, snp = .x, covariates_list = covariates_sets, method = 'chiSq2df', path = glue("{path}/output")))
 
 
+
+# stratified odds ratios
+snps <- c("8:122247679:C:G", "18:46453754:C:T")
+snps <- c("18:46453754:C:T")
+walk(snps , ~ fit_stratified_or_continuous(data_epi = input_data, exposure = exposure, snp = .x, hrc_version = hrc_version, covariates = covariates, dosage = F, path = glue("{path}/output"), flip_allele = T))
 
 
 # interaction plots (let's rescale the cutoffs, or maybe make it binary?)
@@ -94,7 +94,7 @@ iplot_wrapper2(data_epi = input_data, exposure = exposure, snp = "8:122247679:C:
 
 
 # output RERI table (can't install package on CARC yet)
-significant_snps <- c("18:46453754:C:T")
+significant_snps <- c("8:122247679:C:G", "18:46453754:C:T")
 walk(significant_snps, ~ reri_wrapper(data_epi = input_data, exposure = exposure, snp = .x, covariates = covariates, path = glue("{path}/output")))
 
 
@@ -294,5 +294,8 @@ posthoc_report(exposure = exposure,
                path = path)
 
 
+
+out <- data.frame(table(input_data$study_gxe, input_data$redmeatqcm_v2, input_data$sex)) %>% 
+  dplyr::filter(Freq != 0)
 
 
