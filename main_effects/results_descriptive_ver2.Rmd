@@ -15,7 +15,9 @@ if (params$exposure %in% c("folate_totqc2", "folate_dietqc2", "bmi5", "redmeatqc
     filter(vcfid %in% exposure_subset) %>% 
     mutate({{exposure_tmp}} := abs(.data[[exposure_tmp]] - 3))
   
-  gxe_table1 <-  readRDS(paste0(output_dir, "/FIGI_", params$hrc_version, "_gxeset_analysis_data_table1.rds"))
+  gxe_table1 <-  readRDS(paste0(output_dir, "/FIGI_", params$hrc_version, "_gxeset_analysis_data_table1.rds")) %>% 
+    mutate(sex = factor(sex, labels = c("Female", "Male")), 
+         bmic3 = factor(bmic3, labels = c("Normal", "Obese", "Overweight")))
   gxe_table1_subset <- gxe_table1 %>%
     filter(vcfid %in% exposure_subset) %>% 
     mutate({{exposure_tmp}} := abs(.data[[exposure_tmp]] - 3))
@@ -25,7 +27,9 @@ if (params$exposure %in% c("folate_totqc2", "folate_dietqc2", "bmi5", "redmeatqc
   gxe_ggplot_subset <- gxe_ggplot %>%
     filter(vcfid %in% exposure_subset)
   
-  gxe_table1 <-  readRDS(paste0(output_dir, "/FIGI_", params$hrc_version, "_gxeset_analysis_data_table1.rds"))
+  gxe_table1 <-  readRDS(paste0(output_dir, "/FIGI_", params$hrc_version, "_gxeset_analysis_data_table1.rds")) %>% 
+    mutate(sex = factor(sex, labels = c("Female", "Male")), 
+         bmic3 = factor(bmic3, labels = c("Normal", "Obese", "Overweight")))
   gxe_table1_subset <- gxe_table1 %>%
     filter(vcfid %in% exposure_subset) %>% 
     dplyr::mutate(outcome = as.factor(outcome),
@@ -33,12 +37,49 @@ if (params$exposure %in% c("folate_totqc2", "folate_dietqc2", "bmi5", "redmeatqc
                   procmeatqc2 = as.factor(procmeatqc2))
 }
 
+# sorry
+gxe_ggplot = gxe_ggplot %>% 
+  mutate(fruit5qcm = as.numeric(fruit5qcm),
+         fiber10qcm = as.numeric(fiber10qcm),
+         vegetable5qcm = as.numeric(vegetable5qcm), 
+         methrswklns = as.numeric(methrswklns / 10),
+         active_met_875_ggplot = as.factor(ifelse(is.na(methrswklns),NA,
+                          ifelse(methrswklns<8.75, "No", "Yes"))))
+
+gxe_table1 = gxe_table1 %>% 
+  mutate(fruit5qcm = as.numeric(fruit5qcm),
+         fiber10qcm = as.numeric(fiber10qcm),
+         vegetable5qcm = as.numeric(vegetable5qcm), 
+         methrswklns = as.numeric(methrswklns / 10),
+         active_met_875 = as.factor(ifelse(is.na(methrswklns),NA,
+                          ifelse(methrswklns<8.75, "No", "Yes"))))
+
+gxe_ggplot_subset = gxe_ggplot_subset %>% 
+  mutate(fruit5qcm = as.numeric(fruit5qcm),
+         fiber10qcm = as.numeric(fiber10qcm),
+         vegetable5qcm = as.numeric(vegetable5qcm), 
+         methrswklns = as.numeric(methrswklns / 10),
+         active_met_875_ggplot = as.factor(ifelse(is.na(methrswklns),NA,
+                          ifelse(methrswklns<8.75, "No", "Yes"))))
+
+gxe_table1_subset = gxe_table1_subset %>% 
+  mutate(fruit5qcm = as.numeric(fruit5qcm),
+         fiber10qcm = as.numeric(fiber10qcm),
+         vegetable5qcm = as.numeric(vegetable5qcm),
+         active_met_875 = as.factor(ifelse(is.na(methrswklns),NA,
+                          ifelse(methrswklns<8.75, "No", "Yes"))))
+
 # whether to execute chunks based on categorical/binary vs continuous
 # do_next_chunk <- length(table(params$exposure)) <= 4 
-do_next_chunk <- length(table(gxe_table1[, params$exposure])) <= 4
+# do_next_chunk <- length(table(gxe_table1[, params$exposure])) <= 4
+do_next_chunk <- is.factor(gxe_table1[, params$exposure])
 ```
 
 ## Box/Bar Plots {.tabset}
+
+<!-- methrswklns / 10    -->
+<!-- <br> -->
+<!-- (not scaled by median IQR) -->
 
 ### all studies
 ```{r fig.height=18, fig.width=13, eval = do_next_chunk}
@@ -98,6 +139,10 @@ ggplot(data=gxe_ggplot_subset, aes(x=outc, y=gxe_ggplot_subset[, params$exposure
 ## Tables {.tabset}
 
 Descriptive statistics by outcome and exposure status (when applicable). Only includes subset of samples with available ``r params$exposure`` information
+
+<!-- methrswklns / 10    -->
+<!-- <br> -->
+<!-- (not scaled by median IQR) -->
 
 ### Counts
 ```{r echo = F, messages = F, error = F, eval = do_next_chunk}
@@ -200,7 +245,7 @@ rndr.strat <- function(label, n, ...) {
 }
 
 # include all covariates in every descriptive statistics table
-table_covariates = c("age_ref_imp", "sex", "asp_ref", "heightcm", "bmi", "energytot", "energytot_imp", "famhx1", "educ", "smk_ever", "hrt_ref_pm2", "diab", "calcium_totqc2", "folate_totqc2", "fiberqc2", "redmeatqc2", "procmeatqc2", "fruitqc2", "vegetableqc2", "p_diet_std")
+table_covariates = c("age_ref_imp", "sex", "asp_ref", "heightcm", "bmi", "bmic3", "energytot", "energytot_imp", "famhx1", "educ", "smk_ever", "hrt_ref_pm2", "diab", "calcium_totqc2", "folate_totqc2", "fiberqc2", "redmeatqc2", "procmeatqc2", "fruitqc2", "vegetableqc2", "p_diet_std")
 
 table1(as.formula(paste0("~ ", paste(table_covariates, collapse = "+"), "| outcome_table1")),
        data=gxe_table1_subset,
@@ -248,7 +293,7 @@ rndr.strat <- function(label, n, ...) {
   ifelse(n==0, label, render.strat.default(label, n, ...))
 }
 
-table_covariates = c("age_ref_imp", "sex", "heightcm", "bmi", "famhx1", "educ", "smk_ever", "hrt_ref_pm2", "diab", "calcium_totqc2", "folate_totqc2", "fiberqc2", "redmeatqc2", "procmeatqc2", "fruitqc2", "vegetableqc2")
+table_covariates = c("age_ref_imp", "sex", "heightcm", "bmi", "bmic3", "famhx1", "educ", "smk_ever", "hrt_ref_pm2", "diab", "calcium_totqc2", "folate_totqc2", "fiberqc2", "redmeatqc2", "procmeatqc2", "fruitqc2", "vegetableqc2")
 
 oldw <- getOption("warn")
   options(warn = -1)

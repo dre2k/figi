@@ -1,0 +1,515 @@
+---
+title: "FIGI HRT Previously identified SNPs"
+author: "AK"
+date:  "`r Sys.Date()`"
+output: 
+  html_document:
+    code_folding: hide
+---
+
+
+```{r, include = F}
+
+library(tidyverse)
+library(data.table)
+library(qqman)
+library(EasyStrata)
+library(lmtest)
+library(figifs)
+library(forcats)
+library(car)
+library(grid)
+library(gridExtra)
+library(stargazer)
+library(nnet)
+library(glue)
+library(ramwas)
+library(flextable)
+library(gtools)
+library(interactionR)
+library(epiR)
+library(flextable)
+library(jtools)
+library(interactions)
+library(msm)
+library(qs)
+library(DT)
+library(kableExtra)
+library(gt)
+rm(list = ls())
+
+
+# input variables
+exposure = 'hrt_ref_pm2'
+hrc_version = 'v2.3'
+
+# input data
+exposure_subset <- readRDS(glue("/media/work/gwis/data/FIGI_EpiData/FIGI_{hrc_version}_gxeset_{exposure}_basic_covars_glm.rds"))[,'vcfid']
+input_data <- readRDS(glue("/media/work/gwis/data/FIGI_EpiData/FIGI_{hrc_version}_gxeset_analysis_data_glm.rds")) %>% 
+  filter(vcfid %in% exposure_subset)
+```
+
+## FIGI HRT - Supplemental Table5
+
+![](/home/rak/Dropbox/Working/figi_hrt_response/sup_table_5.png)
+
+<br>
+
+---
+
+<br>
+
+## FIGI results for the SNPs above 
+
+```{r}
+
+x <- read.csv("~/Dropbox/Working/figi_hrt_response/hrt_ref_pm2_literature_snps.csv")
+
+DT::datatable(x)
+
+```
+
+<br>
+
+## Lin JH et al
+
+WHI study, reported SNP main effects for candidate gene analysis  
+
+### chr10 and chr15 findings -- main effects
+- candidate gene approach - WHI (nested CC, 460 cases and 916 controls)
+- only the chr10 finding survived after multiple testing correction 
+- in haplotype based analysis, found association for CYP19A1 gene
+- again, results are main effects only
+
+
+### Table from Lin et al 
+![](/home/rak/Dropbox/Working/figi_hrt_response/Screen Shot 2022-01-24 at 2.29.44 PM.png)
+
+
+### FIGI HRT WHI only results
+SNP Main effect, adjusted for age + pc1-3
+
+
+```{r results = 'asis'}
+
+# WHI - main effects
+rs17724534 <- qread("/media/work/gwis_test/hrt_ref_pm2/output/posthoc/dosage_chr10_104605521.qs") %>% 
+  rename(snp = chr10_104605521_C_T_dose)
+rs10883782 <- qread("/media/work/gwis_test/hrt_ref_pm2/output/posthoc/dosage_chr10_104583932.qs") %>% 
+  rename(snp = chr10_104583932_A_G_dose)
+rs1902584 <- qread("/media/work/gwis_test/hrt_ref_pm2/output/posthoc/dosage_chr15_51611654.qs") %>% 
+  rename(snp = chr15_51611654_A_T_dose)
+
+whi <- filter(input_data, grepl("WHI", study_gxe))
+
+# no nominal significance when using all WHI studies .. 
+rs17724534_dg <- glm(outcome ~ snp + age_ref_imp + pc1 + pc2 + pc3, 
+                     data = inner_join(whi, rs17724534, 'vcfid'), family = 'binomial')
+# summary(rs17724534_dg)
+
+rs10883782_dg <- glm(outcome ~ snp + age_ref_imp + pc1 + pc2 + pc3, 
+                     data = inner_join(whi, rs10883782, 'vcfid'), family = 'binomial')
+# summary(rs10883782_dg)
+
+rs1902584_dg <- glm(outcome ~ snp + age_ref_imp + pc1 + pc2 + pc3, 
+                     data = inner_join(whi, rs1902584, 'vcfid'), family = 'binomial')
+# summary(rs1902584_dg)
+
+list_of_glms <- list(rs17724534_dg, rs10883782_dg, rs1902584_dg)
+coefs <- lapply(list_of_glms, function(x) (exp(coef(x))))
+
+stargazer(list_of_glms, align = T, 
+          type = 'html', 
+          ci = TRUE, 
+          ci.level = 0.95,
+          keep.stat = "n", 
+          star.cutoffs = c(0.05, 0.01, 0.001), 
+          coef = coefs, 
+          omit = c("pc"),
+          p.auto = F, 
+          single.row = T,
+          column.sep.width = '20pt',
+          report = ('vcsp'), 
+          column.labels = c("rs17724534", "rs10883782", "rs1902584"))
+
+```
+
+<br>
+
+
+
+
+
+
+## Rudolph A et al 
+- DACHS study - GxE findings 
+- candidate gene approach
+- Overall, 746 (92.0%) female cases and 732 (94.6%) female controls
+- they didn't identify main effects, these are GxE results (HRT x G)
+
+### Table from Rudolph et al
+![](/home/rak/Dropbox/Working/figi_hrt_response/Screen Shot 2022-01-24 at 2.53.07 PM.png)
+
+
+### FIGI HRT DACHS only results {.tabset}
+
+Interaction test results, adjusted for age + pc1-3 + study_gxe
+
+#### rs1202168
+```{r results = 'asis'}
+
+dachs <- filter(input_data, grepl("DACHS", study_gxe))
+
+rs1202168 <- qread("/media/work/gwis_test/hrt_ref_pm2/output/posthoc/dosage_chr6_152432902.qs") %>% 
+  rename(snp = chr6_152432902_C_T_dose)
+
+rs1202168_1 <- glm(outcome ~ snp * hrt_ref_pm2 + age_ref_imp + pc1 + pc2 + pc3, 
+                    data = inner_join(dachs, rs1202168, 'vcfid') %>%
+                     filter(study_gxe == "DACHS_1"), family = 'binomial')
+# summary(rs910416_dg)
+
+rs1202168_2 <- glm(outcome ~ snp * hrt_ref_pm2 + age_ref_imp + pc1 + pc2 + pc3, 
+                    data = inner_join(dachs, rs1202168, 'vcfid') %>%
+                     filter(study_gxe == "DACHS_2"), family = 'binomial')
+
+rs1202168_3 <- glm(outcome ~ snp * hrt_ref_pm2 + age_ref_imp + pc1 + pc2 + pc3, 
+                    data = inner_join(dachs, rs1202168, 'vcfid') %>%
+                     filter(study_gxe == "DACHS_3"), family = 'binomial')
+
+rs1202168_12 <- glm(outcome ~ snp * hrt_ref_pm2 + age_ref_imp + pc1 + pc2 + pc3 + study_gxe, 
+                    data = inner_join(dachs, rs1202168, 'vcfid') %>%
+                     filter(study_gxe %in% c("DACHS_1", "DACHS_2")), family = 'binomial')
+
+rs1202168_123 <- glm(outcome ~ snp * hrt_ref_pm2 + age_ref_imp + pc1 + pc2 + pc3 + study_gxe, 
+                    data = inner_join(dachs, rs1202168, 'vcfid') %>%
+                     filter(study_gxe %in% c("DACHS_1", "DACHS_2", "DACHS_3")), family = 'binomial')
+
+
+
+list_of_glms <- list(rs1202168_1, rs1202168_2, rs1202168_3, rs1202168_12, rs1202168_123)
+coefs <- lapply(list_of_glms, function(x) (exp(coef(x))))
+
+stargazer(list_of_glms, align = T, 
+          type = 'html', 
+          ci = TRUE, 
+          ci.level = 0.95,
+          keep.stat = "n", 
+          star.cutoffs = c(0.05, 0.01, 0.001), 
+          coef = coefs, 
+          omit = c("pc"),
+          p.auto = F, 
+          single.row = T,
+          column.sep.width = '20pt',
+          report = ('vcsp'), 
+          column.labels = c("dachs1", "dachs2", "dachs3", "dachs1+dachs2", "dachs1+2+3"))
+
+
+```
+
+#### rs910416
+```{r results = 'asis'}
+
+dachs <- filter(input_data, grepl("DACHS", study_gxe))
+
+rs910416 <- qread("/media/work/gwis_test/hrt_ref_pm2/output/posthoc/dosage_chr7_87195962.qs") %>% 
+  rename(snp = chr7_87195962_G_A_dose)
+
+
+
+rs910416_1 <- glm(outcome ~ snp * hrt_ref_pm2 + age_ref_imp + pc1 + pc2 + pc3, 
+                    data = inner_join(dachs, rs910416, 'vcfid') %>%
+                     filter(study_gxe == "DACHS_1"), family = 'binomial')
+# summary(rs910416_dg)
+
+rs910416_2 <- glm(outcome ~ snp * hrt_ref_pm2 + age_ref_imp + pc1 + pc2 + pc3, 
+                    data = inner_join(dachs, rs910416, 'vcfid') %>%
+                     filter(study_gxe == "DACHS_2"), family = 'binomial')
+
+rs910416_3 <- glm(outcome ~ snp * hrt_ref_pm2 + age_ref_imp + pc1 + pc2 + pc3, 
+                    data = inner_join(dachs, rs910416, 'vcfid') %>%
+                     filter(study_gxe == "DACHS_3"), family = 'binomial')
+
+rs910416_12 <- glm(outcome ~ snp * hrt_ref_pm2 + age_ref_imp + pc1 + pc2 + pc3 + study_gxe, 
+                    data = inner_join(dachs, rs910416, 'vcfid') %>%
+                     filter(study_gxe %in% c("DACHS_1", "DACHS_2")), family = 'binomial')
+
+rs910416_123 <- glm(outcome ~ snp * hrt_ref_pm2 + age_ref_imp + pc1 + pc2 + pc3 + study_gxe, 
+                    data = inner_join(dachs, rs910416, 'vcfid') %>%
+                     filter(study_gxe %in% c("DACHS_1", "DACHS_2", "DACHS_3")), family = 'binomial')
+
+
+
+list_of_glms <- list(rs910416_1, rs910416_2, rs910416_3, rs910416_12, rs910416_123)
+coefs <- lapply(list_of_glms, function(x) (exp(coef(x))))
+
+stargazer(list_of_glms, align = T, 
+          type = 'html', 
+          ci = TRUE, 
+          ci.level = 0.95,
+          keep.stat = "n", 
+          star.cutoffs = c(0.05, 0.01, 0.001), 
+          coef = coefs, 
+          omit = c("pc"),
+          p.auto = F, 
+          single.row = T,
+          column.sep.width = '20pt',
+          report = ('vcsp'), 
+          column.labels = c("dachs1", "dachs2", "dachs3", "dachs1+dachs2", "dachs1+2+3"))
+
+```
+
+### {-}
+
+<br>
+
+
+### FIGI HRT Overall results
+
+Interaction test results, adjusted for age + pc1-3 + study_gxe
+```{r results = 'asis'}
+
+# dachs <- filter(input_data, grepl("DACHS", study_gxe))
+
+rs1202168 <- qread("/media/work/gwis_test/hrt_ref_pm2/output/posthoc/dosage_chr6_152432902.qs") %>%
+  rename(snp = chr6_152432902_C_T_dose)
+rs1202168_dg <- glm(outcome ~ snp * hrt_ref_pm2 + age_ref_imp + pc1 + pc2 + pc3 + study_gxe,
+                     data = inner_join(input_data, rs1202168, 'vcfid'), family = 'binomial')
+# summary(rs1202168_dg)
+
+rs910416 <- qread("/media/work/gwis_test/hrt_ref_pm2/output/posthoc/dosage_chr7_87195962.qs") %>% 
+  rename(snp = chr7_87195962_G_A_dose)
+rs910416_dg <- glm(outcome ~ snp * hrt_ref_pm2 + age_ref_imp + pc1 + pc2 + pc3 + study_gxe, 
+                    data = inner_join(input_data, rs910416, 'vcfid'), family = 'binomial')
+# summary(rs910416_dg)
+
+list_of_glms <- list(rs1202168_dg, rs910416_dg)
+coefs <- lapply(list_of_glms, function(x) (exp(coef(x))))
+
+stargazer(list_of_glms, align = T, 
+          type = 'html', 
+          ci = TRUE, 
+          ci.level = 0.95,
+          keep.stat = "n", 
+          star.cutoffs = c(0.05, 0.01, 0.001), 
+          coef = coefs, 
+          omit = c("pc"),
+          p.auto = F, 
+          single.row = T,
+          column.sep.width = '20pt',
+          report = ('vcsp'), 
+          column.labels = c("rs1202168", "rs910416"))
+```
+
+
+<br>
+
+## Slattery et al 
+- two studies combined (not FIGI)
+	- kaiser cohort utah, MN, and norcal
+	- cancer of rectosigmoid - utah and norcal
+- candidate gene approach
+- main effects only (CYP19A1 region SNPs), did not assess interactions with HRT
+
+(refer to FIGI results above)
+
+<br>
+
+
+## Garcia-Albeniz et al (GECCO + CCFR, 10 studies)
+- includes DACHS and WHI
+- "Our study population comprised 10 835 menopausal women: 5419 cases and 5416 controls. For all 10 835 women information on use of any MHT was available and information on the type of MHT preparation was available for 9004 participants. At reference time, 3384 women used any MHT (31.2%), 1283 (11.8%) used E þ P and 1606 (14.8%) used E-only (Supplementary Table 1)."
+
+### Forest plot from Garcia-Albeniz et al 
+![](/home/rak/Dropbox/Working/figi_hrt_response/Screen Shot 2022-01-24 at 3.22.44 PM.png)
+
+---
+
+<br>
+
+---
+
+<br>
+
+### Table from Garcia-Albeniz et al 
+
+![](/home/rak/Dropbox/Working/figi_hrt_response/Screen Shot 2022-01-24 at 3.22.31 PM.png)
+
+
+## FIGI results for rs964293{.tabset}
+Includes entire FIGI cohort 
+
+### ep_ref_pm vs pure_ep_all
+```{r}
+
+exposure_subset_ep <- readRDS(glue("/media/work/gwis/data/FIGI_EpiData/FIGI_v2.3_gxeset_pure_ep_all_basic_covars_glm.rds"))[,c('vcfid', 'pure_ep_all')]
+
+input_data_ep <- readRDS(glue("/media/work/gwis/data/FIGI_EpiData/FIGI_{hrc_version}_gxeset_analysis_data_glm.rds")) %>% 
+  full_join(exposure_subset_ep, 'vcfid') %>% 
+  filter(!is.na(ep_ref_pm))
+
+
+input_data_ep %>% 
+  dplyr::select(hrt_ref_pm2, ep_ref_pm) %>% 
+  group_by(hrt_ref_pm2, ep_ref_pm) %>% 
+  summarise(n = n()) %>% 
+  gt()
+
+
+input_data_ep %>% 
+  dplyr::select(ep_ref_pm, pure_ep_all) %>% 
+  group_by(ep_ref_pm, pure_ep_all) %>% 
+  summarise(n = n()) %>% 
+  gt()
+
+```
+
+### FIGI E+P (pure_ep_all)
+(important - study subsets might be missing CCFR samples - OFCCR, PMH_CCFR)
+```{r, results = 'asis'}
+
+# load("/media/work/gwis/data/FIGI_EpiData/Data_HRT_USC_epi_v2.3-20201204.Rdata")
+
+exposure_subset_ep <- readRDS(glue("/media/work/gwis/data/FIGI_EpiData/FIGI_v2.3_gxeset_pure_ep_all_basic_covars_glm.rds"))[,c('vcfid', 'pure_ep_all')]
+input_data_ep <- readRDS(glue("/media/work/gwis/data/FIGI_EpiData/FIGI_{hrc_version}_gxeset_analysis_data_glm.rds")) %>% 
+  inner_join(exposure_subset_ep, 'vcfid')
+
+# # CCFR, DACHS, MEC, NHS, OFCCR, PMH_CCFR, VITAL, WHI
+# # imperfect - missing OFCCR and PMH_CCFR
+# from meta-analysis
+studies <- c("CCFR", "DACHS", "DALS", "MEC", "NHS", "VITAL", "PLCO", "WHI")
+
+# # based on supp table
+studies_gxe <- c("CCFR_1", "CCFR_3", "CCFR_4","DACHS_1", "DACHS_2", "DALS_1", "DALS_2", "MEC_1", "NHS_1", "NHS_2", "PLCO_1_Rematch", "PLCO_2", "VITAL", "WHI_1_Rematch", "WHI_2")
+
+
+studies_set4 <- c("CPSII_1", "CPSII_2", "Kentucky", "USC_HRT_CRC")
+
+rs964293 <- qread("/media/work/gwis_test/hrt_ref_pm2/output/posthoc/dosage_chr20_52816717.qs") %>%
+  rename(snp = chr20_52816717_C_A_dose)
+rs964293_1 <- glm(outcome ~ snp * pure_ep_all + age_ref_imp + pc1 + pc2 + pc3 + study_gxe,
+                     data = inner_join(input_data_ep, rs964293, 'vcfid') %>%
+                     filter(study %in% studies), family = 'binomial')
+# summary(rs964293_1)
+
+
+rs964293_2 <- glm(outcome ~ snp * pure_ep_all + age_ref_imp + pc1 + pc2 + pc3 + study_gxe,
+                     data = inner_join(input_data_ep, rs964293, 'vcfid') %>%
+                     filter(study_gxe %in% studies_gxe), family = 'binomial')
+# summary(rs964293_2)
+
+rs964293_dg <- glm(outcome ~ snp * pure_ep_all + age_ref_imp + pc1 + pc2 + pc3 + study_gxe,
+                     data = inner_join(input_data_ep, rs964293, 'vcfid'), family = 'binomial')
+
+# set4
+rs964293_4 <- glm(outcome ~ snp * pure_ep_all + age_ref_imp + pc1 + pc2 + pc3 + study_gxe,
+                     data = inner_join(input_data_ep, rs964293, 'vcfid') %>%
+                     filter(study_gxe %in% studies_set4), family = 'binomial')
+
+
+
+list_of_glms <- list(rs964293_1, rs964293_2, rs964293_4, rs964293_dg)
+coefs <- lapply(list_of_glms, function(x) (exp(coef(x))))
+
+stargazer(list_of_glms, align = T,
+          type = 'html',
+          ci = TRUE,
+          ci.level = 0.95,
+          keep.stat = "n",
+          star.cutoffs = c(0.05, 0.01, 0.001),
+          coef = coefs,
+          omit = c("pc"),
+          p.auto = F,
+          single.row = T,
+          column.sep.width = '20pt',
+          report = ('vcsp'),
+          column.labels = c("study subset 1", "study subset 2", "study subset 3", "FIGI"))
+
+```
+
+
+
+### FIGI E+P (ep_ref_pm)
+(important - study subsets might be missing CCFR samples - OFCCR, PMH_CCFR)
+```{r, results = 'asis'}
+
+load("/media/work/gwis/data/FIGI_EpiData/Data_HRT_USC_epi_v2.3-20201204.Rdata")
+
+# exposure_subset_ep <- readRDS(glue("/media/work/gwis/data/FIGI_EpiData/FIGI_v2.3_gxeset_pure_ep_all_basic_covars_glm.rds"))[,c('vcfid', 'pure_ep_all')]
+input_data_ep <- readRDS(glue("/media/work/gwis/data/FIGI_EpiData/FIGI_{hrc_version}_gxeset_analysis_data_glm.rds")) 
+
+# # CCFR, DACHS, MEC, NHS, OFCCR, PMH_CCFR, VITAL, WHI
+# # imperfect - missing OFCCR and PMH_CCFR
+# from meta-analysis
+studies <- c("CCFR", "DACHS", "DALS", "MEC", "NHS", "VITAL", "PLCO", "WHI")
+
+# # based on supp table
+studies_gxe <- c("CCFR_1", "CCFR_3", "CCFR_4","DACHS_1", "DACHS_2", "DALS_1", "DALS_2", "MEC_1", "NHS_1", "NHS_2", "PLCO_1_Rematch", "PLCO_2", "VITAL", "WHI_1_Rematch", "WHI_2")
+
+
+studies_set4 <- c("CPSII_1", "CPSII_2", "CLUEII", "NFCCR_2", "Kentucky", "USC_HRT_CRC", "REACH_AD")
+
+rs964293 <- qread("/media/work/gwis_test/hrt_ref_pm2/output/posthoc/dosage_chr20_52816717.qs") %>%
+  rename(snp = chr20_52816717_C_A_dose)
+rs964293_1 <- glm(outcome ~ snp * ep_ref_pm + age_ref_imp + pc1 + pc2 + pc3 + study_gxe,
+                     data = inner_join(input_data_ep, rs964293, 'vcfid') %>%
+                     filter(study %in% studies), family = 'binomial')
+# summary(rs964293_1)
+
+
+rs964293_2 <- glm(outcome ~ snp * ep_ref_pm + age_ref_imp + pc1 + pc2 + pc3 + study_gxe,
+                     data = inner_join(input_data_ep, rs964293, 'vcfid') %>%
+                     filter(study_gxe %in% studies_gxe), family = 'binomial')
+# summary(rs964293_2)
+
+rs964293_dg <- glm(outcome ~ snp * ep_ref_pm + age_ref_imp + pc1 + pc2 + pc3 + study_gxe,
+                     data = inner_join(input_data_ep, rs964293, 'vcfid'), family = 'binomial')
+
+# set4
+rs964293_4 <- glm(outcome ~ snp * ep_ref_pm + age_ref_imp + pc1 + pc2 + pc3 + study_gxe,
+                     data = inner_join(input_data_ep, rs964293, 'vcfid') %>%
+                     filter(study_gxe %in% studies_set4), family = 'binomial')
+
+
+list_of_glms <- list(rs964293_1, rs964293_2, rs964293_4, rs964293_dg)
+coefs <- lapply(list_of_glms, function(x) (exp(coef(x))))
+
+stargazer(list_of_glms, align = T,
+          type = 'html',
+          ci = TRUE,
+          ci.level = 0.95,
+          keep.stat = "n",
+          star.cutoffs = c(0.05, 0.01, 0.001),
+          coef = coefs,
+          omit = c("pc"),
+          p.auto = F,
+          single.row = T,
+          column.sep.width = '20pt',
+          report = ('vcsp'),
+          column.labels = c("study subset 1", "study subset 2", "study subset 3", "FIGI"))
+
+```
+
+
+
+### Stratified OR (pure_ep_all)
+```{r}
+
+#### ORIGINAL (GENOTYPES)
+stratified_or_file <- readRDS(glue("/media/work/gwis_test/hrt_ref_pm2/output/posthoc/stratified_oddsratio_hrt_ref_pm2_v2.3_chr20_52816717_C_A_age_ref_imp_pc1_pc2_pc3_study_gxe.rds"))
+
+options(knitr.kable.NA = '')
+kable(stratified_or_file) %>%
+  kable_styling('bordered', bootstrap_options = c("striped", "hover", "condensed"), full_width = F, position = 'left') %>%
+  add_header_above(c(" " = 4, "G param by E" = 2, "Counts (Ca/Co)" = 3)) %>%
+  # add_header_above(c(" " = 4, "G param by E" = 2)) %>%
+  pack_rows("E param by G", 5, 6, indent = F)
+
+```
+
+
+### Regional plot
+```{r}
+# locuszoom plot
+locuszoom_png <- glue("/media/work/gwis_test/hrt_ref_pm2/output/locuszoom_plot/locuszoom_plot_hrt_ref_pm2_v2.3_chiSqGxE_chr20_52816717.png")
+knitr::include_graphics(locuszoom_png)
+```

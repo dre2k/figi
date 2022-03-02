@@ -1,0 +1,288 @@
+---
+title: "FIGI PhysAct requests"
+author: "AK"
+date:  "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(scales)
+library(glue)
+library(broom)
+library(meta)
+```
+
+
+# Requests  
+1. I’ll run sensitivity analyses with additional adjustment covariates + stratified as needed (I’ll start with some of the dietary variables)  
+    - JG: I would start with BMI and smoking, and include two sets of adjustment models…one that adjusts for only the main effect of each and one that adjusts for both the main and G x BMI effect (and ditto for smoking).  For any of the sensitivity analyses you do, pay attention to sample sizes…and make sure to refit the existing PA and G x PA model if N changes with BMI/smoking missingness so we are comparing effect estimates across models on the same N.  
+2. We’ll move the active_met_18 results to supplementary, but need to figure out how to present the Q4 Chr20 results – given that MAFs don’t seem to differ dramatically by study, any idea on what could cause this finding?  
+    - JG: Something to discuss at our USC figi mtg this afternoon.  
+3. Is it worth exploring the specific questionnaires used? E.g. separating studies by < 2005 and > 2005 like peter suggested?  
+    - JG: Not sure…I’ll defer to Mireia and Anita on this.  
+4. It’s strange that for the chr15 two-step finding, 2 out of 5 SNPs had opposite allele frequencies. Am I wrong in assuming that if they’re in the same haplotype block, they should have similar AFs? Should I simply flip the coding for those SNPs so that the estimates are consistent?  
+    - JG: Yes I think flipping will make things easier to interpret.   
+    - VM: try flip coding + run conditional analyses for these 5 SNPs.  
+5. Likewise, we have noticed that for the active 8.75 variable, there is no difference by cases/controls. Among both cases and controls, 76% were classified as active (p-value 0.59). But the overall meta-analysis OR is 0.85 (0.81-0.90). If we are not seeing any differences among cases/controls, he is surprised that we obtain this overall 15% reduction in risk in the meta-analysis.   
+6. I have just realized that the file “active_met_875_main_effects.html”, in section “Meta-analysis” it is written the following “methrswklns / 10, scaled by the median study/sex specific IQR. Reference group is overall median value, comparison group is +1 overall IQR”. But in plots, it is specified outcome-active_met_875. Could this explain this discrepancy?   
+
+
+
+# Question 1 
+
+Jim ran models with different covariate adjustments - repeating output here: 
+
+```{text}
+GxE for G=chr15_32994756_T_C_dose (g4) and E= PA_8.75 with adjustment for other covariates                                    6026
+                                                                                                09:54 Wednesday, February 23, 2022
+
+adjvar=None
+
+                                                                                     Prob
+Obs      model              N    Variable    Estimate      StdErr     WaldChiSq     ChiSq
+
+  1    Base Model       39992     g4         0.000410      0.0390        0.0001    0.9916
+  2    Base Model       39992     pa          -0.2259      0.0326       47.9516    <.0001
+  3    Base Model       39992     g4*pa        0.1757      0.0449       15.3173    <.0001
+
+
+adjvar=xalc_heavy
+
+                                                                                          Prob
+Obs      model              N    Variable         Estimate      StdErr     WaldChiSq     ChiSq
+
+  4    Base Model       39123    g4                0.00837      0.0395        0.0448    0.8324
+  5    Base Model       39123    pa                -0.2220      0.0331       45.0284    <.0001
+  6    Base Model       39123    g4*pa              0.1643      0.0455       13.0618    0.0003
+  7    Adjusted         39123    g4                 0.0127      0.0401        0.0996    0.7523
+  8    Adjusted         39123    xalc_heavy         0.2845      0.0383       55.2723    <.0001
+  9    Adjusted         39123    g4*xalc_heavy     -0.0184      0.0539        0.1158    0.7337
+ 10    Adjusted         39123    pa                -0.2220      0.0331       44.8788    <.0001
+ 11    Adjusted         39123    g4*pa              0.1638      0.0456       12.9100    0.0003
+
+
+adjvar=xalc_mod
+
+                                                                                        Prob
+Obs      model              N    Variable       Estimate      StdErr     WaldChiSq     ChiSq
+
+ 12    Base Model       39123    g4              0.00837      0.0395        0.0448    0.8324
+ 13    Base Model       39123    pa              -0.2220      0.0331       45.0284    <.0001
+ 14    Base Model       39123    g4*pa            0.1643      0.0455       13.0618    0.0003
+ 15    Adjusted         39123    g4             -0.00322      0.0432        0.0056    0.9406
+ 16    Adjusted         39123    xalc_mod        -0.1904      0.0272       48.9812    <.0001
+ 17    Adjusted         39123    g4*xalc_mod      0.0267      0.0393        0.4627    0.4964
+ 18    Adjusted         39123    pa              -0.2057      0.0332       38.3220    <.0001
+ 19    Adjusted         39123    g4*pa            0.1611      0.0457       12.4282    0.0004
+
+
+adjvar=xaspref
+
+                                                                                       Prob
+Obs      model              N    Variable      Estimate      StdErr     WaldChiSq     ChiSq
+
+ 20    Base Model       36054    g4             0.00201      0.0396        0.0026    0.9595
+ 21    Base Model       36054    pa             -0.2335      0.0333       49.1470    <.0001
+ 22    Base Model       36054    g4*pa           0.1759      0.0463       14.4118    0.0001
+ 23    Adjusted         36054    g4             -0.0172      0.0426        0.1635    0.6859
+ 24    Adjusted         36054    xaspref        -0.2434      0.0303       64.6948    <.0001
+ 25    Adjusted         36054    g4*xaspref      0.0577      0.0437        1.7390    0.1873
+ 26    Adjusted         36054    pa             -0.2326      0.0334       48.6312    <.0001
+ 27    Adjusted         36054    g4*pa           0.1742      0.0464       14.0910    0.0002
+
+
+adjvar=xbmi10
+
+                                                                                      Prob
+Obs      model              N    Variable     Estimate      StdErr     WaldChiSq     ChiSq
+
+ 28    Base Model       39431    g4            0.00821      0.0395        0.0431    0.8355
+ 29    Base Model       39431    pa            -0.2228      0.0330       45.6656    <.0001
+ 30    Base Model       39431    g4*pa          0.1667      0.0454       13.4734    0.0002
+ 31    Adjusted         39431    g4             0.0287      0.1281        0.0504    0.8224
+ 32    Adjusted         39431    xbmi10         0.2854      0.0301       89.8504    <.0001
+ 33    Adjusted         39431    g4*xbmi10    -0.00656      0.0435        0.0228    0.8801
+ 34    Adjusted         39431    pa            -0.1767      0.0334       28.0279    <.0001
+ 35    Adjusted         39431    g4*pa          0.1631      0.0459       12.6177    0.0004
+
+
+adjvar=xcalctot
+
+                                                                                        Prob
+Obs      model              N    Variable       Estimate      StdErr     WaldChiSq     ChiSq
+
+ 36    Base Model       39154    g4              0.00514      0.0395        0.0169    0.8964
+ 37    Base Model       39154    pa              -0.2238      0.0331       45.7303    <.0001
+ 38    Base Model       39154    g4*pa            0.1662      0.0454       13.3769    0.0003
+ 39    Adjusted         39154    g4              -0.0172      0.0620        0.0774    0.7809
+ 40    Adjusted         39154    xcalctot        -0.1143      0.0144       62.8575    <.0001
+ 41    Adjusted         39154    g4*xcalctot     0.00850      0.0198        0.1844    0.6676
+ 42    Adjusted         39154    pa              -0.2121      0.0332       40.8622    <.0001
+ 43    Adjusted         39154    g4*pa            0.1698      0.0455       13.9030    0.0002
+
+
+adjvar=xfiber
+
+                                                                                      Prob
+Obs      model              N    Variable     Estimate      StdErr     WaldChiSq     ChiSq
+
+ 44    Base Model       19265    g4             0.0133      0.0482        0.0764    0.7822
+ 45    Base Model       19265    pa            -0.2340      0.0418       31.3692    <.0001
+ 46    Base Model       19265    g4*pa          0.1391      0.0574        5.8603    0.0155
+ 47    Adjusted         19265    g4             0.0407      0.0755        0.2910    0.5896
+ 48    Adjusted         19265    xfiber        -0.0742      0.0178       17.3136    <.0001
+ 49    Adjusted         19265    g4*xfiber     -0.0110      0.0239        0.2138    0.6438
+ 50    Adjusted         19265    pa            -0.2117      0.0421       25.2874    <.0001
+ 51    Adjusted         19265    g4*pa          0.1404      0.0577        5.9115    0.0150
+
+
+adjvar=xfolatetot
+
+                                                                                          Prob
+Obs      model              N    Variable         Estimate      StdErr     WaldChiSq     ChiSq
+
+ 52    Base Model       32858    g4                0.00925      0.0402        0.0530    0.8179
+ 53    Base Model       32858    pa                -0.2165      0.0341       40.2746    <.0001
+ 54    Base Model       32858    g4*pa              0.1597      0.0476       11.2620    0.0008
+ 55    Adjusted         32858    g4                 0.0229      0.0679        0.1137    0.7360
+ 56    Adjusted         32858    xfolatetot        -0.0625      0.0161       15.0477    0.0001
+ 57    Adjusted         32858    g4*xfolatetot    -0.00541      0.0224        0.0587    0.8086
+ 58    Adjusted         32858    pa                -0.2084      0.0342       37.1385    <.0001
+ 59    Adjusted         32858    g4*pa              0.1592      0.0476       11.1670    0.0008
+
+
+adjvar=xfruit
+
+                                                                                      Prob
+Obs      model              N    Variable     Estimate      StdErr     WaldChiSq     ChiSq
+
+ 60    Base Model       38923    g4            0.00220      0.0397        0.0031    0.9558
+ 61    Base Model       38923    pa            -0.2242      0.0332       45.5920    <.0001
+ 62    Base Model       38923    g4*pa          0.1699      0.0456       13.8788    0.0002
+ 63    Adjusted         38923    g4             0.0231      0.0587        0.1549    0.6939
+ 64    Adjusted         38923    xfruit        -0.0512      0.0133       14.7286    0.0001
+ 65    Adjusted         38923    g4*xfruit    -0.00944      0.0189        0.2488    0.6179
+ 66    Adjusted         38923    pa            -0.2093      0.0334       39.3293    <.0001
+ 67    Adjusted         38923    g4*pa          0.1725      0.0457       14.2173    0.0002
+
+
+adjvar=xht
+
+                                                                                     Prob
+Obs      model              N    Variable    Estimate      StdErr     WaldChiSq     ChiSq
+
+ 68    Base Model       39710     g4          0.00321      0.0393        0.0067    0.9348
+ 69    Base Model       39710     pa          -0.2247      0.0328       46.9747    <.0001
+ 70    Base Model       39710     g4*pa        0.1709      0.0452       14.3281    0.0002
+ 71    Adjusted         39710     g4          -0.3030      0.3484        0.7561    0.3846
+ 72    Adjusted         39710     xht          0.0545      0.0191        8.1341    0.0043
+ 73    Adjusted         39710     g4*xht       0.0182      0.0207        0.7793    0.3773
+ 74    Adjusted         39710     pa          -0.2260      0.0328       47.3371    <.0001
+ 75    Adjusted         39710     g4*pa        0.1682      0.0453       13.7814    0.0002
+
+
+adjvar=xprocmeat
+
+                                                                                         Prob
+Obs      model              N    Variable        Estimate      StdErr     WaldChiSq     ChiSq
+
+ 76    Base Model       39093    g4               0.00426      0.0396        0.0115    0.9145
+ 77    Base Model       39093    pa               -0.2212      0.0331       44.6692    <.0001
+ 78    Base Model       39093    g4*pa             0.1666      0.0455       13.4002    0.0003
+ 79    Adjusted         39093    g4              0.000783      0.0653        0.0001    0.9904
+ 80    Adjusted         39093    xprocmeat         0.0805      0.0149       29.2770    <.0001
+ 81    Adjusted         39093    g4*xprocmeat     0.00117      0.0210        0.0031    0.9555
+ 82    Adjusted         39093    pa               -0.2131      0.0331       41.3375    <.0001
+ 83    Adjusted         39093    g4*pa             0.1671      0.0456       13.4321    0.0002
+
+
+adjvar=xredmeat
+
+                                                                                        Prob
+Obs      model              N    Variable       Estimate      StdErr     WaldChiSq     ChiSq
+
+ 84    Base Model       39380    g4              0.00627      0.0394        0.0253    0.8735
+ 85    Base Model       39380    pa              -0.2167      0.0329       43.2717    <.0001
+ 86    Base Model       39380    g4*pa            0.1641      0.0453       13.1274    0.0003
+ 87    Adjusted         39380    g4              -0.0186      0.0625        0.0886    0.7659
+ 88    Adjusted         39380    xredmeat         0.0913      0.0136       44.9334    <.0001
+ 89    Adjusted         39380    g4*xredmeat     0.00912      0.0189        0.2333    0.6291
+ 90    Adjusted         39380    pa              -0.2069      0.0330       39.2758    <.0001
+ 91    Adjusted         39380    g4*pa            0.1686      0.0455       13.7435    0.0002
+
+
+adjvar=xsmk_ever
+
+                                                                                         Prob
+Obs      model              N    Variable        Estimate      StdErr     WaldChiSq     ChiSq
+
+ 92    Base Model       39276    g4               0.00771      0.0394        0.0383    0.8448
+ 93    Base Model       39276    pa               -0.2273      0.0329       47.7364    <.0001
+ 94    Base Model       39276    g4*pa             0.1664      0.0453       13.4848    0.0002
+ 95    Adjusted         39276    g4                0.0194      0.0450        0.1856    0.6666
+ 96    Adjusted         39276    xsmk_ever         0.1931      0.0273       49.9275    <.0001
+ 97    Adjusted         39276    g4*xsmk_ever     -0.0253      0.0392        0.4186    0.5176
+ 98    Adjusted         39276    pa               -0.2248      0.0329       46.6272    <.0001
+ 99    Adjusted         39276    g4*pa             0.1693      0.0454       13.9328    0.0002
+
+
+adjvar=xveg
+
+                                                                                     Prob
+Obs      model              N    Variable    Estimate      StdErr     WaldChiSq     ChiSq
+
+100    Base Model       38953    g4           0.00875      0.0397        0.0485    0.8257
+101    Base Model       38953    pa           -0.2199      0.0332       43.8387    <.0001
+102    Base Model       38953    g4*pa         0.1663      0.0456       13.2849    0.0003
+103    Adjusted         38953    g4            0.0704      0.0597        1.3923    0.2380
+104    Adjusted         38953    xveg         -0.0246      0.0135        3.3522    0.0671
+105    Adjusted         38953    g4*xveg      -0.0263      0.0189        1.9374    0.1639
+106    Adjusted         38953    pa           -0.2116      0.0334       40.2247    <.0001
+107    Adjusted         38953    g4*pa         0.1710      0.0457       13.9973    0.0002
+
+```
+
+# Question 2
+
+# Question 3
+
+# Question 4
+
+## Flipped allele coding
+
+I redid the posthoc analyses after flipping 15:32994756:T:C and 15:32994777:C:T coding
+
+## Conditional analyses
+
+```{r results = 'asis'}
+htmltools::includeHTML("/media/work/gwis_test/active_met_875/output/posthoc/conditional_analysis_active_met_875_v3.1_data_epi.html")
+```
+
+
+# Question 5
+```{text}
+Hi Mireia,
+I noticed same thing as Victor about equal 76% Active in cases and controls overall in your slide #12.
+I ran a few models and a quick summary is below:
+ 
+Model                  variables                                     PA_OR                  PA_chisq
+1                      PA                                            0.987                  0.30
+2                      study, PA                                     0.85                   35.0
+3                      study, age, PA                                0.85                   34.9
+4                      study, male, PA                               0.85                   35.7
+5                      study,energy,PA                               0.85                   35.8
+6                      study,age,male,energy,PA                      0.849                  36.1
+ 
+Model 1 reflects the overall equality in PA by case/control status.  “Study” is the important adjustment variable here, as its inclusion causes the protective-effect estimate.  In that sense, study is a very important confounder…not surprising as both case/control ratio and PA vary substantially by study.
+ 
+So for the paper, rather than report the overall case/control vs PA cross-tab as in slide 12, might be better to show the forest plot of outcome ~ PA by study that Andre generates.
+ 
+Jim
+ 
+```
+
+# Question 6
+
+

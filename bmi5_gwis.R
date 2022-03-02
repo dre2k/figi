@@ -1,6 +1,10 @@
 #=============================================================================#
 # FIGI GxE asp_ref results
 #=============================================================================#
+
+
+
+# setup -------------------------------------------------------------------
 library(tidyverse)
 library(data.table)
 library(qqman)
@@ -26,6 +30,7 @@ library(msm)
 library(qs)
 rm(list = ls())
 
+
 # input variables
 exposure = 'bmi5'
 hrc_version = 'v2.3'
@@ -48,9 +53,24 @@ input_data <- readRDS(glue("/media/work/gwis_test/data/FIGI_{hrc_version}_gxeset
 
 
 
+# mean / SD by study_gxe (bmi)
+
+unique(input_data$study_gxe)
+
+out <- input_data %>% 
+  group_by(study_gxe, outcome) %>% 
+  summarise(bmi_mean = mean(bmi),
+            bmi_sd = sd(bmi))
+write.csv(out, file = "~/Dropbox/Working/figi_bmi_mean_sd.csv")
+
+
+
+
 #-----------------------------------------------------------------------------#
 # main effects ----
 #-----------------------------------------------------------------------------#
+
+# for BMI5, 0 in model is essentially thelower end of health BMI, so it's ok to keep meta-analyses as is
 
 # ------ meta-analysis ------ #
 output_dir = as.character(glue("{path}/output/posthoc/"))
@@ -70,8 +90,6 @@ pooled_analysis_glm(input_data, exposure = exposure, hrc_version = hrc_version, 
 pooled_analysis_glm(input_data, exposure = exposure, hrc_version = hrc_version, covariates = covariates, strata = 'study_design', filename_suffix = paste0(paste0(sort(covariates), collapse = '_'), "_stratified_study_design"), output_dir = glue("{path}/output/posthoc/"))
 
 pooled_analysis_multinom(input_data, exposure = exposure, hrc_version = hrc_version, covariates = covariates, filename_suffix = paste0(paste0(sort(covariates), collapse = '_'), "_stratified_cancer_site_sum2"), output_dir = glue("{path}/output/posthoc/"))
-
-
 
 
 
@@ -166,8 +184,49 @@ simplem_wrap2(x = x1, exposure = exposure, covariates = covariates, simplem_step
 #-----------------------------------------------------------------------------#
 # GxE additional analysis ---- 
 #-----------------------------------------------------------------------------#
+results_gxe <- c("11:47328213:T:C", "3:100037644:A:G", "2:10961902:T:C", "11:120531547:C:G","11:46574459:T:A", "2:217410559:G:A", "6:138766021:C:T", "9:136601110:C:G", "15:33122966:C:T")
+results_twostep <- c("15:33122966:C:T", "15:33120215:T:C")
+results_3df <- c("1:177889480:A:G", "12:50204089:G:A", "16:28649651:C:A", "16:53800954:T:C","18:57850583:C:A", "18:57971625:A:G", "18:58083923:A:C", "19:47581242:C:T","2:41716#7:T:C", "2:558080:G:T", "2:651365:G:A", "4:45181334:A:T")
+# snps <- c("20:6584196:C:G", "15:33122966:C:T", "15:32987718:A:G", "5:134486618:G:A", "10:114274269:T:C", "12:50177324:A:T")
 
-snps <- c("15:33122966:C:T", "15:33120215:T:C")
+snps <- c(results_gxe, results_twostep)
+
+
+
+# ---- MAF ---- #
+walk(snps, ~ create_aaf_study_plot(data = input_data, exposure = exposure, hrc_version = hrc_version, snp = .x, path = path))
+
+walk(results_3df, ~ create_aaf_study_plot(data = input_data, exposure = exposure, hrc_version = hrc_version, snp = .x, path = path))
+
+
+
+# ---- stratified odds ratios ---- #
+# stratified odds ratio table with and without smoking
+walk(snps, ~ fit_stratified_or_q3(
+  data_epi = input_data,
+  exposure = 'bmic3f',
+  snp = .x,
+  hrc_version = hrc_version,
+  covariates = covariates,
+  path = glue("{path}/output/")))
+
+
+covariates_smk <- c(covariates, 'smk_ever')
+walk(snps, ~ fit_stratified_or_q3(
+  data_epi = input_data,
+  exposure = 'bmic3f',
+  snp = .x,
+  hrc_version = hrc_version,
+  covariates = covariates_smk,
+  path = glue("{path}/output/")))
+
+
+
+# ---- iplot ---- #
+walk(snps, ~iplot_wrapper(data_epi = input_data, exposure = 'bmic3f', hrc_version = hrc_version, snp = .x, covariates = covariates, path = glue("{path}/output/"), flip_allele = F))
+
+
+
 
 # output GxE models adjusted by different covariate sets
 covariates_sets <- list(covariates, 
@@ -187,51 +246,7 @@ walk(snps, ~ fit_gxe_stratified(data_epi = input_data, exposure = exposure, snp 
 
 
 
-# stratified odds ratio table with and without smoking
-# covariates_multi <- c(covariates, 'smk_ever')
-snps <- c( "15:33122966:C:T", "15:33120215:T:C")
-walk(snps, ~ fit_stratified_or(
-  data_epi = input_data,
-  exposure = exposure,
-  snp = .x,
-  hrc_version = hrc_version,
-  covariates = covariates,
-  path = glue("{path}/output/")))
 
-
-covariates_multi <- c(covariates, 'smk_ever')
-walk(snps, ~ fit_stratified_or(
-  data_epi = input_data,
-  exposure = exposure,
-  snp = .x,
-  hrc_version = hrc_version,
-  covariates = covariates_multi,
-  path = glue("{path}/output/")))
-
-
-
-
-
-# stratified odds ratio table with and without smoking
-# covariates_multi <- c(covariates, 'smk_ever')
-snps <- c( "15:33122966:C:T", "15:33120215:T:C")
-walk(snps, ~ fit_stratified_or_q3(
-  data_epi = input_data,
-  exposure = 'bmic3f',
-  snp = .x,
-  hrc_version = hrc_version,
-  covariates = covariates,
-  path = glue("{path}/output/")))
-
-
-covariates_multi <- c(covariates, 'smk_ever')
-walk(snps, ~ fit_stratified_or_q3(
-  data_epi = input_data,
-  exposure = 'bmic3f',
-  snp = .x,
-  hrc_version = hrc_version,
-  covariates = covariates_multi,
-  path = glue("{path}/output/")))
 
 
 
@@ -241,7 +256,7 @@ walk(snps, ~ fit_stratified_or_q3(
 
 # output RERI plots
 snps <- c("15:33122966:C:T", "15:33120215:T:C")
-walk(snps, ~ reri_wrapper(data_epi = input_data, exposure = 'bmi3cf', snp = .x, covariates = covariates, path = glue("{path}/output")))
+walk(snps, ~ reri_wrapper(data_epi = input_data, exposure = 'bmic3f', snp = .x, covariates = covariates, path = glue("{path}/output")))
 
 
 
@@ -275,37 +290,47 @@ saveRDS(snp_info_out, glue("{path}/output/posthoc/gwis_snp_info.rds"))
 
 
 
+# --------------- #
+# ----- old ----- #
+# --------------- #
+
+# stratified OR
+walk(snps, ~ fit_stratified_or(
+  data_epi = input_data,
+  exposure = exposure,
+  snp = .x,
+  hrc_version = hrc_version,
+  covariates = covariates,
+  path = glue("{path}/output/")))
+
+snps <- c("15:33122966:C:T", "15:33120215:T:C")
+walk(snps, ~ fit_stratified_or_continuous(
+  data_epi = input_data,
+  exposure = exposure,
+  snp = .x,
+  hrc_version = hrc_version,
+  covariates = covariates,
+  path = glue("{path}/output/")))
+
+# stratified odds ratio table with and without smoking
+snps <- c( "15:33122966:C:T", "15:33120215:T:C")
+walk(snps, ~ fit_stratified_or(
+  data_epi = input_data,
+  exposure = exposure,
+  snp = .x,
+  hrc_version = hrc_version,
+  covariates = covariates,
+  path = glue("{path}/output/")))
 
 
-
-
-
-
-
-
-
-
-# need allele frequency by study_gxe to confirm finding (and sensitivity analysis)
-tmp <- qread(glue("/media/work/gwis_test/{exposure}/output/posthoc/dosage_chr15_33122966.qs")) %>% 
-  inner_join(input_data, 'vcfid')
-
-aaf <- function(x) {
-  sum(x) / nrow(x)
-}
-
-out <- tmp %>% 
-  group_by(study_gxe) %>% 
-  summarise(total = n(), 
-            study_aaf = sum(chr15_33122966_C_T_dose) / (total*2)) %>% 
-  arrange(study_aaf) %>% 
-  mutate(study_gxe = fct_reorder(study_gxe, study_aaf))
-
-ggplot(aes(x = study_gxe, y = study_aaf), data = out) + 
-  geom_point() + 
-  theme_bw() + 
-  theme(axis.text.x = element_text(angle = 270)) + 
-  xlab("Study") + 
-  ylab("Alternate Allele Frequency")
+covariates_smk <- c(covariates, 'smk_ever')
+walk(snps, ~ fit_stratified_or(
+  data_epi = input_data,
+  exposure = exposure,
+  snp = .x,
+  hrc_version = hrc_version,
+  covariates = covariates_smk,
+  path = glue("{path}/output/")))
 
 
 # ================================================================== #
@@ -318,179 +343,20 @@ gwis_report(exposure = exposure,
             hrc_version = hrc_version, 
             covariates = covariates)
 
+posthoc_report(exposure = exposure)
+
 posthoc_report(exposure = exposure, 
                hrc_version = hrc_version,
                covariates = covariates,
                path = path)
 
-
 posthoc_report(exposure = exposure)
+
+
+
 
 # test
 rmarkdown::render(glue("/home/rak/git/figi/{exposure}_posthoc_test.Rmd"), 
                   output_file = glue("~/Dropbox/FIGI/Results/{exposure}_posthoc_test.html"))
 
 
-# ================================================================== #
-# ======= functional follow? ---- 
-# ================================================================== #
-
-hrc <- readRDS("~/data/HRC_rsID/HRC.r1-1.GRCh37.wgs.mac5.sites.tab.chr5.rds")
-
-# Chromosome 5
-tmp1 <- fread(glue("~/Dropbox/FIGI/Annotation_Workflow/example_input/figi_{exposure}_{hrc_version}_chr5_40252294.ld"))
-tmp2 <- filter(hrc, POS %in% tmp1$BP_B) %>% 
-  mutate(V1 = paste0("chr", `#CHROM`), 
-         V2 = POS - 1, 
-         V3 = POS, 
-         V4 = paste(`#CHROM`, POS, REF, ALT, sep = "-")) %>% 
-  dplyr::select(V1, V2, V3, V4)
-
-write.table(tmp2, file = glue("~/Dropbox/FIGI/Annotation_Workflow/example_input/figi_{exposure}_{hrc_version}_chr5_40252294.bed"), quote = F, row.names = F, col.names = F, sep = '\t')
-
-
-
-gtex <- fread("~/Dropbox/FIGI/Annotation_Workflow/example_output/figi_asp_ref_v2.4_chr5_40252294_eQTL_overlap_summary.tsv",  header = F)
-vep <- fread("~/Dropbox/FIGI/Annotation_Workflow/example_input/figi_asp_ref_v2.4_chr5_40252294_vep.txt",  header = T)
-out <- inner_join(gtex, vep, by = c("V1"="#Uploaded_variation")) %>% 
-  mutate(BP_B = as.integer(unlist(lapply(strsplit(V1, split = '-'), function(x) x[2])) )) %>% 
-  inner_join(tmp1[, c('BP_B', 'R2')], by = "BP_B") %>% 
-  arrange(desc(R2))
-
-
-write_tsv(out, file = "~/Dropbox/FIGI/Annotation_Workflow/example_output/figi_asp_ref_v2.4_chr5_40252294_output.tsv", quote = F)
-
-
-
-# Chromosome 6
-hrc <- readRDS("~/data/HRC_rsID/HRC.r1-1.GRCh37.wgs.mac5.sites.tab.chr6.rds")
-tmp1 <- fread(glue("~/Dropbox/FIGI/Annotation_Workflow/example_input/figi_{exposure}_{hrc_version}_chr6_12577203.ld"))
-tmp2 <- filter(hrc, POS %in% tmp1$BP_B) %>% 
-  mutate(V1 = paste0("chr", `#CHROM`), 
-         V2 = POS - 1, 
-         V3 = POS, 
-         V4 = paste(`#CHROM`, POS, REF, ALT, sep = "-")) %>% 
-  dplyr::select(V1, V2, V3, V4)
-
-write.table(tmp2, file = glue("~/Dropbox/FIGI/Annotation_Workflow/example_input/figi_{exposure}_{hrc_version}_chr6_12577203.bed"), quote = F, row.names = F, col.names = F, sep = '\t')
-
-
-
-gtex <- fread("~/Dropbox/FIGI/Annotation_Workflow/example_output/figi_aspirin_v2.4_chr6_12577203_eQTL_overlap_summary.tsv",  header = F)
-vep <- fread("~/Dropbox/FIGI/Annotation_Workflow/example_input/figi_aspirin_v2.4_chr6_12577203_vep.txt",  header = T)
-out <- inner_join(gtex, vep, by = c("V1"="#Uploaded_variation"))
-
-
-
-
-
-
-
-# Chromosome 6
-hrc <- readRDS("~/data/HRC_rsID/HRC.r1-1.GRCh37.wgs.mac5.sites.tab.chr6.rds")
-tmp1 <- fread(glue("~/Dropbox/FIGI/Annotation_Workflow/example_input/figi_{exposure}_{hrc_version}_chr6_32560631.ld"))
-tmp2 <- filter(hrc, POS %in% tmp1$BP_B) %>% 
-  mutate(V1 = paste0("chr", `#CHROM`), 
-         V2 = POS - 1, 
-         V3 = POS, 
-         V4 = paste(`#CHROM`, POS, REF, ALT, sep = "-")) %>% 
-  dplyr::select(V1, V2, V3, V4)
-
-write.table(tmp2, file = glue("~/Dropbox/FIGI/Annotation_Workflow/example_input/figi_{exposure}_{hrc_version}_chr6_32560631.bed"), quote = F, row.names = F, col.names = F, sep = '\t')
-
-
-
-gtex <- fread("~/Dropbox/FIGI/Annotation_Workflow/example_output/figi_aspirin_v2.4_chr6_32560631_eQTL_overlap_summary.tsv",  header = F)
-vep <- fread("~/Dropbox/FIGI/Annotation_Workflow/example_input/figi_aspirin_v2.4_chr6_32560631_vep.txt",  header = T)
-out <- inner_join(gtex, vep, by = c("V1"="#Uploaded_variation")) %>% 
-  mutate(BP_B = as.integer(unlist(lapply(strsplit(V1, split = '-'), function(x) x[2])) )) %>% 
-  inner_join(tmp1[, c('BP_B', 'R2')], by = "BP_B") %>% 
-  arrange(desc(R2))
-
-write_tsv(out, file = "~/Dropbox/FIGI/Annotation_Workflow/example_output/figi_asp_ref_v2.4_chr6_32560631_output.tsv", quote = F)
-
-
-
-
-
-
-
-
-
-
-# ================================================================== #
-# updated PCs and how it changes results.. 
-# ================================================================== #
-
-# original GxE findings.. 
-modelb <- glm(outcome ~ chr6_12577203_T_C+asp_ref + age_ref_imp + sex + pc1 + pc2 + pc3 + study_gxe, data = figi, family = 'binomial')
-model1 <- glm(outcome ~ chr6_12577203_T_C*asp_ref + age_ref_imp + sex + pc1 + pc2 + pc3 + study_gxe, data = figi, family = 'binomial')
-lrtest(modelb, model1)
-
-
-
-# let's add updated PCs .. (keep in mind they're calculated using HRC v3.0)
-pcs <- fread("~/figi_gxe_pca_update.eigenvec")
-figi_newpc <- inner_join(figi, pcs, by = c('vcfid' = 'IID'))
-
-
-modelb <- glm(outcome ~ chr6_12577203_T_C+asp_ref + age_ref_imp + sex + PC1 + PC2 + PC3 + study_gxe, data = figi_newpc, family = 'binomial')
-model1 <- glm(outcome ~ chr6_12577203_T_C*asp_ref + age_ref_imp + sex + PC1 + PC2 + PC3 + study_gxe, data = figi_newpc, family = 'binomial')
-summary(model1)
-
-lrtest(modelb, model1)
-
-modelb <- glm(outcome ~ chr6_12577203_T_C+asp_ref + age_ref_imp + sex + PC1 + PC2 + PC3 + PC4 + PC5 + PC6 + PC7 + PC8 + PC9 + PC10 + study_gxe, data = figi_newpc, family = 'binomial')
-model1 <- glm(outcome ~ chr6_12577203_T_C*asp_ref + age_ref_imp + sex + PC1 + PC2 + PC3 + PC4 + PC5 + PC6 + PC7 + PC8 + PC9 + PC10+ study_gxe, data = figi_newpc, family = 'binomial')
-summary(model1)
-
-lrtest(modelb, model1)
-
-
-
-
-#  how about the other hit..
-# original GxE findings.. 
-  modelb <- glm(outcome ~ chr6_32560631_C_T+asp_ref + age_ref_imp + sex + pc1 + pc2 + pc3 + study_gxe, data = figi, family = 'binomial')
-model1 <- glm(outcome ~ chr6_32560631_C_T*asp_ref + age_ref_imp + sex + pc1 + pc2 + pc3 + study_gxe, data = figi, family = 'binomial')
-lrtest(modelb, model1)
-
-# let's add updated PCs .. (keep in mind they're calculated using HRC v3.0)
-modelb <- glm(outcome ~ chr6_32560631_C_T+asp_ref + age_ref_imp + sex + PC1 + PC2 + PC3 + study_gxe, data = figi_newpc, family = 'binomial')
-model1 <- glm(outcome ~ chr6_32560631_C_T*asp_ref + age_ref_imp + sex + PC1 + PC2 + PC3 + study_gxe, data = figi_newpc, family = 'binomial')
-summary(model1)
-
-lrtest(modelb, model1)
-
-
-
-
-# chr5_40252294_C_T finding (two step expectation based.. not a 1:1 comparison but just to get an idea)
-wtf <- filter(gxe , Location == 40252294) # EDGE chi-square = 24.32772
-
-figi$asp_ref2 <- as.numeric(figi$asp_ref)
-figi_newpc$asp_ref2 <- as.numeric(figi_newpc$asp_ref)
-
-
-
-# marginal association
-modelb <- glm(outcome ~                     asp_ref + age_ref_imp + sex + PC1 + PC2 + PC3 + study_gxe, data = figi_newpc, family = 'binomial')
-model1 <- glm(outcome ~ chr5_40252294_C_T + asp_ref + age_ref_imp + sex + PC1 + PC2 + PC3 + study_gxe, data = figi_newpc, family = 'binomial')
-lrtest(modelb, model1)
-# 24.275 
-
-
-modelb <- lm(asp_ref2 ~                     age_ref_imp + sex + pc1 + pc2 + pc3 + study_gxe, data = figi_newpc)
-model1 <- lm(asp_ref2 ~ chr5_40252294_C_T + age_ref_imp + sex + pc1 + pc2 + pc3 + study_gxe, data = figi_newpc)
-lrtest(modelb, model1)
-# 0.5652
-
-pchisq(24.8402, lower.tail = F, df = 2)
-
-
-
-
-# GxE
-modelb <- glm(outcome ~ chr5_40252294_C_T+asp_ref + age_ref_imp + sex + PC1 + PC2 + PC3 + study_gxe, data = figi_newpc, family = 'binomial')
-model1 <- glm(outcome ~ chr5_40252294_C_T*asp_ref + age_ref_imp + sex + PC1 + PC2 + PC3 + study_gxe, data = figi_newpc, family = 'binomial')
-lrtest(modelb, model1)

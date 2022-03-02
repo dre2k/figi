@@ -1,0 +1,118 @@
+---
+title: "FIGI PhysAct Requests Feb 8th 2022"
+author: "AK"
+date:  "`r Sys.Date()`"
+output: 
+  html_document:
+    code_folding: hide
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(kableExtra)
+library(glue)
+library(broom)
+library(meta)
+```
+
+
+<style type="text/css">
+<!-- .main-container { -->
+<!--   max-width: 1800px !important; -->
+<!--   margin-left: auto; -->
+<!--   margin-right: auto; -->
+<!-- } -->
+
+<!-- table, td, th { -->
+<!--   border: none; -->
+<!--   padding-left: 1em; -->
+<!--   padding-right: 1em; -->
+<!--   margin-top: 1em; -->
+<!--   margin-bottom: 1em; -->
+<!-- } -->
+
+/* Whole document: */
+body{
+  font-family: Helvetica;
+  font-size: 14pt;
+}
+/* Headers */
+/* h1,h2,h3,h4,h5,h6{ */
+/*  font-size: 24pt; */
+}
+
+</style>
+
+
+### 1. Total sample size for active_met_875 
+> In table 1 by outcome (active_met_875_main_effects) there is specified a total of 39992 observations (23609 controls and 16383 cases). 
+For the continuous and quartile variable we have a total of 42602 observations (25309 controls and 17293 cases).  
+Just to double check, the active_met_875 do not include those studies that have only 1 category isn’t it? In other words, we have excluded a total of 2610 observations, right?  
+
+yes that is correct
+
+<br>
+
+### 2. Suggestive_gxe_info Drive folder 
+> Is this folder updated with the latest changes?  
+
+yes I updated the results tables + regional plots. to be sure, it should be folder under `Gene-Environment Interaction/Analysis Plans/Physical Activity/results_20220128`
+
+<br>
+
+### 3. energytot_imp (when applicable) 
+>In all “xxx_gwis.html” files there is a summary of methods/plots section -very helpful, by the way ;) -. Regarding the energy variable. If I have understood this correctly, all models were adjusted by age, sex, study and the 3 PCs. For those studies that energy is available, energy intake was also included as a covariate, isn’t it?  
+
+That is correct. If the study doesn't have energytot_imp available, all individuals have value = 0. Models are meant to include 'energytot.missing' to account for this, but since scans already adjust for study_gxe, we decided only to include energytot_imp. 
+
+<br>
+
+```{r}
+# input variables
+exposure = 'methrswklns'
+hrc_version = 'v3.1'
+path = glue("/media/work/gwis_test/{exposure}/")
+
+# input data
+esubset <- readRDS(glue("/media/work/gwis_test/{exposure}/data/FIGI_{hrc_version}_gxeset_{exposure}_basic_covars_glm.rds")) %>% 
+  pull(vcfid)
+
+input_data <- readRDS(glue("/media/work/gwis_test/data/FIGI_{hrc_version}_gxeset_analysis_data_glm.rds")) %>% 
+  filter(vcfid %in% esubset) 
+
+kable(input_data %>% 
+  group_by(study_gxe) %>% 
+  summarise(mean = mean(energytot_imp), n = n()))
+
+
+table(input_data$study_gxe, input_data$energytot.missing)
+```
+
+### 4. posthoc analysis files 
+>In all posthoc analysis files there is mentioned “Plots of model predicted outcome by 1 unit increase of exposure/allelic dosage”. We cannot see this part. Are these plots planned for future steps? 
+
+They look like the plot below. I found that it causes more confusion than not when presenting this to the group. I think including odds ratios forest plots stratified by genotypes is more useful (although I haven't generated those normally)
+
+let me know if you want me to create these plots
+
+```{r}
+
+knitr::include_graphics("/media/work/gwis_test/aspirin/output/posthoc/interaction_plot_aspirin_v2.4_chr5_40252294_C_T_dose_age_ref_imp_pc1_pc2_pc3_sex_study_gxe.png")
+```
+
+<br>
+
+### 5. active_met_875 posthoc analysis file 
+> For “chr13_61572969_G_A” there is no “stratified OR” window. Is there any reason for that? 
+
+I originally excluded because this finding is showing E|G association rather than an interaction. However, I agree it should be included --- I uploaded a new version of the posthoc result file for active_met_875
+
+<br>
+
+
+### 6. methrswklnsqc2 posthoc analysis file. 
+> The Stratified OR table for “chr20_49693755_T_C” has two rows: “methrswklnsqc2=0” and “methrswklnsqc2=1”. This variable is a study specific quartile-based variable. Can you explain what zero and 1 means? 
+
+For methrswklnsqc2, quartiles are modelled as continuous variables. A unit increase is an increase in quartile value, and the reference group is the lowest quartile. 
+

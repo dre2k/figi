@@ -299,7 +299,6 @@ posthoc_create_plots(snps_filter, 'chiSq3df')
 # ================================================================== #
 main_effects_report(exposure = exposure, hrc_version = hrc_version, covariates = covariates, path = path)
 
-
 gwis_report(exposure = exposure, hrc_version = hrc_version, covariates = covariates)
 
 posthoc_report(exposure = exposure)

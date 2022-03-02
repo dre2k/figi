@@ -17,13 +17,13 @@ library(data.table)
 library(figifs)
 library(glue)
 rm(list = ls())
-output_dir <- "/media/work/gwis/data/"
-setwd(glue("{output_dir}/FIGI_samplefile_epi-201014/"))
+output_dir <- "/media/work/gwis_test/data/"
+# setwd(glue("{output_dir}/FIGI_samplefile_epi-201014/"))
 
 
 # figi_gwas <- readRDS("~/data/FIGI_EpiData_rdata/FIGI_v2.4_GWAS.rds")
 # figi_gwas <- readRDS("~/data/FIGI_EpiData_rdata/FIGI_v2.4_GWAS.rds")
-figi_gwas <- readRDS(glue("{output_dir}/FIGI_EpiData/FIGI_v3.0_GWAS.rds")) 
+figi_gwas <- readRDS(glue("{output_dir}/FIGI_v3.0_GWAS.rds")) 
 figi_gxe <- dplyr::filter(figi_gwas, gxe == 1, EUR_subset == 1)
 
 
@@ -55,11 +55,11 @@ wrap <- function(d, exposure, is_e_categorical = T, min_cell_size = 0, vars_to_e
     filter(!study_gxe %in% studies_to_exclude) %>% 
     mutate(study_gxe = fct_drop(study_gxe))
   # saveRDS(cov, file = glue("/media/work/gwis/results/input/FIGI_v3.0_gxeset_{exposure}_basic_covars_glm.rds"), version = 2)
-  saveRDS(cov, file = glue(output_dir, "FIGI_EpiData/FIGI_v3.0_gxeset_{exposure}_basic_covars_glm.rds"), version = 2)
+  saveRDS(cov, file = glue(output_dir, "/FIGI_v3.0_gxeset_{exposure}_basic_covars_glm.rds"), version = 2)
   
   cov_gxescan <- format_data_gxescan(cov, exposure)
   # saveRDS(cov_gxescan, file = glue("/media/work/gwis/results/input/FIGI_v3.0_gxeset_{exposure}_basic_covars_gxescan.rds"), version = 2)
-  saveRDS(cov_gxescan, file = glue(output_dir, "FIGI_EpiData/FIGI_v3.0_gxeset_{exposure}_basic_covars_gxescan.rds"), version = 2)
+  saveRDS(cov_gxescan, file = glue(output_dir, "/FIGI_v3.0_gxeset_{exposure}_basic_covars_gxescan.rds"), version = 2)
   
 }
 
@@ -135,6 +135,16 @@ format_data_gxescan <- function(d, exposure) {
   tmp <- dplyr::select(tmp, -ref_study, -study_gxe, -exposure, exposure)
   
 }
+
+
+
+# ------ methrswklns ------ #
+exclude <- c("CRCGEN", "CLUEII", "NCCCSII")
+wrap(figi_gxe, 'methrswklns', studies_to_exclude = exclude, is_e_categorical = F)
+x <- readRDS("~/data/gwis_v2.4/input/FIGI_v2.4_gxeset_aspirin_basic_covars_glm.rds")
+y <- readRDS("/media/work/gwis/results/input/FIGI_v3.0_gxeset_aspirin_basic_covars_glm.rds")
+table(x$study_gxe, x$outcome)
+table(y$study_gxe, y$outcome)
 
 
 

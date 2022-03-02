@@ -72,6 +72,12 @@ out <- dplyr::filter(input_data, is.na(adenoma),
                      !study_gxe %in% c("SMS_AD", "REACH_AD", "HawaiiCCS_AD", "HPFS_3_AD", "NHS_3_AD", "NHS_5_AD", "PLCO_4_AD"))
 table(out$study_gxe, out$outc, useNA = 'ifany')
 
+out <- out %>% 
+  filter(!grepl("DACHS", study_gxe))
+table(out$study, out$outc, useNA = 'ifany')
+
+
+
 
 # which exposure to use? 
 # either fruitqc2 (original quartile) or fruit5qcm (median 5servings/day, sex study specific)

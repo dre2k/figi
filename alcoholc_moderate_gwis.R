@@ -27,7 +27,7 @@ rm(list = ls())
 
 # input variables
 exposure = 'alcoholc_moderate'
-exposure = "alcoholc_heavy_vs_moderate"
+# exposure = "alcoholc_heavy_vs_moderate"
 hrc_version = 'v2.3'
 annotation_file <- 'gwas_200_ld_annotation_feb2021.txt'
 path = glue("/media/work/gwis_test/{exposure}/")
@@ -44,6 +44,12 @@ esubset <- readRDS(glue("{path}/data/FIGI_{hrc_version}_gxeset_{exposure}_basic_
 input_data <- readRDS(glue("/media/work/gwis/data/FIGI_EpiData/FIGI_{hrc_version}_gxeset_analysis_data_glm.rds")) %>% 
   filter(vcfid%in% esubset)
 
+
+test <- glm(outcome ~ alcoholc_moderate + age_ref_imp + sex + pc1 + pc2 + pc3, data = ukb, family = 'binomial')
+summary(test)
+
+test <- glm(outcome ~ alcoholc_moderate + age_ref_imp + sex + pc1 + pc2 + pc3 + energytot_imp, data = ukb, family = 'binomial')
+summary(test)
 
 
 #-----------------------------------------------------------------------------#

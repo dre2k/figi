@@ -4,8 +4,8 @@ tmp <- qread(glue("/media/work/gwis_test/{exposure}/output/posthoc/dosage_chr10_
 data_epi = input_data
 exposure
 # snp = "chr10_101476905_G_A_dose"
-covariates <- sort(c('age_ref_imp', 'sex', 'enerygtot_imp', 'pc1', 'pc2', 'pc3'))
-covariates <- sort(c('age_ref_imp', 'sex', 'energytot_imp'))
+covariates <- sort(c('age_ref_imp', 'sex', 'pc1', 'pc2', 'pc3'))
+covariates <- sort(c('age_ref_imp', 'sex'))
 # covariates = c(covariates, 'bmi', 'diab')
 # covariates = c(covariates, 'bmi', 'redmeatqc2', 'fruitqc2', 'vegetableqc2')
 # covariates = c(covariates, 'bmi', 'diab', 'educ', 'smk_ever', 'redmeatqc2', 'fruitqc2', 'vegetableqc2')
@@ -19,7 +19,7 @@ strata = 'all'
 categorical = F
 group_var = 'study_gxe'
 
-strata = "female"
+strata = "all"
 
 
 
@@ -69,11 +69,20 @@ create_forest_plot_ver2 <- function(data_epi, exposure, covariates, hrc_version,
   # model_formula <- deparse(reformulate(c(exposure, sort(covariates)), response = 'outcome'))
   model_formula <- glue("outcome ~ {exposure} + {glue_collapse(sort(covariates), sep = '+')}")
   
+  
+  
+  
+  
   # create study_design data.frame
   study_design <- data_epi %>%
     dplyr::select(!!sym(group_var), study_design) %>%
     filter(!duplicated(.)) %>%
     arrange(!!sym(group_var))
+  
+  
+  
+  
+  
   
   glm_out <- data_epi %>%
     tidyr::nest(data = -(!!sym(group_var))) %>%
@@ -88,6 +97,13 @@ create_forest_plot_ver2 <- function(data_epi, exposure, covariates, hrc_version,
     #               null.deviance > quantile(null.deviance, 0.01)) %>%
     dplyr::filter(grepl(exposure, term)) %>%
     dplyr::arrange(!!sym(group_var))
+  
+  
+  
+  
+  
+  
+  
   
   # include study sample sizes and study design information
   meta_input <- get_counts_outcome_by_group(data_epi, 'outcome', group_var) %>%
@@ -107,15 +123,17 @@ create_forest_plot_ver2 <- function(data_epi, exposure, covariates, hrc_version,
                                 sm="OR",
                                 byvar = study_design)
   
-  results_meta
-  nrow(data_epi)
-  table(data_epi$outcome)
+  # results_meta
+  # nrow(data_epi)
+  # table(data_epi$outcome)
   
 
   # plot_title = glue(strata, "\n{model_formula}", .na = "All")
   plot_title = glue(strata, " (N=", sum(glm_out$nobs), ")", "\n{model_formula}")
 
-  png(glue("~/Dropbox/Working/forest_plot_{exposure}_{hrc_version}_", glue_collapse(covariates, "_"), "_{strata}.png"), height = forest_height, width = forest_width, units = 'in', res = 150)
+  # png(glue("~/Dropbox/Working/forest_plot_{exposure}_{hrc_version}_", glue_collapse(covariates, "_"), "_{strata}.png"), height = forest_height, width = forest_width, units = 'in', res = 150)
+  png(glue("{path}/forest_plot_{exposure}_{hrc_version}_", glue_collapse(covariates, "_"), "_{strata}.png"), height = forest_height, width = forest_width, units = 'in', res = 150)
+  
   meta::forest(results_meta,
                layout = "JAMA",
                # text.predict = "95% CI",
@@ -129,7 +147,8 @@ create_forest_plot_ver2 <- function(data_epi, exposure, covariates, hrc_version,
   grid.text(plot_title, 0.5, .98, gp=gpar(cex=1))
   dev.off()
 
-  png(glue("~/Dropbox/Working/funnel_plot_{exposure}_{hrc_version}_", glue_collapse(covariates, "_"), "_{strata}.png"), height = funnel_height, width = funnel_width, units = 'in', res = 150)
+  # png(glue("~/Dropbox/Working/funnel_plot_{exposure}_{hrc_version}_", glue_collapse(covariates, "_"), "_{strata}.png"), height = funnel_height, width = funnel_width, units = 'in', res = 150)
+  png(glue("{path}/funnel_plot_{exposure}_{hrc_version}_", glue_collapse(covariates, "_"), "_{strata}.png"), height = funnel_height, width = funnel_width, units = 'in', res = 150)
   meta::funnel(results_meta, sm="OR", studlab = T, pos = 4, col.random = 'red')
   dev.off()
 

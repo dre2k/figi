@@ -94,10 +94,12 @@ body{
 ```
 
 ## Meta analysis {.tabset}
+methrswklns / 10, scaled by the median study/sex specific IQR. Reference group is overall median value, comparison group is +1 overall IQR
 ```{r child = 'results_meta.Rmd'}
 ```
 
 ## Pooled analysis {.tabset}
+methrswklns / 10, scaled by the median study/sex specific IQR. Reference group is overall median value, comparison group is +1 overall IQR
 ```{r child = 'results_pooled.Rmd'}
 ```
 

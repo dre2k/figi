@@ -63,12 +63,11 @@ path = glue("/media/work/gwis_test/{params$exposure}")
 ```
 
 
-# GxE (1df) - marginal hit
+# GxE (1df)
+These are significant at p < 5e-7
 ```{r, results = 'asis'}
 # child method variable
 assign("method", "chiSqGxE", child_env)
-
-
 
 # # SNPs
 # snps_clumped <- fread(glue("{path}/data/FIGI_{hrc_version}_gxeset_{exposure}_chiSqGxE_ldclump.clumped"), header = T, stringsAsFactors = F)
@@ -78,7 +77,6 @@ assign("method", "chiSqGxE", child_env)
 #   dplyr::arrange(Chromosome, Location) %>%
 #   dplyr::mutate(snps = paste0('chr', gsub("\\:", "\\_", SNP))) %>%
 #   dplyr::pull(snps)
-#
 
 snps_out <- c("chr1_151700227_G_A", "chr15_83613505_A_T")
 
@@ -93,32 +91,32 @@ cat(unlist(res), sep = '\n')
 ```
 
 
-# Two-step
-```{r, results = 'asis'}
-# child method variable
-assign("method", "chiSqGxE", child_env)
+<!-- # Two-step -->
+<!-- ```{r, results = 'asis'} -->
+<!-- # child method variable -->
+<!-- assign("method", "chiSqGxE", child_env) -->
 
-# # SNPs
-# snps_clumped <- fread(glue("{path}/data/FIGI_{hrc_version}_gxeset_{exposure}_chiSqGxE_ldclump.clumped"), header = T, stringsAsFactors = F)
-# snps_out <- readRDS(glue("{path}/output/manhattan_{exposure}_{hrc_version}_chiSqGxE_df.rds")) %>%
-#   dplyr::filter(SNP %in% snps_clumped$SNP,
-#                 chiSqGxE_p < 5e-8) %>%
-#   dplyr::arrange(Chromosome, Location) %>%
-#   dplyr::mutate(snps = paste0('chr', gsub("\\:", "\\_", SNP))) %>%
-#   dplyr::pull(snps)
-#
+<!-- # # SNPs -->
+<!-- # snps_clumped <- fread(glue("{path}/data/FIGI_{hrc_version}_gxeset_{exposure}_chiSqGxE_ldclump.clumped"), header = T, stringsAsFactors = F) -->
+<!-- # snps_out <- readRDS(glue("{path}/output/manhattan_{exposure}_{hrc_version}_chiSqGxE_df.rds")) %>% -->
+<!-- #   dplyr::filter(SNP %in% snps_clumped$SNP, -->
+<!-- #                 chiSqGxE_p < 5e-8) %>% -->
+<!-- #   dplyr::arrange(Chromosome, Location) %>% -->
+<!-- #   dplyr::mutate(snps = paste0('chr', gsub("\\:", "\\_", SNP))) %>% -->
+<!-- #   dplyr::pull(snps) -->
+<!-- # -->
 
-snps_out <- c("chr2_136407479_A_G")
+<!-- snps_out <- c("chr2_136407479_A_G") -->
 
-# Call child Rmd script
-res <- lapply(snps_out, function(snp) {
-  assign("snp", snp, child_env)
-  knitr::knit_child('posthoc/posthoc_child.Rmd', envir = child_env, quiet = TRUE)
-  }
-)
+<!-- # Call child Rmd script -->
+<!-- res <- lapply(snps_out, function(snp) { -->
+<!--   assign("snp", snp, child_env) -->
+<!--   knitr::knit_child('posthoc/posthoc_child.Rmd', envir = child_env, quiet = TRUE) -->
+<!--   } -->
+<!-- ) -->
 
-cat(unlist(res), sep = '\n')
-```
+<!-- cat(unlist(res), sep = '\n') -->
+<!-- ``` -->
 
 
 
@@ -126,7 +124,7 @@ cat(unlist(res), sep = '\n')
 # 3DF
 ```{r, results = 'asis'}
 # child method variable
-assign("method", "chiSqGxE", child_env)
+assign("method", "chiSq3df", child_env)
 
 # # SNPs
 # snps_clumped <- fread(glue("{path}/data/FIGI_{hrc_version}_gxeset_{exposure}_chiSqGxE_ldclump.clumped"), header = T, stringsAsFactors = F)
@@ -138,7 +136,7 @@ assign("method", "chiSqGxE", child_env)
 #   dplyr::pull(snps)
 #
 
-snps_out <- c("chr3_85461302_G_A", "chr4_147966066_G_A")
+snps_out <- c("chr3_85461302_G_A", "chr4_147966066_G_A", "chr11_112923466_A_T")
 
 # Call child Rmd script
 res <- lapply(snps_out, function(snp) {

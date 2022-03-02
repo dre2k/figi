@@ -1,6 +1,10 @@
 #=============================================================================#
 # FIGI GxE redmeatqcm results
 #=============================================================================#
+
+# setup -------------------------------------------------------------------
+
+
 library(tidyverse)
 library(data.table)
 library(qqman)
@@ -26,6 +30,8 @@ library(msm)
 rm(list = ls())
 # source("functions.R")
 
+
+
 # input variables
 exposure = 'procmeatqcm_v2'
 hrc_version = 'v3.0'
@@ -43,8 +49,11 @@ input_data <- readRDS(glue("/media/work/gwis_test/data/FIGI_{hrc_version}_gxeset
   mutate(procmeatqcm_v2 = as.numeric(procmeatqcm))
 
 
+
+
+
 #-----------------------------------------------------------------------------#
-# main effects ----
+# Main effects ------------------------------------------------------------
 #-----------------------------------------------------------------------------#
 
 # ------ meta-analysis ------ #

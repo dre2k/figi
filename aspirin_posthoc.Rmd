@@ -129,57 +129,57 @@ cat(unlist(res), sep = '\n')
 ```
 
 
-# GxE suggestive
-Output models stratified by sex or tumor site to check for differences in associations
-(consider adding locuszoom plots?)
-```{r, results = 'asis'}
-# child method variable
-assign("method", "chiSqGxE", child_env)
+<!-- # GxE suggestive -->
+<!-- Output models stratified by sex or tumor site to check for differences in associations -->
+<!-- (consider adding locuszoom plots?) -->
+<!-- ```{r, results = 'asis'} -->
+<!-- # child method variable -->
+<!-- assign("method", "chiSqGxE", child_env) -->
 
-# SNPs
-snps_clumped <- fread(glue("{path}/data/FIGI_{hrc_version}_gxeset_{exposure}_chiSqGxE_ldclump.clumped"), header = T, stringsAsFactors = F)
-snps_out <- readRDS(glue("{path}/output/manhattan_{exposure}_{hrc_version}_chiSqGxE_df.rds")) %>%
-  dplyr::filter(SNP %in% snps_clumped$SNP,
-                chiSqGxE_p < 5e-6 | chiSqGxE_p > 5e-8) %>%
-  dplyr::arrange(Chromosome, Location) %>%
-  dplyr::mutate(snps = paste0('chr', gsub("\\:", "\\_", SNP))) %>%
-  dplyr::pull(snps)
+<!-- # SNPs -->
+<!-- snps_clumped <- fread(glue("{path}/data/FIGI_{hrc_version}_gxeset_{exposure}_chiSqGxE_ldclump.clumped"), header = T, stringsAsFactors = F) -->
+<!-- snps_out <- readRDS(glue("{path}/output/manhattan_{exposure}_{hrc_version}_chiSqGxE_df.rds")) %>% -->
+<!--   dplyr::filter(SNP %in% snps_clumped$SNP, -->
+<!--                 chiSqGxE_p < 5e-6 | chiSqGxE_p > 5e-8) %>% -->
+<!--   dplyr::arrange(Chromosome, Location) %>% -->
+<!--   dplyr::mutate(snps = paste0('chr', gsub("\\:", "\\_", SNP))) %>% -->
+<!--   dplyr::pull(snps) -->
 
-# Call child Rmd script
-res <- lapply(snps_out, function(snp) {
-  assign("snp", snp, child_env)
-  knitr::knit_child('posthoc/posthoc_child_suggestive_gxe.Rmd', envir = child_env, quiet = TRUE)
-  }
-)
+<!-- # Call child Rmd script -->
+<!-- res <- lapply(snps_out, function(snp) { -->
+<!--   assign("snp", snp, child_env) -->
+<!--   knitr::knit_child('posthoc/posthoc_child_suggestive_gxe.Rmd', envir = child_env, quiet = TRUE) -->
+<!--   } -->
+<!-- ) -->
 
-cat(unlist(res), sep = '\n')
-```
-
-
+<!-- cat(unlist(res), sep = '\n') -->
+<!-- ``` -->
 
 
-# 2DF locuszoom plots
-Filtering GWAS + LD SNPs out of the results plots isn't perfect because of slight differences in LD. Ensure that these remaining peaks coincide with known GWAS Loci
-
-```{r, results = 'asis'}
-# child method variable
-assign("method", "chiSq2df", child_env)
 
 
-# SNPs
-snps_clumped <- fread(glue("{path}/data/FIGI_{hrc_version}_gxeset_{exposure}_chiSq2df_no_gwas_ldclump.clumped"), header = T, stringsAsFactors = F)
-snps_out <- readRDS(glue("{path}/output/manhattan_{exposure}_{hrc_version}_chiSq2df_no_gwas_df.rds")) %>%
-  dplyr::filter(SNP %in% snps_clumped$SNP) %>%
-  dplyr::arrange(Chromosome, Location) %>%
-  dplyr::mutate(snps = paste0('chr', gsub("\\:", "\\_", SNP))) %>%
-  dplyr::pull(snps)
+<!-- # 2DF locuszoom plots -->
+<!-- Filtering GWAS + LD SNPs out of the results plots isn't perfect because of slight differences in LD. Ensure that these remaining peaks coincide with known GWAS Loci -->
 
-# Call child Rmd script
-res <- lapply(snps_out, function(snp) {
-  assign("snp", snp, child_env)
-  knitr::knit_child('posthoc/posthoc_child_locuszoom_only.Rmd', envir = child_env, quiet = TRUE)
-  }
-)
+<!-- ```{r, results = 'asis'} -->
+<!-- # child method variable -->
+<!-- assign("method", "chiSq2df", child_env) -->
 
-cat(unlist(res), sep = '\n')
-```
+
+<!-- # SNPs -->
+<!-- snps_clumped <- fread(glue("{path}/data/FIGI_{hrc_version}_gxeset_{exposure}_chiSq2df_no_gwas_ldclump.clumped"), header = T, stringsAsFactors = F) -->
+<!-- snps_out <- readRDS(glue("{path}/output/manhattan_{exposure}_{hrc_version}_chiSq2df_no_gwas_df.rds")) %>% -->
+<!--   dplyr::filter(SNP %in% snps_clumped$SNP) %>% -->
+<!--   dplyr::arrange(Chromosome, Location) %>% -->
+<!--   dplyr::mutate(snps = paste0('chr', gsub("\\:", "\\_", SNP))) %>% -->
+<!--   dplyr::pull(snps) -->
+
+<!-- # Call child Rmd script -->
+<!-- res <- lapply(snps_out, function(snp) { -->
+<!--   assign("snp", snp, child_env) -->
+<!--   knitr::knit_child('posthoc/posthoc_child_locuszoom_only.Rmd', envir = child_env, quiet = TRUE) -->
+<!--   } -->
+<!-- ) -->
+
+<!-- cat(unlist(res), sep = '\n') -->
+<!-- ``` -->

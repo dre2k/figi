@@ -1,6 +1,10 @@
 #=============================================================================#
 # FIGI GxE aspirin results
 #=============================================================================#
+
+
+# Setup -------------------------------------------------------------------
+
 library(tidyverse)
 library(data.table)
 library(qqman)
@@ -42,21 +46,27 @@ input_data <- readRDS(glue("/media/work/gwis_test/data/FIGI_{hrc_version}_gxeset
   filter(vcfid%in% esubset)
 
 
+
+
+
 #-----------------------------------------------------------------------------#
-# main effects ----
+# Main effects ------------------------------------------------------------
 #-----------------------------------------------------------------------------#
 
 # ------ meta-analysis ------ #
 output_dir = as.character(glue("{path}/output/posthoc/"))
-covariates_meta <- sort(covariates[which(!covariates %in% c(paste0(rep('pc', 20), seq(1, 20)), "study_gxe"))])
+# covariates_meta <- sort(covariates[which(!covariates %in% c(paste0(rep('pc', 20), seq(1, 20)), "study_gxe"))])
+covariates_meta <- sort(covariates[which(!covariates %in% c("study_gxe"))])
 
-create_forest_plot(data_epi = input_data, exposure = exposure, covariates = covariates_meta, hrc_version = hrc_version, path = glue("{path}/output/posthoc/"), strata = "all", forest_height = 15)
-create_forest_plot(data_epi = input_data, exposure = exposure, covariates = covariates_meta, hrc_version = hrc_version, path = glue("{path}/output/posthoc/"), strata = "proximal", forest_height = 13)
-create_forest_plot(data_epi = input_data, exposure = exposure, covariates = covariates_meta, hrc_version = hrc_version, path = glue("{path}/output/posthoc/"), strata = "distal", forest_height = 13)
-create_forest_plot(data_epi = input_data, exposure = exposure, covariates = covariates_meta, hrc_version = hrc_version, path = glue("{path}/output/posthoc/"), strata = "rectal", forest_height = 13)
-create_forest_plot(data_epi = input_data, exposure = exposure, covariates = covariates_meta, hrc_version = hrc_version, path = glue("{path}/output/posthoc/"), strata = "female", forest_height = 13)
-create_forest_plot(data_epi = input_data, exposure = exposure, covariates = covariates_meta, hrc_version = hrc_version, path = glue("{path}/output/posthoc/"), strata = "male", forest_height = 13)
 
+create_forest_plot_ver2(data_epi = input_data, exposure = exposure, covariates = covariates_meta, hrc_version = hrc_version, path = glue("{path}/output/posthoc/"), strata = "all", forest_height = 15, group_var = "study_gxe")
+create_forest_plot_ver2(data_epi = input_data, exposure = exposure, covariates = covariates_meta, hrc_version = hrc_version, path = glue("{path}/output/posthoc/"), strata = "proximal", forest_height = 13, group_var = "study_gxe")
+create_forest_plot_ver2(data_epi = input_data, exposure = exposure, covariates = covariates_meta, hrc_version = hrc_version, path = glue("{path}/output/posthoc/"), strata = "distal", forest_height = 13, 
+                        group_var = "study_gxe")
+create_forest_plot_ver2(data_epi = input_data, exposure = exposure, covariates = covariates_meta, hrc_version = hrc_version, path = glue("{path}/output/posthoc/"), strata = "rectal", forest_height = 13, group_var = "study_gxe")
+create_forest_plot_ver2(data_epi = input_data, exposure = exposure, covariates = covariates_meta, hrc_version = hrc_version, path = glue("{path}/output/posthoc/"), strata = "female", forest_height = 13, 
+                        group_var = "study_gxe")
+create_forest_plot_ver2(data_epi = input_data, exposure = exposure, covariates = covariates_meta, hrc_version = hrc_version, path = glue("{path}/output/posthoc/"), strata = "male", forest_height = 13, group_var = 'study_gxe')
 
 # ------- stratified pooled analysis ------- #
 pooled_analysis_glm(input_data, exposure = exposure, hrc_version = hrc_version, covariates = covariates, strata = 'sex', filename_suffix = paste0(paste0(sort(covariates), collapse = '_'), "_stratified_sex"), output_dir = glue("{path}/output/posthoc/"))
@@ -156,27 +166,21 @@ simplem_wrap2(x = x1, exposure = exposure, covariates = covariates, simplem_step
 # GxE additional analysis ---- 
 #-----------------------------------------------------------------------------#
 
-# output GxE models adjusted by different covariate sets
-# covariates_sets <- list(covariates, 
-#                         c(covariates, 'bmi5'), 
-#                         c(covariates, 'bmi5', 'smk_ever'), 
-#                         c(covariates, 'bmi5', 'smk_ever', 'fruitqc2', 'vegetableqc2'))
-# 
-# fit_gxe_covars(data_epi = input_data, exposure = exposure, snp = "13:47191972:G:A", covariates_list = covariates_sets, method = 'chiSqGxE', path = glue("{path}/output"))
-# 
-# # additional covariates is making association more significant.. let's generate for all suggestive hits
-# suggestive_gxe <- fread(glue("{path}/data/FIGI_{hrc_version}_gxeset_{exposure}_chiSqGxE_ldclump.clumped"))
-# walk(suggestive_gxe$SNP, ~ fit_gxe_covars(data_epi = input_data, exposure = exposure, snp = .x, covariates_list = covariates_sets, method = 'chiSqGxE', path = glue("{path}/output")))
+# ---- MAF ---- #
+snps <- c("6:12577203:T:C", "5:40252294:C:T")
+walk(snps, ~ create_aaf_study_plot(data = input_data, exposure = exposure, hrc_version = hrc_version, snp = .x, path = path))
 
 
-
-
-# output GxE models adjusted by different covariate sets
+# Additional adjustment covariates
 covariates_sets <- list(covariates,
+                        c(covariates, 'bmi'), 
+                        c(covariates, 'bmi', 'smk_ever'), 
                         c(covariates, 'bmi', 'smk_ever', 'alcoholc', 'redmeatqc2'))
 
-fit_gxe_covars(data_epi = input_data, exposure = exposure, snp = "6:12577203:T:C", covariates_list = covariates_sets, method = 'chiSqGxE', path = glue("{path}/output"))
-fit_gxe_covars(data_epi = input_data, exposure = exposure, snp = "5:40252294:C:T", covariates_list = covariates_sets, method = 'chiSqGxE', path = glue("{path}/output"))
+fit_gxe_covars(data = input_data, exposure = exposure, snp = "6:12577203:T:C", covariates_list = covariates_sets, method = 'chiSqGxE', path = glue("{path}/output"))
+fit_gxe_covars(data = input_data, exposure = exposure, snp = "5:40252294:C:T", covariates_list = covariates_sets, method = 'chiSqGxE', path = glue("{path}/output"))
+
+
 
 
 
@@ -292,80 +296,13 @@ gwis_report(exposure = exposure,
             hrc_version = hrc_version, 
             covariates = covariates)
 
-posthoc_report(exposure = exposure, 
-               hrc_version = hrc_version,
-               covariates = covariates,
-               path = path)
+posthoc_report(exposure = exposure)
 
 
 
 
 
 
-
-
-
-
-# ================================================================== #
-# ======= functional stuff? ---- 
-# ================================================================== #
-
-# first let's get overlap with histone markers (haven't done this on this side yet)
-
-
-
-
-
-hrc <- readRDS("~/data/HRC_rsID/HRC.r1-1.GRCh37.wgs.mac5.sites.tab.chr5.rds")
-
-# Chromosome 5
-tmp1 <- fread("~/Dropbox/FIGI/Annotation_Workflow/example_input/figi_aspirin_v2.4_chr5_40252294.ld")
-tmp2 <- filter(hrc, POS %in% tmp1$BP_B) %>% 
-  mutate(V1 = paste0("chr", `#CHROM`), 
-         V2 = POS - 1, 
-         V3 = POS, 
-         V4 = paste(`#CHROM`, POS, REF, ALT, sep = "-")) %>% 
-  dplyr::select(V1, V2, V3, V4)
-
-write.table(hrcf, file = "~/Dropbox/FIGI/Annotation_Workflow/example_input/figi_aspirin_v2.4_chr5_40252294.bed", quote = F, row.names = F, col.names = F, sep = '\t')
-
-gtex <- fread("~/Dropbox/FIGI/Annotation_Workflow/example_output/figi_aspirin_v2.4_chr5_40252294_eQTL_overlap_summary.tsv",  header = F)
-vep <- fread("~/Dropbox/FIGI/Annotation_Workflow/example_input/figi_aspirin_v2.4_chr5_40252294_vep.txt",  header = T)
-out <- inner_join(gtex, vep, by = c("V1"="#Uploaded_variation"))
-
-# Chromosome 6
-hrc <- readRDS("~/data/HRC_rsID/HRC.r1-1.GRCh37.wgs.mac5.sites.tab.chr6.rds")
-
-tmp1 <- fread("~/Dropbox/FIGI/Annotation_Workflow/example_input/figi_aspirin_v2.4_chr6_12577203.ld")
-tmp2 <- filter(hrc, POS %in% tmp1$BP_B) %>% 
-  mutate(V1 = paste0("chr", `#CHROM`), 
-         V2 = POS - 1, 
-         V3 = POS, 
-         V4 = paste(`#CHROM`, POS, REF, ALT, sep = "-")) %>% 
-  dplyr::select(V1, V2, V3, V4)
-write.table(tmp2, file = "~/Dropbox/FIGI/Annotation_Workflow/example_input/figi_aspirin_v2.4_chr6_12577203.bed", quote = F, row.names = F, col.names = F, sep = '\t')
-
-#
-gtex <- fread("~/Dropbox/FIGI/Annotation_Workflow/example_output/figi_aspirin_v2.4_chr6_12577203_eQTL_overlap_summary.tsv", header = F)
-vep <- fread("~/Dropbox/FIGI/Annotation_Workflow/example_input/figi_aspirin_v2.4_chr6_12577203_vep.txt",  header = T)
-
-
-# Chromosome 6
-# hrc <- readRDS("~/data/HRC_rsID/HRC.r1-1.GRCh37.wgs.mac5.sites.tab.chr6.rds")
-
-tmp1 <- fread("~/Dropbox/FIGI/Annotation_Workflow/example_input/figi_aspirin_v2.4_chr6_32560631.ld")
-tmp2 <- filter(hrc, POS %in% tmp1$BP_B) %>% 
-  mutate(V1 = paste0("chr", `#CHROM`), 
-         V2 = POS - 1, 
-         V3 = POS, 
-         V4 = paste(`#CHROM`, POS, REF, ALT, sep = "-")) %>% 
-  dplyr::select(V1, V2, V3, V4)
-write.table(tmp2, file = "~/Dropbox/FIGI/Annotation_Workflow/example_input/figi_aspirin_v2.4_chr6_32560631.bed", quote = F, row.names = F, col.names = F, sep = '\t')
-
-#
-gtex <- fread("~/Dropbox/FIGI/Annotation_Workflow/example_output/figi_aspirin_v2.4_chr6_32560631_eQTL_overlap_summary.tsv", header = F)
-vep <- fread("~/Dropbox/FIGI/Annotation_Workflow/example_input/figi_aspirin_v2.4_chr6_32560631_vep.txt",  header = T)
-out <- inner_join(gtex, vep, by = c("V1"="#Uploaded_variation"))
 
 
 

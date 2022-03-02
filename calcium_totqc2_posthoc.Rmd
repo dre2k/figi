@@ -3,7 +3,7 @@ title: "`r params$exposure` posthoc analysis"
 date: '`r paste("Updated on", Sys.Date())`'
 output: 
   html_document:
-    css: posthoc_report.css
+    css: posthoc/posthoc_report.css
     toc: true
     toc_float:
       collapsed: false
@@ -65,27 +65,52 @@ path = glue("/media/work/gwis_test/{params$exposure}")
 ```
 
 
-# 2DF
-```{r, results = 'asis'}
-# child method variable
-assign("method", "chiSq2df", child_env)
+<!-- # 2DF -->
+<!-- ```{r, results = 'asis'} -->
+<!-- # child method variable -->
+<!-- assign("method", "chiSq2df", child_env) -->
 
-# SNPs
-snps_out <- readRDS(glue("{path}/output/manhattan_{exposure}_{hrc_version}_chiSq2df_no_gwas_df.rds")) %>%
-  dplyr::filter(SNP == '18:66876036:G:T') %>% 
-  dplyr::arrange(Chromosome, Location) %>%
-  dplyr::mutate(snps = paste0('chr', gsub("\\:", "\\_", SNP))) %>%
-  dplyr::pull(snps)
+<!-- # SNPs -->
+<!-- snps_out <- readRDS(glue("{path}/output/manhattan_{exposure}_{hrc_version}_chiSq2df_no_gwas_df.rds")) %>% -->
+<!--   dplyr::filter(SNP == '18:66876036:G:T') %>%  -->
+<!--   dplyr::arrange(Chromosome, Location) %>% -->
+<!--   dplyr::mutate(snps = paste0('chr', gsub("\\:", "\\_", SNP))) %>% -->
+<!--   dplyr::pull(snps) -->
 
-# Call child Rmd script
-res <- lapply(snps_out, function(snp) {
-  assign("snp", snp, child_env)
-  knitr::knit_child('posthoc_child.Rmd', envir = child_env, quiet = TRUE)
-  }
-)
+<!-- # Call child Rmd script -->
+<!-- res <- lapply(snps_out, function(snp) { -->
+<!--   assign("snp", snp, child_env) -->
+<!--   knitr::knit_child('posthoc/posthoc_child.Rmd', envir = child_env, quiet = TRUE) -->
+<!--   } -->
+<!-- ) -->
 
-cat(unlist(res), sep = '\n')
-```
+<!-- cat(unlist(res), sep = '\n') -->
+<!-- ``` -->
+
+<!-- # Case only -->
+<!-- ```{r, results = 'asis'} -->
+<!-- # child method variable -->
+<!-- assign("method", "chiSqCase", child_env) -->
+
+<!-- snps_out <- fread(glue("{path}/data/FIGI_{hrc_version}_gxeset_{exposure}_chiSqCase_ldclump.clumped")) %>% -->
+<!--   # dplyr::filter(SNP == '18:66876036:G:T') %>%  -->
+<!--   dplyr::arrange(CHR, BP) %>% -->
+<!--   dplyr::mutate(SNP = paste0('chr', gsub("\\:", "\\_", SNP))) %>% -->
+<!--   dplyr::pull(SNP) -->
+
+
+<!-- # Call child Rmd script -->
+<!-- res <- lapply(snps_out, function(snp) { -->
+<!--   assign("snp", snp, child_env) -->
+<!--   knitr::knit_child('posthoc/posthoc_child.Rmd', envir = child_env, quiet = TRUE) -->
+<!--   } -->
+<!-- ) -->
+
+<!-- cat(unlist(res), sep = '\n') -->
+<!-- ``` -->
+
+
+
 
 
 # Twostep method (expectation based)
@@ -100,7 +125,7 @@ snps_out <- c("chr2_135590239_G_A")
 # Call child Rmd script
 res <- lapply(snps_out, function(snp) {
   assign("snp", snp, child_env)
-  knitr::knit_child('posthoc_child.Rmd', envir = child_env, quiet = TRUE)
+  knitr::knit_child('posthoc/posthoc_child.Rmd', envir = child_env, quiet = TRUE)
   }
 )
 

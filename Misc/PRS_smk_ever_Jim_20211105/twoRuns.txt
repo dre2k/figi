@@ -1,0 +1,704 @@
+smoke x G100 interaction for those with complete E data and GxE=1                               4652
+                                                                      14:59 Monday, October 25, 2021
+
+The LOGISTIC Procedure
+
+              Model Information
+
+Data Set                      WORK.NOMISS
+Response Variable             d
+Number of Response Levels     2
+Model                         binary logit
+Optimization Technique        Fisher's scoring
+
+
+Number of Observations Read       62300
+Number of Observations Used       62300
+
+
+          Response Profile
+
+ Ordered                      Total
+   Value            d     Frequency
+
+       1            1         25965
+       2            0         36335
+
+Probability modeled is d=1.
+
+
+                                      Class Level Information
+
+Class      Value                                      Design Variables
+
+studyname  ATBC           1   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+           CCFR_1         0   1   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+           CCFR_3         0   0   1   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+           CCFR_4         0   0   0   1   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+           CLUEII         0   0   0   0   1   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+           CPSII_1        0   0   0   0   0   1   0   0   0   0   0   0   0   0   0   0   0   0   0
+           CPSII_2        0   0   0   0   0   0   1   0   0   0   0   0   0   0   0   0   0   0   0
+           CRCGEN         0   0   0   0   0   0   0   1   0   0   0   0   0   0   0   0   0   0   0
+           Colo23         0   0   0   0   0   0   0   0   1   0   0   0   0   0   0   0   0   0   0
+           DACHS_1        0   0   0   0   0   0   0   0   0   1   0   0   0   0   0   0   0   0   0
+           DACHS_2        0   0   0   0   0   0   0   0   0   0   1   0   0   0   0   0   0   0   0
+           DACHS_3        0   0   0   0   0   0   0   0   0   0   0   1   0   0   0   0   0   0   0
+           DALS_1         0   0   0   0   0   0   0   0   0   0   0   0   1   0   0   0   0   0   0
+           DALS_2         0   0   0   0   0   0   0   0   0   0   0   0   0   1   0   0   0   0   0
+           HPFS_1         0   0   0   0   0   0   0   0   0   0   0   0   0   0   1   0   0   0   0
+           HPFS_2         0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   1   0   0   0
+           HPFS_3_AD      0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   1   0   0
+           HPFS_4         0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   1   0
+           HPFS_5_AD      0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   1
+           HawaiiCCS_AD   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+           Kentucky       0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+           LCCS           0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+           MCCS_1         0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+           MCCS_2         0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+           MECC_1         0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+           MECC_2         0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+           MECC_3         0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+           MEC_1          0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+           MEC_2          0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+           NCCCSII        0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+           NHS_1          0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+           NHS_2          0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+           NHS_3_AD       0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+           NHS_4          0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+           NHS_5_AD       0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+           PHS            0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+           PLCO_1         0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+           PLCO_2         0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+           PLCO_3         0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+           PLCO_4_AD      0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+           SELECT         0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+           UKB_1          0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+           VITAL          0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+           WHI_1          0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+           WHI_2          0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+           WHI_3         -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1
+
+                                     Class Level Information
+
+                                         Design Variables
+
+ 0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+ 0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+ 0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+ 0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+ 0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+ 0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+ 0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+ 0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+ 0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+ 0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+ 0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+ 0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+ 0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+ 0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+ 0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+ 0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+ 0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+ 0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+ 0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+ 1   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+ 0   1   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+ 0   0   1   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+ 0   0   0   1   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+ 0   0   0   0   1   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+ 0   0   0   0   0   1   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+ 0   0   0   0   0   0   1   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+ 0   0   0   0   0   0   0   1   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+ 0   0   0   0   0   0   0   0   1   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+ 0   0   0   0   0   0   0   0   0   1   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+ 0   0   0   0   0   0   0   0   0   0   1   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+ 0   0   0   0   0   0   0   0   0   0   0   1   0   0   0   0   0   0   0   0   0   0   0   0   0
+ 0   0   0   0   0   0   0   0   0   0   0   0   1   0   0   0   0   0   0   0   0   0   0   0   0
+ 0   0   0   0   0   0   0   0   0   0   0   0   0   1   0   0   0   0   0   0   0   0   0   0   0
+ 0   0   0   0   0   0   0   0   0   0   0   0   0   0   1   0   0   0   0   0   0   0   0   0   0
+ 0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   1   0   0   0   0   0   0   0   0   0
+ 0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   1   0   0   0   0   0   0   0   0
+ 0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   1   0   0   0   0   0   0   0
+ 0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   1   0   0   0   0   0   0
+ 0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   1   0   0   0   0   0
+ 0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   1   0   0   0   0
+ 0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   1   0   0   0
+ 0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   1   0   0
+ 0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   1   0
+ 0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   1
+ 0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+-1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1
+
+Class Level Information
+
+  Design
+Variables
+
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 1
+-1
+
+
+                    Model Convergence Status
+
+         Convergence criterion (GCONV=1E-8) satisfied.
+
+
+         Model Fit Statistics
+
+                             Intercept
+              Intercept            and
+Criterion          Only     Covariates
+
+AIC           84633.964      77685.336
+SC            84643.004      78173.481
+-2 Log L      84631.964      77577.336
+
+
+        Testing Global Null Hypothesis: BETA=0
+
+Test                 Chi-Square       DF     Pr > ChiSq
+
+Likelihood Ratio      7054.6281       53         <.0001
+Score                 6651.0370       53         <.0001
+Wald                  6034.2837       53         <.0001
+
+
+            Type 3 Analysis of Effects
+
+                                Wald
+Effect              DF    Chi-Square    Pr > ChiSq
+
+studyname           45     5320.1847        <.0001
+PC1                  1       14.8441        0.0001
+PC2                  1        1.5989        0.2061
+PC3                  1       21.8079        <.0001
+xmale                1        8.9730        0.0027
+age10                1        8.9755        0.0027
+xsmk_ever            1       82.1369        <.0001
+g100                 1       27.0119        <.0001
+xsmk_ever*g100       1       28.8060        <.0001
+
+
+                      Analysis of Maximum Likelihood Estimates
+
+                                                 Standard          Wald
+Parameter                      DF    Estimate       Error    Chi-Square    Pr > ChiSq
+
+Intercept                       1     -0.0710      0.0675        1.1071        0.2927
+studyname      ATBC             1      1.4381      0.1987       52.3813        <.0001
+studyname      CCFR_1           1     -0.2606      0.0737       12.4955        0.0004
+studyname      CCFR_3           1      0.2458      0.0693       12.5842        0.0004
+studyname      CCFR_4           1     -0.4090      0.1330        9.4551        0.0021
+studyname      CLUEII           1     -0.0359      0.0998        0.1292        0.7193
+studyname      CPSII_1          1      0.1159      0.0651        3.1705        0.0750
+studyname      CPSII_2          1      0.1046      0.0798        1.7156        0.1903
+studyname      CRCGEN           1     -0.0738      0.0501        2.1736        0.1404
+studyname      Colo23           1     -0.2298      0.1488        2.3855        0.1225
+studyname      DACHS_1          1      0.1073      0.0379        8.0249        0.0046
+studyname      DACHS_2          1      0.4203      0.0617       46.3392        <.0001
+studyname      DACHS_3          1      0.8043      0.0515      244.1614        <.0001
+studyname      DALS_1           1      0.0829      0.0546        2.3062        0.1289
+studyname      DALS_2           1     -0.0434      0.0690        0.3950        0.5297
+studyname      HPFS_1           1     -0.0156      0.1105        0.0201        0.8874
+studyname      HPFS_2           1     -0.8970      0.2865        9.8046        0.0017
+studyname      HPFS_3_AD        1      0.1425      0.0866        2.7048        0.1000
+studyname      HPFS_4           1     -0.0111      0.1143        0.0094        0.9229
+studyname      HPFS_5_AD        1      0.4819      0.1296       13.8186        0.0002
+studyname      HawaiiCCS_AD     1     -2.0253      0.0978      428.8511        <.0001
+studyname      Kentucky         1     -0.0445      0.0516        0.7452        0.3880
+studyname      LCCS             1      0.6531      0.0510      164.0473        <.0001
+studyname      MCCS_1           1      0.0890      0.0819        1.1801        0.2773
+studyname      MCCS_2           1      0.0495      0.1205        0.1685        0.6815
+studyname      MECC_1           1      0.1893      0.0797        5.6503        0.0175
+studyname      MECC_2           1      0.3331      0.0605       30.3377        <.0001
+studyname      MECC_3           1      0.4487      0.0451       98.8660        <.0001
+studyname      MEC_1            1      0.0321      0.0799        0.1616        0.6876
+studyname      MEC_2            1     -0.2625      0.0886        8.7800        0.0030
+studyname      NCCCSII          1     -0.0635      0.0551        1.3279        0.2492
+studyname      NHS_1            1     -0.6183      0.0742       69.3698        <.0001
+studyname      NHS_2            1     -0.4094      0.1644        6.1989        0.0128
+studyname      NHS_3_AD         1      0.2835      0.0699       16.4312        <.0001
+studyname      NHS_4            1      0.1634      0.0943        3.0022        0.0832
+studyname      NHS_5_AD         1      0.3668      0.0979       14.0412        0.0002
+studyname      PHS              1      0.0478      0.0745        0.4125        0.5207
+studyname      PLCO_1           1      0.5438      0.0752       52.3305        <.0001
+studyname      PLCO_2           1      0.3385      0.0744       20.7186        <.0001
+studyname      PLCO_3           1     -1.3308      0.0427      971.7227        <.0001
+studyname      PLCO_4_AD        1      0.2570      0.0486       27.9382        <.0001
+studyname      SELECT           1      0.0107      0.0824        0.0167        0.8971
+studyname      UKB_1            1     -1.3096      0.0262     2497.2544        <.0001
+studyname      VITAL            1      0.0242      0.0923        0.0689        0.7930
+studyname      WHI_1            1      0.0335      0.0665        0.2541        0.6142
+studyname      WHI_2            1      0.1258      0.0483        6.7833        0.0092
+PC1                             1     -0.0961      0.0249       14.8441        0.0001
+PC2                             1     -0.0139      0.0110        1.5989        0.2061
+PC3                             1      0.0618      0.0132       21.8079        <.0001
+xmale                           1      0.0589      0.0197        8.9730        0.0027
+age10                           1     -0.0294     0.00981        8.9755        0.0027
+xsmk_ever                       1      0.2378      0.0262       82.1369        <.0001
+g100                            1      0.0992      0.0191       27.0119        <.0001
+xsmk_ever*g100                  1     -0.1270      0.0237       28.8060        <.0001
+
+
+                       Odds Ratio Estimates
+
+                                      Point          95% Wald
+Effect                             Estimate      Confidence Limits
+
+studyname ATBC         vs WHI_3       3.787       2.498       5.739
+studyname CCFR_1       vs WHI_3       0.693       0.574       0.836
+studyname CCFR_3       vs WHI_3       1.149       0.959       1.377
+studyname CCFR_4       vs WHI_3       0.597       0.446       0.799
+studyname CLUEII       vs WHI_3       0.867       0.688       1.093
+studyname CPSII_1      vs WHI_3       1.009       0.847       1.202
+studyname CPSII_2      vs WHI_3       0.998       0.818       1.217
+studyname CRCGEN       vs WHI_3       0.835       0.715       0.975
+studyname Colo23       vs WHI_3       0.714       0.518       0.984
+studyname DACHS_1      vs WHI_3       1.001       0.870       1.151
+studyname DACHS_2      vs WHI_3       1.368       1.154       1.623
+studyname DACHS_3      vs WHI_3       2.009       1.718       2.349
+studyname DALS_1       vs WHI_3       0.976       0.832       1.146
+studyname DALS_2       vs WHI_3       0.861       0.718       1.032
+studyname HPFS_1       vs WHI_3       0.885       0.688       1.138
+studyname HPFS_2       vs WHI_3       0.367       0.204       0.659
+studyname HPFS_3_AD    vs WHI_3       1.036       0.839       1.280
+studyname HPFS_4       vs WHI_3       0.889       0.686       1.151
+studyname HPFS_5_AD    vs WHI_3       1.455       1.093       1.938
+studyname HawaiiCCS_AD vs WHI_3       0.119       0.094       0.149
+studyname Kentucky     vs WHI_3       0.860       0.736       1.005
+studyname LCCS         vs WHI_3       1.727       1.478       2.017
+studyname MCCS_1       vs WHI_3       0.982       0.803       1.202
+studyname MCCS_2       vs WHI_3       0.944       0.722       1.235
+studyname MECC_1       vs WHI_3       1.086       0.891       1.325
+studyname MECC_2       vs WHI_3       1.254       1.059       1.485
+studyname MECC_3       vs WHI_3       1.408       1.213       1.634
+studyname MEC_1        vs WHI_3       0.928       0.761       1.132
+studyname MEC_2        vs WHI_3       0.691       0.558       0.857
+studyname NCCCSII      vs WHI_3       0.843       0.717       0.992
+studyname NHS_1        vs WHI_3       0.484       0.402       0.584
+studyname NHS_2        vs WHI_3       0.597       0.421       0.846
+studyname NHS_3_AD     vs WHI_3       1.193       0.996       1.429
+studyname NHS_4        vs WHI_3       1.058       0.849       1.319
+studyname NHS_5_AD     vs WHI_3       1.297       1.034       1.627
+studyname PHS          vs WHI_3       0.943       0.778       1.142
+studyname PLCO_1       vs WHI_3       1.548       1.279       1.874
+studyname PLCO_2       vs WHI_3       1.261       1.043       1.524
+studyname PLCO_3       vs WHI_3       0.238       0.205       0.275
+studyname PLCO_4_AD    vs WHI_3       1.162       0.998       1.353
+studyname SELECT       vs WHI_3       0.908       0.740       1.115
+studyname UKB_1        vs WHI_3       0.243       0.213       0.276
+studyname VITAL        vs WHI_3       0.921       0.740       1.146
+studyname WHI_1        vs WHI_3       0.929       0.780       1.107
+studyname WHI_2        vs WHI_3       1.019       0.878       1.183
+PC1                                   0.908       0.865       0.954
+PC2                                   0.986       0.965       1.008
+PC3                                   1.064       1.036       1.092
+xmale                                 1.061       1.021       1.102
+age10                                 0.971       0.953       0.990
+
+
+Association of Predicted Probabilities and Observed Responses
+
+Percent Concordant         68.3    Somers' D    0.365
+Percent Discordant         31.7    Gamma        0.365
+Percent Tied                0.0    Tau-a        0.178
+Pairs                 943438275    c            0.683
+smoke x G100 interaction for those with complete E data and GxE=1: also adjusted for ht and BMI 4653
+                                                                      14:59 Monday, October 25, 2021
+
+The LOGISTIC Procedure
+
+              Model Information
+
+Data Set                      WORK.NOMISS
+Response Variable             d
+Number of Response Levels     2
+Model                         binary logit
+Optimization Technique        Fisher's scoring
+
+
+Number of Observations Read       62300
+Number of Observations Used       62300
+
+
+          Response Profile
+
+ Ordered                      Total
+   Value            d     Frequency
+
+       1            1         25965
+       2            0         36335
+
+Probability modeled is d=1.
+
+
+                                      Class Level Information
+
+Class      Value                                      Design Variables
+
+studyname  ATBC           1   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+           CCFR_1         0   1   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+           CCFR_3         0   0   1   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+           CCFR_4         0   0   0   1   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+           CLUEII         0   0   0   0   1   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+           CPSII_1        0   0   0   0   0   1   0   0   0   0   0   0   0   0   0   0   0   0   0
+           CPSII_2        0   0   0   0   0   0   1   0   0   0   0   0   0   0   0   0   0   0   0
+           CRCGEN         0   0   0   0   0   0   0   1   0   0   0   0   0   0   0   0   0   0   0
+           Colo23         0   0   0   0   0   0   0   0   1   0   0   0   0   0   0   0   0   0   0
+           DACHS_1        0   0   0   0   0   0   0   0   0   1   0   0   0   0   0   0   0   0   0
+           DACHS_2        0   0   0   0   0   0   0   0   0   0   1   0   0   0   0   0   0   0   0
+           DACHS_3        0   0   0   0   0   0   0   0   0   0   0   1   0   0   0   0   0   0   0
+           DALS_1         0   0   0   0   0   0   0   0   0   0   0   0   1   0   0   0   0   0   0
+           DALS_2         0   0   0   0   0   0   0   0   0   0   0   0   0   1   0   0   0   0   0
+           HPFS_1         0   0   0   0   0   0   0   0   0   0   0   0   0   0   1   0   0   0   0
+           HPFS_2         0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   1   0   0   0
+           HPFS_3_AD      0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   1   0   0
+           HPFS_4         0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   1   0
+           HPFS_5_AD      0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   1
+           HawaiiCCS_AD   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+           Kentucky       0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+           LCCS           0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+           MCCS_1         0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+           MCCS_2         0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+           MECC_1         0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+           MECC_2         0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+           MECC_3         0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+           MEC_1          0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+           MEC_2          0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+           NCCCSII        0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+           NHS_1          0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+           NHS_2          0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+           NHS_3_AD       0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+           NHS_4          0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+           NHS_5_AD       0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+           PHS            0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+           PLCO_1         0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+           PLCO_2         0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+           PLCO_3         0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+           PLCO_4_AD      0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+           SELECT         0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+           UKB_1          0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+           VITAL          0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+           WHI_1          0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+           WHI_2          0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+           WHI_3         -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1
+
+                                     Class Level Information
+
+                                         Design Variables
+
+ 0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+ 0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+ 0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+ 0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+ 0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+ 0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+ 0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+ 0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+ 0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+ 0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+ 0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+ 0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+ 0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+ 0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+ 0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+ 0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+ 0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+ 0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+ 0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+ 1   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+ 0   1   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+ 0   0   1   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+ 0   0   0   1   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+ 0   0   0   0   1   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+ 0   0   0   0   0   1   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+ 0   0   0   0   0   0   1   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+ 0   0   0   0   0   0   0   1   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+ 0   0   0   0   0   0   0   0   1   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+ 0   0   0   0   0   0   0   0   0   1   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+ 0   0   0   0   0   0   0   0   0   0   1   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+ 0   0   0   0   0   0   0   0   0   0   0   1   0   0   0   0   0   0   0   0   0   0   0   0   0
+ 0   0   0   0   0   0   0   0   0   0   0   0   1   0   0   0   0   0   0   0   0   0   0   0   0
+ 0   0   0   0   0   0   0   0   0   0   0   0   0   1   0   0   0   0   0   0   0   0   0   0   0
+ 0   0   0   0   0   0   0   0   0   0   0   0   0   0   1   0   0   0   0   0   0   0   0   0   0
+ 0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   1   0   0   0   0   0   0   0   0   0
+ 0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   1   0   0   0   0   0   0   0   0
+ 0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   1   0   0   0   0   0   0   0
+ 0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   1   0   0   0   0   0   0
+ 0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   1   0   0   0   0   0
+ 0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   1   0   0   0   0
+ 0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   1   0   0   0
+ 0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   1   0   0
+ 0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   1   0
+ 0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   1
+ 0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+-1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1
+
+Class Level Information
+
+  Design
+Variables
+
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 1
+-1
+
+
+                    Model Convergence Status
+
+         Convergence criterion (GCONV=1E-8) satisfied.
+
+
+         Model Fit Statistics
+
+                             Intercept
+              Intercept            and
+Criterion          Only     Covariates
+
+AIC           84633.964      77474.962
+SC            84643.004      77981.186
+-2 Log L      84631.964      77362.962
+
+
+        Testing Global Null Hypothesis: BETA=0
+
+Test                 Chi-Square       DF     Pr > ChiSq
+
+Likelihood Ratio      7269.0020       55         <.0001
+Score                 6842.4840       55         <.0001
+Wald                  6187.4379       55         <.0001
+
+
+            Type 3 Analysis of Effects
+
+                                Wald
+Effect              DF    Chi-Square    Pr > ChiSq
+
+studyname           45     5322.7225        <.0001
+PC1                  1       19.3279        <.0001
+PC2                  1        0.5208        0.4705
+PC3                  1       17.0326        <.0001
+xmale                1        0.9458        0.3308
+age10                1        2.6737        0.1020
+xht                  1       16.7730        <.0001
+xbmi10               1      204.8202        <.0001
+xsmk_ever            1       76.2435        <.0001
+g100                 1       25.3041        <.0001
+xsmk_ever*g100       1       25.4347        <.0001
+
+
+                      Analysis of Maximum Likelihood Estimates
+
+                                                 Standard          Wald
+Parameter                      DF    Estimate       Error    Chi-Square    Pr > ChiSq
+
+Intercept                       1     -1.7433      0.2487       49.1343        <.0001
+studyname      ATBC             1      1.4776      0.1990       55.1398        <.0001
+studyname      CCFR_1           1     -0.2560      0.0739       11.9961        0.0005
+studyname      CCFR_3           1      0.2612      0.0694       14.1588        0.0002
+studyname      CCFR_4           1     -0.3879      0.1332        8.4773        0.0036
+studyname      CLUEII           1    -0.00580      0.0999        0.0034        0.9537
+studyname      CPSII_1          1      0.1122      0.0653        2.9546        0.0856
+studyname      CPSII_2          1      0.1097      0.0800        1.8783        0.1705
+studyname      CRCGEN           1     -0.0319      0.0509        0.3925        0.5310
+studyname      Colo23           1     -0.2137      0.1491        2.0546        0.1518
+studyname      DACHS_1          1      0.1140      0.0379        9.0356        0.0026
+studyname      DACHS_2          1      0.4233      0.0618       46.8870        <.0001
+studyname      DACHS_3          1      0.8021      0.0515      242.3136        <.0001
+studyname      DALS_1           1      0.0815      0.0547        2.2210        0.1361
+studyname      DALS_2           1     -0.0439      0.0691        0.4035        0.5253
+studyname      HPFS_1           1     0.00864      0.1107        0.0061        0.9378
+studyname      HPFS_2           1     -0.8781      0.2867        9.3812        0.0022
+studyname      HPFS_3_AD        1      0.1624      0.0868        3.4980        0.0614
+studyname      HPFS_4           1     -0.0115      0.1145        0.0100        0.9203
+studyname      HPFS_5_AD        1      0.4826      0.1299       13.8015        0.0002
+studyname      HawaiiCCS_AD     1     -2.0509      0.0981      436.7052        <.0001
+studyname      Kentucky         1     -0.0924      0.0519        3.1744        0.0748
+studyname      LCCS             1      0.6693      0.0511      171.4627        <.0001
+studyname      MCCS_1           1      0.1134      0.0822        1.9009        0.1680
+studyname      MCCS_2           1      0.0580      0.1208        0.2308        0.6309
+studyname      MECC_1           1      0.1781      0.0798        4.9820        0.0256
+studyname      MECC_2           1      0.3239      0.0606       28.5835        <.0001
+studyname      MECC_3           1      0.4307      0.0452       90.6782        <.0001
+studyname      MEC_1            1      0.0394      0.0800        0.2428        0.6222
+studyname      MEC_2            1     -0.2826      0.0889       10.1005        0.0015
+studyname      NCCCSII          1     -0.1120      0.0554        4.0842        0.0433
+studyname      NHS_1            1     -0.5875      0.0744       62.3892        <.0001
+studyname      NHS_2            1     -0.3812      0.1647        5.3566        0.0206
+studyname      NHS_3_AD         1      0.3204      0.0701       20.8976        <.0001
+studyname      NHS_4            1      0.1591      0.0945        2.8307        0.0925
+studyname      NHS_5_AD         1      0.3665      0.0981       13.9497        0.0002
+studyname      PHS              1      0.0950      0.0747        1.6203        0.2031
+studyname      PLCO_1           1      0.5188      0.0754       47.3905        <.0001
+studyname      PLCO_2           1      0.3228      0.0745       18.7597        <.0001
+studyname      PLCO_3           1     -1.3483      0.0428      993.4051        <.0001
+studyname      PLCO_4_AD        1      0.2300      0.0488       22.2371        <.0001
+studyname      SELECT           1     -0.0367      0.0827        0.1971        0.6571
+studyname      UKB_1            1     -1.3213      0.0264     2497.1853        <.0001
+studyname      VITAL            1    -0.00678      0.0926        0.0054        0.9416
+studyname      WHI_1            1      0.0212      0.0667        0.1006        0.7511
+studyname      WHI_2            1      0.0843      0.0485        3.0135        0.0826
+PC1                             1     -0.1109      0.0252       19.3279        <.0001
+PC2                             1    -0.00796      0.0110        0.5208        0.4705
+PC3                             1      0.0550      0.0133       17.0326        <.0001
+xmale                           1     -0.0258      0.0265        0.9458        0.3308
+age10                           1     -0.0164      0.0100        2.6737        0.1020
+xht                             1      0.0549      0.0134       16.7730        <.0001
+xbmi10                          1      0.2634      0.0184      204.8202        <.0001
+xsmk_ever                       1      0.2296      0.0263       76.2435        <.0001
+g100                            1      0.0962      0.0191       25.3041        <.0001
+xsmk_ever*g100                  1     -0.1196      0.0237       25.4347        <.0001
+
+
+                       Odds Ratio Estimates
+
+                                      Point          95% Wald
+Effect                             Estimate      Confidence Limits
+
+studyname ATBC         vs WHI_3       4.037       2.662       6.122
+studyname CCFR_1       vs WHI_3       0.713       0.590       0.862
+studyname CCFR_3       vs WHI_3       1.196       0.997       1.434
+studyname CCFR_4       vs WHI_3       0.625       0.467       0.837
+studyname CLUEII       vs WHI_3       0.916       0.726       1.155
+studyname CPSII_1      vs WHI_3       1.030       0.864       1.229
+studyname CPSII_2      vs WHI_3       1.028       0.843       1.254
+studyname CRCGEN       vs WHI_3       0.892       0.763       1.043
+studyname Colo23       vs WHI_3       0.744       0.540       1.026
+studyname DACHS_1      vs WHI_3       1.032       0.897       1.188
+studyname DACHS_2      vs WHI_3       1.407       1.185       1.669
+studyname DACHS_3      vs WHI_3       2.054       1.756       2.403
+studyname DALS_1       vs WHI_3       0.999       0.851       1.174
+studyname DALS_2       vs WHI_3       0.882       0.735       1.057
+studyname HPFS_1       vs WHI_3       0.929       0.722       1.196
+studyname HPFS_2       vs WHI_3       0.383       0.213       0.689
+studyname HPFS_3_AD    vs WHI_3       1.084       0.877       1.339
+studyname HPFS_4       vs WHI_3       0.911       0.703       1.180
+studyname HPFS_5_AD    vs WHI_3       1.492       1.120       1.989
+studyname HawaiiCCS_AD vs WHI_3       0.118       0.094       0.149
+studyname Kentucky     vs WHI_3       0.840       0.718       0.982
+studyname LCCS         vs WHI_3       1.799       1.539       2.102
+studyname MCCS_1       vs WHI_3       1.032       0.843       1.263
+studyname MCCS_2       vs WHI_3       0.976       0.746       1.278
+studyname MECC_1       vs WHI_3       1.101       0.902       1.343
+studyname MECC_2       vs WHI_3       1.274       1.075       1.509
+studyname MECC_3       vs WHI_3       1.417       1.221       1.645
+studyname MEC_1        vs WHI_3       0.958       0.785       1.169
+studyname MEC_2        vs WHI_3       0.694       0.560       0.861
+studyname NCCCSII      vs WHI_3       0.824       0.700       0.969
+studyname NHS_1        vs WHI_3       0.512       0.424       0.618
+studyname NHS_2        vs WHI_3       0.629       0.444       0.892
+studyname NHS_3_AD     vs WHI_3       1.269       1.059       1.521
+studyname NHS_4        vs WHI_3       1.080       0.866       1.347
+studyname NHS_5_AD     vs WHI_3       1.329       1.059       1.668
+studyname PHS          vs WHI_3       1.013       0.836       1.228
+studyname PLCO_1       vs WHI_3       1.548       1.278       1.874
+studyname PLCO_2       vs WHI_3       1.272       1.052       1.539
+studyname PLCO_3       vs WHI_3       0.239       0.207       0.277
+studyname PLCO_4_AD    vs WHI_3       1.159       0.995       1.351
+studyname SELECT       vs WHI_3       0.888       0.723       1.090
+studyname UKB_1        vs WHI_3       0.246       0.216       0.280
+studyname VITAL        vs WHI_3       0.915       0.735       1.140
+studyname WHI_1        vs WHI_3       0.941       0.789       1.122
+studyname WHI_2        vs WHI_3       1.002       0.863       1.164
+PC1                                   0.895       0.852       0.940
+PC2                                   0.992       0.971       1.014
+PC3                                   1.057       1.029       1.084
+xmale                                 0.975       0.925       1.027
+age10                                 0.984       0.965       1.003
+xht                                   1.056       1.029       1.085
+xbmi10                                1.301       1.255       1.349
+
+
+Association of Predicted Probabilities and Observed Responses
+
+Percent Concordant         68.8    Somers' D    0.376
+Percent Discordant         31.2    Gamma        0.376
+Percent Tied                0.0    Tau-a        0.183
+Pairs                 943438275    c            0.688

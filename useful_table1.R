@@ -1,11 +1,12 @@
-
+keep <- input_data$vcfid
 gxe_table1 <-  readRDS(paste0("/media/work/gwis_test/data/FIGI_v2.3_gxeset_analysis_data_table1.rds"))
 gxe_table1_subset <- gxe_table1 %>%
   filter(vcfid %in% keep) %>% 
   dplyr::mutate(outcome = as.factor(outcome),
                 redmeatqc2 = as.factor(redmeatqc2), 
-                procmeatqc2 = as.factor(procmeatqc2)) %>% 
-  filter(!study %in% c("CzechCCS", "DACHS", "REACH", "SMS", "UKB"))
+                procmeatqc2 = as.factor(procmeatqc2), 
+                diab = as.factor(diab)) %>% 
+  filter(sex == 0)
 
 
 
@@ -47,7 +48,7 @@ rndr.strat <- function(label, n, ...) {
 }
 
 # include all covariates in every descriptive statistics table
-table_covariates = c("age_ref_imp", "sex", "asp_ref", "heightcm", "bmi", "energytot_imp")
+table_covariates = c("age_ref_imp", "sex", "asp_ref", "heightcm", "bmi", "hrt_ref_pm")
 
 table1(as.formula(paste0("~ ", paste(table_covariates, collapse = "+"), "| outcome_table1")),
        data=gxe_table1_subset,

@@ -66,6 +66,14 @@ table(out$study, out$outc, useNA = 'ifany')
 table(out$study_gxe, out$outc, useNA = 'ifany')
 
 
+# -------------- UPDATE 10/26/2021 ---------------- #
+# DROP DACHS ..... 
+
+out <- out %>% 
+  filter(!grepl("DACHS", study_gxe))
+table(out$study, out$outc, useNA = 'ifany')
+
+
 # which exposure to use? 
 # either fruitqc2 (original quartile) or fruit5qcm (median 5servings/day, sex study specific)
 # let's try fruit5qcm for this first pass 

@@ -40,28 +40,26 @@ aaf_png <- glue("{path}/output/posthoc/aaf_by_studygxe_{exposure}_{hrc_version}_
 knitr::include_graphics(aaf_png)
 ```
 
+<!-- ```{r, results = 'asis',  eval = stratified_sex} -->
+<!-- cat(paste0("### GxE stratified by sex"), collapse = '\n') -->
 
-```{r, results = 'asis',  eval = stratified_sex}
-cat(paste0("### GxE stratified by sex"), collapse = '\n')
+<!-- rawHTML <- paste(readLines(glue("{path}/output/posthoc/gxe_models_{exposure}_{hrc_version}_{snp}_dose_{glue_collapse(sort(covariates), sep = '_')}_stratified_by_sex.html"))) -->
+<!-- cat(paste(rawHTML, collapse = "\n"), "\n") -->
+<!-- ``` -->
 
-rawHTML <- paste(readLines(glue("{path}/output/posthoc/gxe_models_{exposure}_{hrc_version}_{snp}_dose_{glue_collapse(sort(covariates), sep = '_')}_stratified_by_sex.html")))
-cat(paste(rawHTML, collapse = "\n"), "\n")
-```
+<!-- ```{r, results = 'asis',  eval = stratified_sex} -->
+<!-- cat(paste0("### GxE stratified by tumor site"), collapse = '\n') -->
 
-```{r, results = 'asis',  eval = stratified_sex}
-cat(paste0("### GxE stratified by tumor site"), collapse = '\n')
+<!-- rawHTML <- paste(readLines(glue("{path}/output/posthoc/gxe_models_{exposure}_{hrc_version}_{snp}_dose_{glue_collapse(sort(covariates), sep = '_')}_stratified_by_cancer_site_sum2.html"))) -->
+<!-- cat(paste(rawHTML, collapse = "\n"), "\n") -->
+<!-- ``` -->
 
-rawHTML <- paste(readLines(glue("{path}/output/posthoc/gxe_models_{exposure}_{hrc_version}_{snp}_dose_{glue_collapse(sort(covariates), sep = '_')}_stratified_by_cancer_site_sum2.html")))
-cat(paste(rawHTML, collapse = "\n"), "\n")
-```
+<!-- ```{r, results = 'asis',  eval = stratified_sex} -->
+<!-- cat(paste0("### GxE stratified by study design"), collapse = '\n') -->
 
-```{r, results = 'asis',  eval = stratified_sex}
-cat(paste0("### GxE stratified by study design"), collapse = '\n')
-
-rawHTML <- paste(readLines(glue("{path}/output/posthoc/gxe_models_{exposure}_{hrc_version}_{snp}_dose_{glue_collapse(sort(covariates), sep = '_')}_stratified_by_study_design.html")))
-cat(paste(rawHTML, collapse = "\n"), "\n")
-```
-
+<!-- rawHTML <- paste(readLines(glue("{path}/output/posthoc/gxe_models_{exposure}_{hrc_version}_{snp}_dose_{glue_collapse(sort(covariates), sep = '_')}_stratified_by_study_design.html"))) -->
+<!-- cat(paste(rawHTML, collapse = "\n"), "\n") -->
+<!-- ``` -->
 
 
 ```{r, echo = F, results = 'asis'}

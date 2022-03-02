@@ -54,18 +54,20 @@ alcoholc_heavy_vs_moderate_vcfid <- readRDS("/media/work/gwis_test/alcoholc_heav
 keep <- unique(c(alcoholc_moderate_vcfid, alcoholc_heavy_vs_moderate_vcfid))
 
 gxe_table1 <-  readRDS(glue("/media/work/gwis_test/data/FIGI_{hrc_version}_gxeset_analysis_data_table1.rds")) %>% 
+  filter(vcfid %in% keep) %>% 
   mutate(outcome_table1 = fct_relevel(outcome_table1, "Cases"), 
          sex = case_when(sex == 0 ~ "Female", 
                          sex == 1 ~ "Male", 
                          TRUE ~ ""), 
+         cancer_site_sum2 = factor(cancer_site_sum2), 
          alcoholc = factor(alcoholc, labels = c("Light-to-moderate drinkers (>1-28 g/d)", 
                                                "Non-drinkers (\u2264 1 g/day)", 
                                                "Heavy drinkers (>28 g/d)")), 
          methrswklns = as.numeric(methrswklns), 
          redmeatqc2 = factor(redmeatqc2, labels = c("Q1", "Q2", "Q3", "Q4")),
          fruitqc2 = factor(fruitqc2, labels = c("Q1", "Q2", "Q3", "Q4")),
-         vegetableqc2 = factor(vegetableqc2, labels = c("Q1", "Q2", "Q3", "Q4"))) %>% 
-  filter(vcfid %in% keep) 
+         vegetableqc2 = factor(vegetableqc2, labels = c("Q1", "Q2", "Q3", "Q4")))
+  
 
 label(gxe_table1$alcoholc) = "Alcohol consumption"
 label(gxe_table1$age_ref_imp) = "Age (mean imputed)"
@@ -84,9 +86,9 @@ label(gxe_table1$hrt_ref_pm) = "Hormone replacement therapy use"
 # include all covariates in every descriptive statistics table
 table_covariates = c("age_ref_imp", "sex", "asp_ref", "heightcm", "bmi", "energytot", "energytot_imp", "famhx1", "educ", "smk_ever", "hrt_ref_pm2", "diab", "calcium_totqc2", "folate_totqc2", "fiberqc2", "redmeatqc2", "procmeatqc2", "fruitqc2", "vegetableqc2", "p_diet_std")
 
-table_covariates = c("alcoholc", "age_ref_imp", "sex", "famhx1", "educ", "energytot_imp", "bmi", "diab",  "smk_ever", "methrswklns", "redmeatqc2", "fruitqc2", "vegetableqc2", "hrt_ref_pm")
+table_covariates = c("alcoholc", "cancer_site_sum2", "age_ref_imp", "sex", "famhx1", "educ", "energytot_imp", "bmi", "diab",  "smk_ever", "methrswklns", "redmeatqc2", "fruitqc2", "vegetableqc2", "hrt_ref_pm")
 
-
+uy
 
 table1(as.formula(paste0("~ ", paste(table_covariates, collapse = "+"), "| outcome_table1")),
        data=gxe_table1,
@@ -157,7 +159,7 @@ model_g <- glm(outcome ~ chr10_101476905_G_A_dose + sex + age_ref_imp + PC1 + PC
 summary(model_g)
 
 
-# correlation? 
+# correlation?
 
 # in gwas subset:
 tmp <- qread("/media/work/gwis_test/alcoholc/output/posthoc/dosage_chr10_101476905.qs") %>%

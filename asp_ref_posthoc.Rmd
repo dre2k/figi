@@ -11,16 +11,15 @@ output:
     toc_depth: 3
     theme: "paper"
 params:
-  exposure: "diab"
+  exposure: "asp_ref"
   covariates: !r c("age_ref_imp", "sex", "pc1", "pc2", "pc3", "study_gxe")
-  hrc_version: "v2.3"
+  hrc_version: "v2.4"
   path: "/media/work/gwis_test"
 ---
 
   
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = F, message = F, warning = F, error = F)
-
 # load packages and define wrapper functions
 library(tidyverse)
 library(data.table)
@@ -39,40 +38,16 @@ library(glue)
 
 # Description
 
-## GWIS results followup
+## Follow-up analyses of GWIS findings  
 - Table of significant and suggestive (1df GxE only) ```r params$exposure``` GWIS findings  
-<!-- - Plots of predicted logodds stratified by exposure and genotype () -->
-<!--   - *outcome ~ snp_dose:exposure + covariates*   -->
-<!--   - assumes mean values for adjustment covariates    -->
 - GxE models stratified by study_design and tumor site (proximal, distal, rectal)  
-- GxE models with additional covariate sets (if requested)  
+- GxE models with additional covariate sets (might do this for aspirin ..)  
 - Odds ratios stratified by exposure and genotype  
-  <!-- - model of the form *outcome ~ exposure + covariates + snp_p1 + snp_p2 + exposure:covariates + exposure:snp_p1 + exposure:snp_p2* -->
-  - Odds ratios with single reference group (E = 0, G = 0), and exposure odds ratios stratified by imputed genotype  
-    - model: *outcome ~ exposure + covariates + snp_p1 + snp_p2 + exposure:snp_p1 + exposure:snp_p2*  
-  - per risk allele odds ratios stratified by exposure
-    - model:  *outcome ~ exposure + covariates + dosage + exposure:dosage*  
-  - **exposures and SNPs coded to reflect risk increase**  
-- Locuszoom plot  
-  - based on statistic that identified the hit (e.g. gxe, 2df, 3df, etc)
-- Functional annotation plot  
+- Plots of model predicted outcome by 1 unit increase of exposure/allelic dosage  
+- Locuszoom plot   
+- Functional annotation plot   
 
-## Covariates Sets
-- **Set1**: age_ref_imp, sex, energytot_imp, study_gxe, pc1, pc2, pc3
-
-------
-
-# GWIS SNP Information
-```{r}
-child_env <- new.env()
-assign("exposure", params$exposure, child_env)
-```
-
-```{r}
-x <- readRDS(glue("{path}/output/posthoc/gwis_snp_info.rds"))
-kable(x, caption = "Significant GxE SNPs", escape = F) %>%
-  kable_styling("striped", full_width = F, position = 'center')
-```
+---
 
 <!-- define variables -->
 ```{r, include = F}
@@ -88,7 +63,6 @@ path = glue("/media/work/gwis_test/{params$exposure}")
 
 
 
-
 # GxE (1df)
 ```{r, results = 'asis'}
 assign("method", "chiSqGxE", child_env)
@@ -99,7 +73,7 @@ assign("method", "chiSqGxE", child_env)
 #   dplyr::mutate(snps = paste0('chr', gsub("\\:", "\\_", SNP))) %>%
 #   dplyr::pull(snps)
 
-snps_out <- paste0('chr', gsub(":", "_", c("6:12577203:T:C", "6:32560631:C:T")))
+snps_out <- paste0('chr', gsub(":", "_", c("6:12577203:T:C")))
 
 res <- lapply(snps_out, function(snp) {
   assign("snp", snp, child_env)
@@ -136,58 +110,58 @@ cat(unlist(res), sep = '\n')
 
 
 
-# GxE suggestive
-Output models stratified by sex or tumor site to check for differences in associations
-(consider adding locuszoom plots?)
-```{r, results = 'asis'}
-# child method variable
-assign("method", "chiSqGxE", child_env)
+<!-- # GxE suggestive -->
+<!-- Output models stratified by sex or tumor site to check for differences in associations -->
+<!-- (consider adding locuszoom plots?) -->
+<!-- ```{r, results = 'asis'} -->
+<!-- # child method variable -->
+<!-- assign("method", "chiSqGxE", child_env) -->
 
-# SNPs
-snps_clumped <- fread(glue("{path}/data/FIGI_{hrc_version}_gxeset_{exposure}_chiSqGxE_ldclump.clumped"), header = T, stringsAsFactors = F)
-snps_out <- readRDS(glue("{path}/output/manhattan_{exposure}_{hrc_version}_chiSqGxE_df.rds")) %>%
-  dplyr::filter(SNP %in% snps_clumped$SNP,
-                chiSqGxE_p < 5e-6 | chiSqGxE_p > 5e-8) %>%
-  dplyr::arrange(Chromosome, Location) %>%
-  dplyr::mutate(snps = paste0('chr', gsub("\\:", "\\_", SNP))) %>%
-  dplyr::pull(snps)
+<!-- # SNPs -->
+<!-- snps_clumped <- fread(glue("{path}/data/FIGI_{hrc_version}_gxeset_{exposure}_chiSqGxE_ldclump.clumped"), header = T, stringsAsFactors = F) -->
+<!-- snps_out <- readRDS(glue("{path}/output/manhattan_{exposure}_{hrc_version}_chiSqGxE_df.rds")) %>% -->
+<!--   dplyr::filter(SNP %in% snps_clumped$SNP, -->
+<!--                 chiSqGxE_p < 5e-6 | chiSqGxE_p > 5e-8) %>% -->
+<!--   dplyr::arrange(Chromosome, Location) %>% -->
+<!--   dplyr::mutate(snps = paste0('chr', gsub("\\:", "\\_", SNP))) %>% -->
+<!--   dplyr::pull(snps) -->
 
-# Call child Rmd script
-res <- lapply(snps_out, function(snp) {
-  assign("snp", snp, child_env)
-  knitr::knit_child('posthoc/posthoc_child_suggestive_gxe.Rmd', envir = child_env, quiet = TRUE)
-  }
-)
+<!-- # Call child Rmd script -->
+<!-- res <- lapply(snps_out, function(snp) { -->
+<!--   assign("snp", snp, child_env) -->
+<!--   knitr::knit_child('posthoc/posthoc_child_suggestive_gxe.Rmd', envir = child_env, quiet = TRUE) -->
+<!--   } -->
+<!-- ) -->
 
-cat(unlist(res), sep = '\n')
-```
-
-
+<!-- cat(unlist(res), sep = '\n') -->
+<!-- ``` -->
 
 
-# 2DF locuszoom plots
-Filtering GWAS + LD SNPs out of the results plots isn't perfect because of slight differences in LD. Ensure that these remaining peaks coincide with known GWAS Loci
-
-```{r, results = 'asis'}
-# child method variable
-assign("method", "chiSq2df", child_env)
 
 
-# SNPs
-snps_clumped <- fread(glue("{path}/data/FIGI_{hrc_version}_gxeset_{exposure}_chiSq2df_no_gwas_ldclump.clumped"), header = T, stringsAsFactors = F)
-snps_out <- readRDS(glue("{path}/output/manhattan_{exposure}_{hrc_version}_chiSq2df_no_gwas_df.rds")) %>%
-  dplyr::filter(SNP %in% snps_clumped$SNP) %>%
-  dplyr::arrange(Chromosome, Location) %>%
-  dplyr::mutate(snps = paste0('chr', gsub("\\:", "\\_", SNP))) %>%
-  dplyr::pull(snps)
+<!-- # 2DF locuszoom plots -->
+<!-- Filtering GWAS + LD SNPs out of the results plots isn't perfect because of slight differences in LD. Ensure that these remaining peaks coincide with known GWAS Loci -->
 
-# Call child Rmd script
-res <- lapply(snps_out, function(snp) {
-  assign("snp", snp, child_env)
-  knitr::knit_child('posthoc/posthoc_child_locuszoom_only.Rmd', envir = child_env, quiet = TRUE)
-  }
-)
+<!-- ```{r, results = 'asis'} -->
+<!-- # child method variable -->
+<!-- assign("method", "chiSq2df", child_env) -->
 
-cat(unlist(res), sep = '\n')
-```
+
+<!-- # SNPs -->
+<!-- snps_clumped <- fread(glue("{path}/data/FIGI_{hrc_version}_gxeset_{exposure}_chiSq2df_no_gwas_ldclump.clumped"), header = T, stringsAsFactors = F) -->
+<!-- snps_out <- readRDS(glue("{path}/output/manhattan_{exposure}_{hrc_version}_chiSq2df_no_gwas_df.rds")) %>% -->
+<!--   dplyr::filter(SNP %in% snps_clumped$SNP) %>% -->
+<!--   dplyr::arrange(Chromosome, Location) %>% -->
+<!--   dplyr::mutate(snps = paste0('chr', gsub("\\:", "\\_", SNP))) %>% -->
+<!--   dplyr::pull(snps) -->
+
+<!-- # Call child Rmd script -->
+<!-- res <- lapply(snps_out, function(snp) { -->
+<!--   assign("snp", snp, child_env) -->
+<!--   knitr::knit_child('posthoc/posthoc_child_locuszoom_only.Rmd', envir = child_env, quiet = TRUE) -->
+<!--   } -->
+<!-- ) -->
+
+<!-- cat(unlist(res), sep = '\n') -->
+<!-- ``` -->
 

@@ -8,6 +8,7 @@ if(params$exposure %in% c("hrt_ref_pm2", "eo_ref_pm_gxe", "ep_ref_pm_gxe", "pure
 
 # covariates - remove pc and study_gxe (keep sex in sex stratified for convenience in scripting)
 covariates_forest <- sort(covariates[which(!covariates %in% c(paste0(rep('pc', 20), seq(1, 20)), "study_gxe"))])
+# covariates_forest <- sort(covariates[which(!covariates %in% c("study_gxe"))])
 ```
 
 
