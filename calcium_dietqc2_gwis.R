@@ -256,9 +256,9 @@ walk(suggestive_hits, ~ output_aaf_plot(dat = input_data, exposure, snp = .x))
 # ================================================================== #
 # ======= rmarkdown reports ---- 
 # ================================================================== #
-gwis_report(exposure = 'calcium_dietqc2', 
-            hrc_version = 'v3.0', 
-            covariates = c('age_ref_imp', 'energytot_imp', 'sex' , 'pc1', 'pc2', 'pc3', 'study_gxe'))
+gwis_report(exposure = exposure, 
+            hrc_version = hrc_version, 
+            covariates = covariates)
 
 posthoc_report(exposure = 'calcium_dietqc2')
 

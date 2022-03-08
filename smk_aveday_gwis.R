@@ -219,8 +219,8 @@ walk(suggestive_gxe$SNP, ~ fit_gxe_covars(data_epi = input_data, exposure = expo
 
 
 # output RERI plots (can't install package on CARC yet)
-snps <- c("6:31917540:T:C", "8:138788813:C:A")
-walk(snps, ~ reri_wrapper(data_epi = input_data, exposure = exposure, snp = .x, covariates = covariates, path = glue("{path}/output")))
+# snps <- c("6:31917540:T:C", "8:138788813:C:A")
+# walk(snps, ~ reri_wrapper(data_epi = input_data, exposure = exposure, snp = .x, covariates = covariates, path = glue("{path}/output")))
 
 
 # recreate iplot wrapper (interaction plot)
@@ -239,6 +239,14 @@ fit_stratified_or(data_epi = input_data, exposure = exposure, snp = '6:31917540:
 fit_stratified_or(data_epi = input_data, exposure = exposure, snp = '8:138788813:C:A', hrc_version = hrc_version, covariates = covariates, dosage = F, flip_allele = T, path = glue("{path}/output"))
 
 
+fit_stratified_or_continuous(data_epi = input_data, exposure = exposure, snp = '6:31917540:T:C', hrc_version = hrc_version, covariates = covariates, dosage = F, path = glue("{path}/output"))
+
+fit_stratified_or(data_epi = input_data, exposure = exposure, snp = '8:138788813:C:A', hrc_version = hrc_version, covariates = covariates, dosage = F, flip_allele = T, path = glue("{path}/output"))
+
+
+
+
+
 
 
 
@@ -246,11 +254,8 @@ fit_stratified_or(data_epi = input_data, exposure = exposure, snp = '8:138788813
 suggestive_hits <- fread(glue("/media/work/gwis_test/{exposure}/data/FIGI_{hrc_version}_gxeset_{exposure}_chiSqGxE_ldclump.clumped")) %>% 
   pull(SNP)
 
-hits <- c("6:31917540:T:C")
-hits <- c("8:138788813:C:A")
-
-walk(hits, ~ output_aaf_plot(dat = input_data, exposure, snp = .x))
-
+snps_out <- c("6:31917540:T:C", "8:138788813:C:A")
+walk(snps_out, ~ create_aaf_study_plot(data = input_data, exposure = exposure, hrc_version = hrc_version, snp = .x, path = path))
 
 
 

@@ -1,0 +1,28 @@
+```{r helper_pooled, include = F}
+# don't stratify by sex if exposure is HRT
+if(params$exposure %in% c("hrt_ref_pm2", "eo_ref_pm_gxe", "ep_ref_pm_gxe", "pure_eo_allNo", "pure_ep_allNo")) {
+  stratify_by_sex = F
+} else {
+  stratify_by_sex = T
+}
+
+```
+
+### Sex
+```{r, results = 'asis', echo = F, quote = F, message = F, eval = stratify_by_sex}
+
+rawHTML <- paste(readLines(paste0(output_dir_meta <- glue("{path_posthoc}/main_effects_pooled_analysis_{params$exposure}_scaled_{params$hrc_version}_{glue_collapse(sort(covariates), sep = '_')}_stratified_sex.html"))))
+cat(paste(rawHTML, collapse = "\n"), "\n")
+```
+
+### Tumor site
+```{r, results = 'asis', echo = F, quote = F, message = F}
+rawHTML <- paste(readLines(paste0(output_dir_meta <- glue("{path_posthoc}/main_effects_pooled_analysis_{params$exposure}_scaled_{params$hrc_version}_{glue_collapse(sort(covariates), sep = '_')}_stratified_cancer_site_sum2.html"))))
+cat(paste(rawHTML, collapse = "\n"), "\n")
+```
+
+### Study design
+```{r, results = 'asis', echo = F, quote = F, message = F}
+rawHTML <- paste(readLines(paste0(output_dir_meta <- glue("{path_posthoc}/main_effects_pooled_analysis_{params$exposure}_scaled_{params$hrc_version}_{glue_collapse(sort(covariates), sep = '_')}_stratified_study_design.html"))))
+cat(paste(rawHTML, collapse = "\n"), "\n")
+```

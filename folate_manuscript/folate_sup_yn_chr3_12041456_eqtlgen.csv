@@ -1,0 +1,3 @@
+"","Pvalue","SNP","SNPChr","SNPPos","AssessedAllele","OtherAllele","Zscore","Gene","GeneSymbol","GeneChr","GenePos","NrCohorts","NrSamples","FDR","BonferroniP"
+"1",2.5612e-06,"rs192146482",3,12013545,"T","C",-4.7031,"ENSG00000157152","SYN2",3,12139388,3,1649,0.00686893203883495,1
+"2",4.9381e-06,"rs142399298",3,12096471,"G","T",-4.5672,"ENSG00000157152","SYN2",3,12139388,12,11819,0.0133160840002407,1

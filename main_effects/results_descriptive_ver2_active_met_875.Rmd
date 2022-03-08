@@ -1,0 +1,265 @@
+```{r echo = F, include = F}
+
+# just leave it hard coded
+output_dir = '/media/work/gwis_test/data/'
+data_dir = glue('/media/work/gwis_test/{params$exposure}/data/')
+
+exposure_subset <- readRDS(paste0(data_dir, "/FIGI_", params$hrc_version, "_gxeset_", params$exposure, "_basic_covars_glm.rds"))[, 'vcfid']
+exposure_tmp <- params$exposure
+
+gxe_ggplot <-  readRDS(paste0(output_dir, "/FIGI_v3.1_gxeset_analysis_data_ggplot.rds")) %>% 
+  mutate(active_met_875 = as.factor(ifelse(is.na(methrswklns),NA,
+                          ifelse(methrswklns<8.75, "No", "Yes"))), 
+         active_met_875_count = fct_explicit_na(active_met_875, na_level = "NA"),
+         active_met_875_ggplot = fct_relevel(active_met_875_count, "NA"))
+
+gxe_ggplot_subset <- gxe_ggplot %>%
+  filter(vcfid %in% exposure_subset)
+
+# gxe_table1 <-  readRDS(paste0(output_dir, "/FIGI_", params$hrc_version, "_gxeset_analysis_data_table1.rds")) %>% 
+gxe_table1 <- readRDS("/media/work/gwis_test/data/FIGI_v3.1_gxeset_analysis_data_table1.rds") %>% 
+  mutate(sex = factor(sex, labels = c("Female", "Male")), 
+         bmic3 = factor(bmic3, labels = c("Normal", "Obese", "Overweight")),
+         active_met_875 = as.factor(ifelse(is.na(methrswklns),NA,
+                          ifelse(methrswklns<8.75, "No", "Yes"))),
+         active_met_875_table1 = factor(active_met_875, exclude = NA, levels = c("No", "Yes", "P-value")))
+  
+gxe_table1_subset <- gxe_table1 %>%
+  filter(vcfid %in% exposure_subset) %>% 
+  dplyr::mutate(outcome = as.factor(outcome),
+                redmeatqc2 = as.factor(redmeatqc2), 
+                procmeatqc2 = as.factor(procmeatqc2))
+
+
+do_next_chunk <- is.factor(gxe_table1[, params$exposure])
+```
+
+## Box/Bar Plots {.tabset}
+
+<!-- methrswklns / 10    -->
+<!-- <br> -->
+<!-- (not scaled by median IQR) -->
+
+### all studies
+```{r fig.height=18, fig.width=13, eval = do_next_chunk}
+cbp1 <- c("#999999", "#E69F00", "#56B4E9", "#009E73",
+          "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+
+exposure_for_plotting <- paste0(params$exposure, "_ggplot")
+number_of_levels <- length(levels(gxe_ggplot[,exposure_for_plotting]))
+
+ggplot(data=gxe_ggplot, aes(x=outc)) +
+    geom_bar(aes(fill = gxe_ggplot[,exposure_for_plotting]), position = 'fill') +
+    theme_bw() +
+    theme(
+      panel.grid.major.x = element_blank(),
+      panel.grid.minor.x = element_blank()) +
+    labs(fill = params$exposure) + 
+    scale_fill_manual(values = cbp1[1:number_of_levels]) +
+    facet_wrap(vars(study_gxe), ncol = 5)
+```
+
+```{r fig.height=18, fig.width=13, eval = !do_next_chunk}
+ggplot(data=gxe_ggplot, aes(x=outc, y=gxe_ggplot[,params$exposure])) +
+  geom_boxplot(aes(color=outc)) +
+  theme_bw() +
+  theme(
+    panel.grid.major.x = element_blank(),
+    panel.grid.minor.x = element_blank()) +
+  facet_wrap(vars(study_gxe), ncol = 5)
+```
+
+### exposure subset
+```{r fig.height=18, fig.width=13, eval = do_next_chunk}
+number_of_levels <- length(levels(gxe_ggplot_subset[,exposure_for_plotting]))
+
+ggplot(data=gxe_ggplot_subset, aes(x=outc)) +
+    geom_bar(aes(fill = gxe_ggplot_subset[, exposure_for_plotting]), position = 'fill') +
+    theme_bw() +
+    theme(
+      panel.grid.major.x = element_blank(),
+      panel.grid.minor.x = element_blank()) +
+    labs(fill = exposure_for_plotting) +
+    scale_fill_manual(values = cbp1[2:number_of_levels]) + # start at index = 2 because there are no NAs
+    facet_wrap(vars(study_gxe), ncol = 5)
+```
+
+```{r fig.height=18, fig.width=13, eval = !do_next_chunk}
+ggplot(data=gxe_ggplot_subset, aes(x=outc, y=gxe_ggplot_subset[, params$exposure])) +
+  geom_boxplot(aes(color=outc)) +
+  theme_bw() +
+  theme(
+    panel.grid.major.x = element_blank(),
+    panel.grid.minor.x = element_blank()) +
+  facet_wrap(vars(study_gxe), ncol = 5)
+```
+
+
+## Tables {.tabset}
+
+Descriptive statistics by outcome and exposure status (when applicable). Only includes subset of samples with available ``r params$exposure`` information
+
+<!-- methrswklns / 10    -->
+<!-- <br> -->
+<!-- (not scaled by median IQR) -->
+
+### Counts
+```{r echo = F, messages = F, error = F, eval = do_next_chunk}
+
+# make sure you remove samples with missing exposure variable
+tmp <- gxe_table1_subset %>%
+  group_by(study_gxe, outc) %>%
+  count( !!rlang::sym(params$exposure))
+
+totals <- ungroup(tmp) %>%
+  group_by(outc, !!rlang::sym(params$exposure)) %>%
+  summarise(n = sum(n))
+totals$study_gxe = "Total"
+
+out <- bind_rows(tmp, totals) %>%
+  mutate(pct = round( (100*n) / sum(n), 1),
+         out = paste0(n, " (", pct, ")")) %>%
+  dplyr::select(-n, -pct) %>%
+  arrange(outc, !!rlang::sym(params$exposure)) %>%
+  pivot_wider(names_from = c(outc, !!rlang::sym(params$exposure)), values_from = out, names_sep = "\\\n") %>%
+  arrange(study_gxe)
+
+out1 <- rbind(out[out$study_gxe != "Total", ], out[out$study_gxe == "Total", ])
+names(out1) <- gsub("Case", params$exposure, names(out1))
+names(out1) <- gsub("Control", params$exposure, names(out1))
+
+
+number_of_levels_no_na <- length(levels(factor(gxe_table1_subset[, params$exposure])))
+
+kable(out1) %>%
+  kable_styling(bootstrap_options = c("striped", "hover"), full_width = F, position = 'left', font_size = 14) %>%
+  add_header_above(c(" " = 1, "Cases" = number_of_levels_no_na, "Controls" = number_of_levels_no_na)) %>%
+  kableExtra::footnote("Percentages reflect row totals by case status")
+```
+
+```{r echo = F, messages = F, error = F, eval = !do_next_chunk}
+# i'm not sure why curly wasn't working, review evaluation
+tmp <- gxe_table1_subset %>%
+  group_by(study_gxe, outc) %>%
+  mutate(avg = mean(!!rlang::sym(params$exposure)),
+         sd = sd(!!rlang::sym(params$exposure))) %>%
+  dplyr::select(study_gxe, outc,  avg, sd) %>%
+  distinct()
+
+tmp2 <- gxe_table1_subset %>%
+  group_by(study_gxe) %>%
+  count(outc)
+
+test <- inner_join(tmp, tmp2, by = c('outc', 'study_gxe'))
+
+out <- test %>%
+  mutate(avg = round(avg, 1),
+         sd = round(sd, 1),
+         avg_sd = paste0(avg,  " \u00B1 ", sd)) %>%
+  dplyr::select(-avg, -sd) %>%
+  arrange(outc) %>%
+  pivot_wider(names_from = c(outc), values_from = c(avg_sd, n), names_sep = '\n') %>%
+  dplyr::select(study_gxe, `n\nCase`, `n\nControl`, `avg_sd\nCase`, `avg_sd\nControl`)
+
+kable(out) %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = F, position = 'left', font_size = 14) %>%
+  add_header_above(c(" " = 1, "Counts" = 2, "Mean (sd)" = 2))
+```
+
+
+### Table1 by outcome
+```{r, cache = F}
+# continuous variables
+my.render.cont <- function(x) {
+  with(stats.apply.rounding(stats.default(x), digits=3),
+       c("", "Mean (SD)"=sprintf("%s (&plusmn; %s)", MEAN, SD)))
+}
+
+# categorical variables
+my.render.cat <- function(x) {
+  c("", sapply(stats.default(x),
+               function(y) with(y, sprintf("%d (%0.0f %%)", FREQ, PCT))))
+}
+
+# insert p values. hacky, requires an outcome factor with third level for p value.
+# Also need to specify values by name (outcome_table1) in the 'rndr' function
+rndr <- function(x, name, ...) {
+  if (length(x) == 0) {
+    y <- gxe_table1_subset[[name]]
+    s <- rep("", length(render.default(x=y, name=name, ...)))
+    if (is.numeric(y)) {
+      p <- t.test(y ~ gxe_table1_subset$outcome_table1)$p.value
+    } else {
+      p <- chisq.test(table(y, droplevels(gxe_table1_subset$outcome_table1)))$p.value
+    }
+    s[2] <- sub("<", "&lt;", format.pval(p, digits=3, eps=0.001))
+    s
+  } else {
+    render.default(x=x, name=name, ...)
+  }
+}
+
+rndr.strat <- function(label, n, ...) {
+  ifelse(n==0, label, render.strat.default(label, n, ...))
+}
+
+# include all covariates in every descriptive statistics table
+table_covariates = c("active_met_875", "age_ref_imp", "sex", "asp_ref", "heightcm", "bmi", "bmic3", "energytot", "energytot_imp", "famhx1", "educ", "smk_ever", "hrt_ref_pm2", "diab", "calcium_totqc2", "folate_totqc2", "fiberqc2", "redmeatqc2", "procmeatqc2", "fruitqc2", "vegetableqc2", "p_diet_std")
+
+table1(as.formula(paste0("~ ", paste(table_covariates, collapse = "+"), "| outcome_table1")),
+       data=gxe_table1_subset,
+       render.continuous=my.render.cont,
+       render.categorical=my.render.cat,
+       render=rndr, render.strat=rndr.strat, overall = F, droplevels = F)
+```
+
+```{r , echo=FALSE, results='asis', eval = do_next_chunk}
+cat("### Table1 by exposure")
+```
+
+```{r, cache = F, eval = do_next_chunk, warning = F}
+# only do this for categorical/binary exposure variables
+my.render.cont <- function(x) {
+  with(stats.apply.rounding(stats.default(x), digits=3),
+       c("", "Mean (SD)"=sprintf("%s (&plusmn; %s)", MEAN, SD)))
+}
+
+my.render.cat <- function(x) {
+  c("", sapply(stats.default(x),
+               function(y) with(y, sprintf("%d (%0.0f %%)", FREQ, PCT))))
+}
+
+# t.test
+rndr <- function(x, name, ...) {
+  if (length(x) == 0) {
+    y <- gxe_table1_subset[[name]]
+    s <- rep("", length(render.default(x=y, name=name, ...)))
+    if (is.numeric(y) & length(table(gxe_table1_subset[,paste0(params$exposure, '_table1')])) <= 2) {
+      p <- t.test(y ~ gxe_table1_subset[, paste0(params$exposure, '_table1')])$p.value
+    } else if (is.numeric(y) & length(table(gxe_table1_subset[,paste0(params$exposure, '_table1')])) > 2) {
+      p <- anova(lm(y ~ gxe_table1_subset[, paste0(params$exposure, '_table1')]))$`Pr(>F)`
+    } else {
+      p <- chisq.test(table(y, droplevels(gxe_table1_subset[, paste0(params$exposure, '_table1')])))$p.value
+    }
+    s[2] <- sub("<", "&lt;", format.pval(p, digits=3, eps=0.001))
+    s
+  } else {
+    render.default(x=x, name=name, ...)
+  }
+}
+
+rndr.strat <- function(label, n, ...) {
+  ifelse(n==0, label, render.strat.default(label, n, ...))
+}
+
+table_covariates = c("age_ref_imp", "sex", "heightcm", "bmi", "bmic3", "famhx1", "educ", "smk_ever", "hrt_ref_pm2", "diab", "calcium_totqc2", "folate_totqc2", "fiberqc2", "redmeatqc2", "procmeatqc2", "fruitqc2", "vegetableqc2")
+
+oldw <- getOption("warn")
+  options(warn = -1)
+table1(as.formula(paste0("~ ", "outcome", "+", paste(table_covariates, collapse = "+"), "| ", paste0(params$exposure, '_table1'))),
+       data=gxe_table1_subset,
+       render.continuous=my.render.cont,
+       render.categorical=my.render.cat,
+       render=rndr, render.strat=rndr.strat, overall = F, droplevels = F)
+options(warn = oldw)
+```

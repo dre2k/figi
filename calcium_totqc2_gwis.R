@@ -236,12 +236,20 @@ kable(x) %>%
 
 
 
+# AAF plots for findings
+snps <- c("18:66876036:G:T", "2:135291135:C:T", "6:161133559:A:G", "1:44974796:A:G", 
+          "2:135837906:C:A", "2:136092061:C:A", "2:136608646:G:A", "2:114550461:A:T", 
+          "2:135582128:A:G", "2:135907088:A:G", "2:136381348:G:A", "2:136707982:T:C", 
+          "2:135594399:A:C", "2:135590239:G:A", "2:135594221:T:C")
+walk(snps, ~ create_aaf_study_plot(dat = input_data, exposure, hrc_version, snp = .x, path = path))
+
+
 
 # get MAF plots for suggestive hits 
 suggestive_hits <- fread(glue("/media/work/gwis_test/{exposure}/data/FIGI_{hrc_version}_gxeset_{exposure}_chiSqGxE_ldclump.clumped")) %>% 
   pull(SNP)
 
-walk(suggestive_hits, ~ output_aaf_plot(dat = input_data, exposure, snp = .x))
+walk(suggestive_hits, ~ create_aaf_study_plot(dat = input_data, exposure, snp = .x, path = path))
 
 
 

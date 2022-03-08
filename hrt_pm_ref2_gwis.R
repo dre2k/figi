@@ -46,8 +46,12 @@ input_data <- readRDS(glue("/media/work/gwis/data/FIGI_EpiData/FIGI_{hrc_version
 
 
 # gxescan output
-gxe <- readRDS(glue("/media/work/gwis/results/{exposure}/processed/FIGI_{hrc_version}_gxeset_{exposure}_basic_covars_gxescan_results.rds")) %>% 
-  mutate(SNP2 = paste0(Chromosome, ":", Location))
+# gxe <- readRDS(glue("/media/work/gwis/results/{exposure}/processed/FIGI_{hrc_version}_gxeset_{exposure}_basic_covars_gxescan_results.rds")) %>% 
+#   mutate(SNP2 = paste0(Chromosome, ":", Location))
+
+path = glue("/media/work/gwis_test/{exposure}/")
+
+
 
 #-----------------------------------------------------------------------------#
 # main effects ----
@@ -183,6 +187,12 @@ source("/home/rak/Dropbox/FIGI/FIGI_code/results/posthoc/posthoc_01_combine_resu
 #-----------------------------------------------------------------------------#
 # SNP followup (models and plots) ---- 
 #-----------------------------------------------------------------------------#
+
+# ------- MAF Plots  ---------- #
+snps_out <- c("12:13670508:G:C", "6:117823508:T:C")
+walk(snps_out, ~ create_aaf_study_plot(data = input_data, exposure,  hrc_version, snp = .x, path = path))
+
+
 
 figi <- posthoc_input(exposure, hrc_version, glue('gwis_sig_results_output_{exposure}.rds')) %>% 
   mutate(hrt_ref_pm2 = fct_relevel(hrt_ref_pm2, "Yes", "No"))
@@ -352,10 +362,95 @@ lrtest(model_out, model_base)
 
 
 # ================================================================== #
+# ======= check HRT literature SNPs
+
+
+# WHI - main effects
+
+rs17724534 <- qread("/media/work/gwis_test/hrt_ref_pm2/output/posthoc/dosage_chr10_104605521.qs") %>% 
+  rename(snp = chr10_104605521_C_T_dose)
+rs10883782 <- qread("/media/work/gwis_test/hrt_ref_pm2/output/posthoc/dosage_chr10_104583932.qs") %>% 
+  rename(snp = chr10_104583932_A_G_dose)
+rs1902584 <- qread("/media/work/gwis_test/hrt_ref_pm2/output/posthoc/dosage_chr15_51611654.qs") %>% 
+  rename(snp = chr15_51611654_A_T_dose)
+
+whi <- filter(input_data, grepl("WHI", study_gxe))
+
+# no nominal significance when using all WHI studies .. 
+rs17724534_dg <- glm(outcome ~ snp + age_ref_imp + pc1 + pc2 + pc3, 
+                     data = inner_join(whi, rs17724534, 'vcfid'), family = 'binomial')
+summary(rs17724534_dg)
+
+rs10883782_dg <- glm(outcome ~ snp + age_ref_imp + pc1 + pc2 + pc3, 
+                     data = inner_join(whi, rs10883782, 'vcfid'), family = 'binomial')
+summary(rs10883782_dg)
+
+rs1902584_dg <- glm(outcome ~ snp + age_ref_imp + pc1 + pc2 + pc3, 
+                     data = inner_join(whi, rs1902584, 'vcfid'), family = 'binomial')
+summary(rs1902584_dg)
+
+
+
+
+
+
+
+# DACHS GxE
+
+
+rs1202168 <- qread("/media/work/gwis_test/hrt_ref_pm2/output/posthoc/dosage_chr6_152432902.qs") %>% 
+  rename(snp = chr6_152432902_C_T_dose)
+
+dachs <- filter(input_data, grepl("DACHS", study_gxe))
+
+
+rs1202168_dg <- glm(outcome ~ snp * hrt_ref_pm2 + age_ref_imp + pc1 + pc2 + pc3, 
+                     data = inner_join(dachs, rs1202168, 'vcfid'), family = 'binomial')
+
+summary(rs1202168_dg)
+
+
+
+
+
+rs910416 <- qread("/media/work/gwis_test/hrt_ref_pm2/output/posthoc/dosage_chr7_87195962.qs") %>% 
+  rename(snp = chr7_87195962_G_A_dose)
+
+dachs <- filter(input_data, grepl("DACHS", study_gxe))
+
+rs910416_dg <- glm(outcome ~ snp * hrt_ref_pm2 + age_ref_imp + pc1 + pc2 + pc3, 
+                    data = inner_join(dachs, rs910416, 'vcfid'), family = 'binomial')
+
+summary(rs910416_dg)
+
+
+
+# stratified odds ratio for garcia paper
+rs964293 <- qread("/media/work/gwis_test/hrt_ref_pm2/output/posthoc/dosage_chr20_52816717.qs")
+
+
+covariates <- sort(c('age_ref_imp','study_gxe', 'pc1', 'pc2', 'pc3'))
+path = glue("/media/work/gwis_test/{exposure}/")
+snps <- c("20:52816717:C:A")
+
+walk(snps, ~ fit_stratified_or(
+  data_epi = input_data,
+  exposure = exposure,
+  snp = .x,
+  hrc_version = hrc_version,
+  covariates = covariates,
+  path = glue("{path}/output/")))
+
+
+iplot_wrapper(data_epi = input_data, exposure = exposure, hrc_version = hrc_version, snp = "20:52816717:C:A", covariates = covariates, path = glue("{path}/output"), flip = F)
+
+
+# ================================================================== #
 # ======= rmarkdown reports ---- 
 gwis_report(exposure = exposure, 
             hrc_version = hrc_version, 
             covariates = covariates)
+
 
 posthoc_report(exposure = exposure)
 

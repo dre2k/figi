@@ -11,9 +11,9 @@ output:
     toc_depth: 3
     theme: "paper"
 params:
-  exposure: "fruitqc2"
+  exposure: "vegetable5qcm"
   covariates: !r c("age_ref_imp", "sex", "energytot_imp", "pc1", "pc2", "pc3", "study_gxe")
-  hrc_version: "v2.4"
+  hrc_version: "v3.0"
   path: "/media/work/gwis_test"
 ---
 
@@ -64,75 +64,109 @@ path = glue("/media/work/gwis_test/{params$exposure}")
 ```
 
 
-# GxE suggestive
+# 3DF
 Output models stratified by sex or tumor site to check for differences in associations
 ```{r, results = 'asis'}
 # child method variable
-assign("method", "chiSqGxE", child_env)
+assign("method", "chiSq3df", child_env)
 
 # SNPs
-snps_clumped <- fread(glue("{path}/data/FIGI_{hrc_version}_gxeset_{exposure}_chiSqGxE_ldclump.clumped"), header = T, stringsAsFactors = F)
-snps_out <- readRDS(glue("{path}/output/manhattan_{exposure}_{hrc_version}_chiSqGxE_df.rds")) %>%
-  dplyr::filter(SNP %in% snps_clumped$SNP,
-                chiSqGxE_p < 5e-6 | chiSqGxE_p > 5e-8) %>%
-  dplyr::arrange(Chromosome, Location) %>%
-  dplyr::mutate(snps = paste0('chr', gsub("\\:", "\\_", SNP))) %>%
-  dplyr::pull(snps)
+# snps_clumped <- fread(glue("{path}/data/FIGI_{hrc_version}_gxeset_{exposure}_chiSqGxE_ldclump.clumped"), header = T, stringsAsFactors = F)
+# snps_out <- readRDS(glue("{path}/output/manhattan_{exposure}_{hrc_version}_chiSqGxE_df.rds")) %>%
+#   dplyr::filter(SNP %in% snps_clumped$SNP,
+#                 chiSqGxE_p < 5e-6 | chiSqGxE_p > 5e-8) %>%
+#   dplyr::arrange(Chromosome, Location) %>%
+#   dplyr::mutate(snps = paste0('chr', gsub("\\:", "\\_", SNP))) %>%
+#   dplyr::pull(snps)
+
+snps_out <- "	chr4_91049759_C_G"
 
 # Call child Rmd script
 res <- lapply(snps_out, function(snp) {
   assign("snp", snp, child_env)
-  knitr::knit_child('./posthoc/posthoc_child_suggestive_gxe.Rmd', envir = child_env, quiet = TRUE)
-  }
-)
+  knitr::knit_child('./posthoc/posthoc_child.Rmd', envir = child_env, quiet = TRUE)
+  })
 
 cat(unlist(res), sep = '\n')
 ```
 
 
-# GxE locuszoom plots 
-These hits were previously identified as a finding but turn out to be in known GWAS regions and should not be reported as a novel GxE finding
-
-```{r, results = 'asis'}
-# child method variable
-assign("method", "chiSqGxE", child_env)
-
-# SNPs
-snps_out <- c("chr8_128397494_G_C", "chr6_117816093_A_G")
 
 
-# Call child Rmd script
-res <- lapply(snps_out, function(snp) {
-  assign("snp", snp, child_env)
-  knitr::knit_child('./posthoc/posthoc_child_locuszoom_only.Rmd', envir = child_env, quiet = TRUE)
-  }
-)
-
-cat(unlist(res), sep = '\n')
-```
-
-# 2DF locuszoom plots
-Filtering GWAS + LD SNPs out of the results plots isn't perfect because of slight differences in LD. Ensure that these remaining peaks coincide with known GWAS Loci
-
-```{r, results = 'asis'}
-# child method variable
-assign("method", "chiSq2df", child_env)
 
 
-# SNPs
-snps_clumped <- fread(glue("{path}/data/FIGI_{hrc_version}_gxeset_{exposure}_chiSq2df_no_gwas_ldclump.clumped"), header = T, stringsAsFactors = F)
-snps_out <- readRDS(glue("{path}/output/manhattan_{exposure}_{hrc_version}_chiSq2df_no_gwas_df.rds")) %>%
-  dplyr::filter(SNP %in% snps_clumped$SNP) %>%
-  dplyr::arrange(Chromosome, Location) %>%
-  dplyr::mutate(snps = paste0('chr', gsub("\\:", "\\_", SNP))) %>%
-  dplyr::pull(snps)
 
-# Call child Rmd script
-res <- lapply(snps_out, function(snp) {
-  assign("snp", snp, child_env)
-  knitr::knit_child('./posthoc/posthoc_child_locuszoom_only.Rmd', envir = child_env, quiet = TRUE)
-  }
-)
 
-cat(unlist(res), sep = '\n')
-```
+
+<!-- # GxE suggestive -->
+<!-- Output models stratified by sex or tumor site to check for differences in associations -->
+<!-- ```{r, results = 'asis'} -->
+<!-- # child method variable -->
+<!-- assign("method", "chiSqGxE", child_env) -->
+
+<!-- # SNPs -->
+<!-- snps_clumped <- fread(glue("{path}/data/FIGI_{hrc_version}_gxeset_{exposure}_chiSqGxE_ldclump.clumped"), header = T, stringsAsFactors = F) -->
+<!-- snps_out <- readRDS(glue("{path}/output/manhattan_{exposure}_{hrc_version}_chiSqGxE_df.rds")) %>% -->
+<!--   dplyr::filter(SNP %in% snps_clumped$SNP, -->
+<!--                 chiSqGxE_p < 5e-6 | chiSqGxE_p > 5e-8) %>% -->
+<!--   dplyr::arrange(Chromosome, Location) %>% -->
+<!--   dplyr::mutate(snps = paste0('chr', gsub("\\:", "\\_", SNP))) %>% -->
+<!--   dplyr::pull(snps) -->
+
+<!-- # Call child Rmd script -->
+<!-- res <- lapply(snps_out, function(snp) { -->
+<!--   assign("snp", snp, child_env) -->
+<!--   knitr::knit_child('./posthoc/posthoc_child_suggestive_gxe.Rmd', envir = child_env, quiet = TRUE) -->
+<!--   } -->
+<!-- ) -->
+
+<!-- cat(unlist(res), sep = '\n') -->
+<!-- ``` -->
+
+
+<!-- # GxE locuszoom plots  -->
+<!-- These hits were previously identified as a finding but turn out to be in known GWAS regions and should not be reported as a novel GxE finding -->
+
+<!-- ```{r, results = 'asis'} -->
+<!-- # child method variable -->
+<!-- assign("method", "chiSqGxE", child_env) -->
+
+<!-- # SNPs -->
+<!-- snps_out <- c("chr8_128397494_G_C", "chr6_117816093_A_G") -->
+
+
+<!-- # Call child Rmd script -->
+<!-- res <- lapply(snps_out, function(snp) { -->
+<!--   assign("snp", snp, child_env) -->
+<!--   knitr::knit_child('./posthoc/posthoc_child_locuszoom_only.Rmd', envir = child_env, quiet = TRUE) -->
+<!--   } -->
+<!-- ) -->
+
+<!-- cat(unlist(res), sep = '\n') -->
+<!-- ``` -->
+
+<!-- # 2DF locuszoom plots -->
+<!-- Filtering GWAS + LD SNPs out of the results plots isn't perfect because of slight differences in LD. Ensure that these remaining peaks coincide with known GWAS Loci -->
+
+<!-- ```{r, results = 'asis'} -->
+<!-- # child method variable -->
+<!-- assign("method", "chiSq2df", child_env) -->
+
+
+<!-- # SNPs -->
+<!-- snps_clumped <- fread(glue("{path}/data/FIGI_{hrc_version}_gxeset_{exposure}_chiSq2df_no_gwas_ldclump.clumped"), header = T, stringsAsFactors = F) -->
+<!-- snps_out <- readRDS(glue("{path}/output/manhattan_{exposure}_{hrc_version}_chiSq2df_no_gwas_df.rds")) %>% -->
+<!--   dplyr::filter(SNP %in% snps_clumped$SNP) %>% -->
+<!--   dplyr::arrange(Chromosome, Location) %>% -->
+<!--   dplyr::mutate(snps = paste0('chr', gsub("\\:", "\\_", SNP))) %>% -->
+<!--   dplyr::pull(snps) -->
+
+<!-- # Call child Rmd script -->
+<!-- res <- lapply(snps_out, function(snp) { -->
+<!--   assign("snp", snp, child_env) -->
+<!--   knitr::knit_child('./posthoc/posthoc_child_locuszoom_only.Rmd', envir = child_env, quiet = TRUE) -->
+<!--   } -->
+<!-- ) -->
+
+<!-- cat(unlist(res), sep = '\n') -->
+<!-- ``` -->

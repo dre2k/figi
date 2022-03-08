@@ -1,0 +1,336 @@
+---
+title: "Chunks"
+# output: html_document
+---
+
+<!-- Useful Functions --> 
+```{r}
+
+gxe_stratified_header <- function(statistic, strata) {
+  if (statistic == 'chiSqGE') {
+    cat(paste0("### E|G model by ", strata), collapse = '\n')
+  } else if (statistic == 'chiSqCase') {
+    cat(paste0("### Case-only model by ", strata), collapse = '\n')
+  } else {
+    cat(paste0("### GxE model by ", strata), collapse = '\n')
+  }
+}
+
+```
+
+<!-- title -->
+```{r title, results = 'asis', eval = F}
+cat(paste0("## ", snp, " {.tabset}"), collapse = '\n')
+```
+
+<!-- Allele frequency plot -->
+``` {r allele_freq_plots, results = 'asis', eval = F}
+# cat(paste0("## ", snp, " {.tabset}"), collapse = '\n')
+cat(paste0("### Allele freq"), collapse = '\n')
+
+aaf_plot <- glue("{path}/output/posthoc/aaf_by_studygxe_{exposure}_{hrc_version}_{snp}_dose.png")
+cat(paste0("![](",aaf_plot,")"), '\n\n')
+```
+
+
+
+
+
+
+<!-- ################################################# -->
+<!-- ################################################# -->
+<!-- ################################################# -->
+<!-- ################################################# -->
+
+
+
+<!-- Stratified GxE analyses -->
+```{r gxe_stratified_sex, results = 'asis',  eval = F}
+gxe_stratified_header(statistic, 'sex')
+# if (statistic == 'chiSqGE') {
+#   cat(paste0("### E|G model by sex"), collapse = '\n')
+# } else {
+#   cat(paste0("### GxE model by sex"), collapse = '\n')
+# }
+
+rawHTML <- paste(readLines(glue("{path}/output/posthoc/gxe_models_{exposure}_{hrc_version}_{snp}_dose_{glue_collapse(sort(covariates), sep = '_')}_stratified_by_sex.html")))
+cat(paste(rawHTML, collapse = "\n"), "\n\n")
+```
+
+```{r gxe_stratified_study, results = 'asis',  eval = F}
+if (statistic == 'chiSqGE') {
+  cat(paste0("### E|G model by study design"), collapse = '\n')
+} else {
+  cat(paste0("### GxE model by study design"), collapse = '\n')
+}
+
+
+rawHTML <- paste(readLines(glue("{path}/output/posthoc/gxe_models_{exposure}_{hrc_version}_{snp}_dose_{glue_collapse(sort(covariates), sep = '_')}_stratified_by_study_design.html")))
+cat(paste(rawHTML, collapse = "\n"), "\n\n")
+```
+
+```{r gxe_stratified_tumorsite, results = 'asis',  eval = F}
+if (statistic == 'chiSqGE') {
+  cat(paste0("### E|G model by tumor site"), collapse = '\n')
+} else {
+  cat(paste0("### GxE model by tumor site"), collapse = '\n')
+}
+
+rawHTML <- paste(readLines(glue("{path}/output/posthoc/gxe_models_{exposure}_{hrc_version}_{snp}_dose_{glue_collapse(sort(covariates), sep = '_')}_stratified_by_cancer_site_sum2.html")))
+cat(paste(rawHTML, collapse = "\n"), "\n\n")
+```
+
+
+```{r gxe_stratified_bmic3, results = 'asis',  eval = F}
+if (statistic == 'chiSqGE') {
+  cat(paste0("### E|G model by bmi"), collapse = '\n')
+} else {
+  cat(paste0("### GxE model by bmi"), collapse = '\n')
+}
+
+
+rawHTML <- paste(readLines(glue("{path}/output/posthoc/gxe_models_{exposure}_{hrc_version}_{snp}_dose_{glue_collapse(sort(covariates), sep = '_')}_stratified_by_bmic3.html")))
+cat(paste(rawHTML, collapse = "\n"), "\n\n")
+```
+
+<!-- ################################################# -->
+<!-- ################################################# -->
+<!-- ################################################# -->
+<!-- ################################################# -->
+
+
+
+
+
+<!-- Stratified GxE analyses - incorporate dataset obj name in filename -->
+```{r gxe_stratified_sex_v2, results = 'asis',  eval = F}
+gxe_stratified_header(statistic, 'sex')
+
+rawHTML <- paste(readLines(glue("{path}/output/posthoc/gxe_models_{exposure}_{hrc_version}_{snp}_dose_{glue_collapse(sort(covariates), sep = '_')}_input_data_stratified_by_sex.html")))
+cat(paste(rawHTML, collapse = "\n"), "\n\n")
+```
+
+```{r gxe_stratified_study_v2, results = 'asis',  eval = F}
+gxe_stratified_header(statistic, 'study design')
+
+
+rawHTML <- paste(readLines(glue("{path}/output/posthoc/gxe_models_{exposure}_{hrc_version}_{snp}_dose_{glue_collapse(sort(covariates), sep = '_')}_input_data_stratified_by_study_design.html")))
+cat(paste(rawHTML, collapse = "\n"), "\n\n")
+```
+
+```{r gxe_stratified_tumorsite_v2, results = 'asis',  eval = F}
+gxe_stratified_header(statistic, 'tumor site')
+
+
+rawHTML <- paste(readLines(glue("{path}/output/posthoc/gxe_models_{exposure}_{hrc_version}_{snp}_dose_{glue_collapse(sort(covariates), sep = '_')}_input_data_stratified_by_cancer_site_sum2.html")))
+cat(paste(rawHTML, collapse = "\n"), "\n\n")
+```
+
+
+```{r gxe_stratified_bmic3_v2, results = 'asis',  eval = F}
+gxe_stratified_header(statistic, 'bmi')
+
+
+rawHTML <- paste(readLines(glue("{path}/output/posthoc/gxe_models_{exposure}_{hrc_version}_{snp}_dose_{glue_collapse(sort(covariates), sep = '_')}_input_data_stratified_by_bmic3.html")))
+cat(paste(rawHTML, collapse = "\n"), "\n\n")
+```
+
+
+<!-- ################################################# -->
+<!-- ################################################# -->
+<!-- ################################################# -->
+<!-- ################################################# -->
+
+
+
+
+<!-- Stratified GxE analyses - incorporate dataset obj name in filename. CRC ONLY-->
+```{r gxe_stratified_sex_v2_crc, results = 'asis',  eval = F}
+gxe_stratified_header(statistic, 'sex (CRC)')
+
+
+rawHTML <- paste(readLines(glue("{path}/output/posthoc/gxe_models_{exposure}_{hrc_version}_{snp}_dose_{glue_collapse(sort(covariates), sep = '_')}_input_data_crc_stratified_by_sex.html")))
+cat(paste(rawHTML, collapse = "\n"), "\n\n")
+```
+
+```{r gxe_stratified_study_v2_crc, results = 'asis',  eval = F}
+gxe_stratified_header(statistic, 'study design (CRC)')
+
+rawHTML <- paste(readLines(glue("{path}/output/posthoc/gxe_models_{exposure}_{hrc_version}_{snp}_dose_{glue_collapse(sort(covariates), sep = '_')}_input_data_crc_stratified_by_study_design.html")))
+cat(paste(rawHTML, collapse = "\n"), "\n\n")
+```
+
+```{r gxe_stratified_tumorsite_v2_crc, results = 'asis',  eval = F}
+gxe_stratified_header(statistic, 'tumor site (CRC)')
+
+
+rawHTML <- paste(readLines(glue("{path}/output/posthoc/gxe_models_{exposure}_{hrc_version}_{snp}_dose_{glue_collapse(sort(covariates), sep = '_')}_input_data_crc_stratified_by_cancer_site_sum2.html")))
+cat(paste(rawHTML, collapse = "\n"), "\n\n")
+```
+
+
+```{r gxe_stratified_bmic3_v2_crc, results = 'asis',  eval = F}
+gxe_stratified_header(statistic, 'bmi (CRC)')
+
+
+rawHTML <- paste(readLines(glue("{path}/output/posthoc/gxe_models_{exposure}_{hrc_version}_{snp}_dose_{glue_collapse(sort(covariates), sep = '_')}_input_data_crc_stratified_by_bmic3.html")))
+cat(paste(rawHTML, collapse = "\n"), "\n\n")
+```
+
+
+
+
+<!-- ################################################# -->
+<!-- ################################################# -->
+<!-- ################################################# -->
+<!-- ################################################# -->
+
+
+<!-- stratified odds ratios -->
+```{r stratified_or_cat, results = 'asis', eval = F}
+cat(paste0("### Stratified OR"), collapse = '\n')
+
+# stratified odds ratio table output (rds)
+stratified_or_file <- readRDS(glue("{path}/output/posthoc/stratified_oddsratio_{exposure}_{hrc_version}_{snp}_{glue_collapse(sort(covariates), sep = '_')}.rds"))
+
+options(knitr.kable.NA = '')
+cat(kable(stratified_or_file) %>%
+  kable_styling('bordered', bootstrap_options = c("striped", "hover", "condensed"), full_width = F, position = 'left') %>%
+  add_header_above(c(" " = 4, "G param by E" = 2, "Counts (Ca/Co)" = 3)) %>%
+  pack_rows("E param by G", 5, 6, indent = F), '\n\n')
+
+```
+
+
+```{r stratified_or_cont, results = 'asis', eval = F}
+cat(paste0("### Stratified OR"), collapse = '\n')
+
+if (exposure == "methrswklns") cat(paste0("(IQR scaled variable)"), collapse = '\n')
+
+
+# stratified odds ratio table output (rds)
+stratified_or_file <- readRDS(glue("{path}/output/posthoc/stratified_oddsratio_{exposure}_{hrc_version}_{snp}_{glue_collapse(sort(covariates), sep = '_')}.rds"))
+
+options(knitr.kable.NA = '')
+cat(
+  kable(stratified_or_file) %>%
+    kable_styling('bordered', bootstrap_options = c("striped", "hover", "condensed"), full_width = F, position = 'left') %>%
+    add_header_above(c(" " = 4, "G param by E" = 2)) %>%
+    pack_rows("E param by G", 5, 6, indent = F), 
+  '\n\n')
+```
+
+
+```{r stratified_or_dosage, results = 'asis', eval = F}
+cat(paste0("### Stratified OR"), collapse = '\n')
+
+# stratified odds ratio table output (rds)
+stratified_or_file <- readRDS(glue("{path}/output/posthoc/stratified_oddsratio_{exposure}_{hrc_version}_{snp}_{glue_collapse(sort(covariates), sep = '_')}.rds"))
+
+#### DOSAGES
+# stratified_or_file <- readRDS(glue("{path}/output/posthoc/stratified_oddsratio_{exposure}_{hrc_version}_{snp}_{glue_collapse(sort(covariates), sep = '_')}_dosage.rds"))
+#
+# options(knitr.kable.NA = '')
+# kable(stratified_or_file) %>%
+#   kable_styling('bordered', bootstrap_options = c("striped", "hover", "condensed"), full_width = F, position = 'left') %>%
+#   add_header_above(c(" " = 4, "G param by E" = 1, "Counts (Ca/Co)" = 3)) %>%
+#   pack_rows("E param by G", 5, 6, indent = F)
+
+```
+
+
+
+
+
+
+
+
+
+<!-- ################################################# -->
+<!-- ################################################# -->
+<!-- ################################################# -->
+<!-- ################################################# -->
+
+
+<!-- Locuszoom plot -->
+```{r locuszoom_plots, results = 'asis', eval = F}
+cat(paste0("### Locuszoom"), collapse = '\n')
+snpfix <- substr(snp, 1, nchar(snp)-4)
+
+locuszoom <- glue("{path}/output/locuszoom_plot/locuszoom_plot_{exposure}_{hrc_version}_{statistic}_{snpfix}.png")
+cat(paste0("![](",locuszoom,")"), '\n\n')
+```
+
+
+<!-- ################################################# -->
+<!-- ################################################# -->
+<!-- ################################################# -->
+<!-- ################################################# -->
+
+
+
+
+<!-- Functional annotation plot -->
+```{r functional_plots, results = 'asis', eval = F}
+cat(paste0("### Func Annot"), collapse = '\n')
+snpfix <- substr(snp, 1, nchar(snp)-4)
+
+# functional annotation plot
+functional_png <- glue("{path}/output/functional_plot/functional_annotation_{snpfix}.png")
+cat(paste0("![](",functional_png,")"), '\n\n')
+```
+
+
+<!-- ###################################################################### -->
+<!-- ###################################################################### -->
+<!-- ###################################################################### -->
+<!-- ###################################################################### -->
+<!-- ###################################################################### -->
+
+
+
+<!-- Exposure specific chunks -->
+
+
+
+```{r stratified_or_cat_bmic3f, results = 'asis', eval = F}
+# for BMI5 results - stratified odds ratios are stratified by BMI categories
+cat(paste0("### Stratified OR"), collapse = '\n')
+
+# stratified odds ratio table output (rds)
+stratified_or_file <- readRDS(glue("{path}/output/posthoc/stratified_oddsratio_bmic3f_{hrc_version}_{snp}_{glue_collapse(sort(covariates), sep = '_')}.rds"))
+
+options(knitr.kable.NA = '')
+cat(kable(stratified_or_file) %>%
+  kable_styling('bordered', bootstrap_options = c("striped", "hover", "condensed"), full_width = F, position = 'left') %>%
+  add_header_above(c(" " = 4, "G param by E" = 2, "Counts (Ca/Co)" = 3)) %>%
+  pack_rows("E param by G", 7, 8, indent = F), '\n\n')
+
+```
+
+
+```{r stratified_or_cat_bmic3f_smk_ever, results = 'asis', eval = F}
+# for BMI5 results - stratified odds ratios are stratified by BMI categories
+# similar as above, but further adjusted by smk_ever
+
+cat(paste0("### Stratified OR (adj smk_ever)"), collapse = '\n')
+
+# stratified odds ratio table output (rds)
+stratified_or_file <- readRDS(glue("{path}/output/posthoc/stratified_oddsratio_bmic3f_{hrc_version}_{snp}_{glue_collapse(sort(c(covariates, 'smk_ever')), sep = '_')}.rds"))
+
+options(knitr.kable.NA = '')
+cat(kable(stratified_or_file) %>%
+  kable_styling('bordered', bootstrap_options = c("striped", "hover", "condensed"), full_width = F, position = 'left') %>%
+  add_header_above(c(" " = 4, "G param by E" = 2, "Counts (Ca/Co)" = 3)) %>%
+  pack_rows("E param by G", 7, 8, indent = F), '\n\n')
+
+```
+
+
+
+
+<!-- active_met_875 -->
+
+
+
+

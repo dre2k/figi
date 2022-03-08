@@ -1,6 +1,8 @@
 #=============================================================================#
 # FIGI GxE redmeatqcm results
 #=============================================================================#
+
+# setup -------------------------------------------------------------------
 library(tidyverse)
 library(data.table)
 library(qqman)
@@ -33,20 +35,23 @@ annotation_file <- 'gwas_200_ld_annotation_feb2021.txt'
 covariates <- sort(c('age_ref_imp', 'sex', 'energytot_imp', 'study_gxe', 'pc1', 'pc2', 'pc3'))
 path = glue("/media/work/gwis_test/{exposure}/")
 
+# pca
+pca <- fread("/media/work/gwis_test/PCA/20210222/figi_gxe_pca_update.eigenvec") %>% 
+  dplyr::rename(vcfid = IID) %>% 
+  dplyr::select(-`#FID`) %>% 
+  dplyr::rename_with(tolower)
 
 # input data
 esubset <- readRDS(glue("/media/work/gwis_test/{exposure}/data/FIGI_{hrc_version}_gxeset_{exposure}_basic_covars_glm.rds")) %>% pull(vcfid)
 
 input_data <- readRDS(glue("/media/work/gwis_test/data/FIGI_{hrc_version}_gxeset_analysis_data_glm.rds")) %>% 
   filter(vcfid%in% esubset) %>%
+  dplyr::select(-starts_with("pc")) %>% 
+  left_join(pca, 'vcfid') %>% 
   mutate(redmeatqcm_v2 = as.numeric(redmeatqcm))
 
-
-
-
-
 #-----------------------------------------------------------------------------#
-# main effects ----
+# Main effects ------------------------------------------------------------
 #-----------------------------------------------------------------------------#
 
 # ------ meta-analysis ------ #
@@ -78,7 +83,6 @@ pooled_analysis_multinom(input_data, exposure = exposure, hrc_version = hrc_vers
 covariates_sets <- list(covariates)
 snps <- c("8:122247679:C:G")
 walk(snps, ~ fit_gxe_covars(data_epi = input_data, exposure = exposure, snp = .x, covariates_list = covariates_sets, method = 'chiSq2df', path = glue("{path}/output")))
-
 
 
 # stratified odds ratios
@@ -282,9 +286,8 @@ ggsave(filename = "~/Dropbox/chr18_46453754_C_T_by_redmeatqcm.png", width = 6, h
 # ================================================================== #
 main_effects_report(exposure = exposure, hrc_version = hrc_version, covariates = covariates, path = path)
 
-gwis_report(exposure = exposure, 
-            hrc_version = hrc_version, 
-            covariates = covariates)
+gwis_report(exposure = exposure, hrc_version = hrc_version, covariates = covariates)
+
 
 posthoc_report(exposure = exposure)
 

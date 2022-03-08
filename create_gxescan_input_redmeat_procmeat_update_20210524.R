@@ -21,7 +21,6 @@ table(meatonly$adenoma, useNA = 'ifany')
 table(meatonly$study, meatonly$adenoma, useNA = 'ifany')
 table(meatonly$study, meatonly$crc, useNA = 'ifany')
 
-
 adenomas <- filter(meatonly, !is.na(adenoma))
 
 
@@ -267,6 +266,7 @@ pca <- fread("/media/work/gwis_test/PCA/20210222/figi_gxe_pca_update.eigenvec") 
   dplyr::rename_with(tolower)
 
 # creating redmeatqcm_v2 for convenience for workflow creation
+# only distinguishing feature of this 'exposure' is that adenomas as excluded
 gxe <- inner_join(input_data, pca, 'vcfid') %>% 
   mutate(redmeatqcm_v2 = as.numeric(redmeatqcm))
 

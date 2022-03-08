@@ -47,14 +47,19 @@ input_data <- readRDS(glue("/media/work/gwis/data/FIGI_EpiData/FIGI_{hrc_version
 
 
 
-input_data_bmi <- filter(input_data, 
-                         !is.na(bmi))
-table(input_data$outcome)
-table(input_data_bmi$outcome)
 
 #-----------------------------------------------------------------------------#
 # main effects ----
 #-----------------------------------------------------------------------------#
+
+
+# ------ meta-analysis (updated?) ------ #
+output_dir = as.character(glue("{path}/posthoc/"))
+covariates_meta <- sort(covariates[which(!covariates %in% c(paste0(rep('pc', 20), seq(1, 20)), "study_gxe"))])
+
+create_forest_plot(data_epi = input_data, exposure = exposure, covariates = covariates_meta, hrc_version = hrc_version, path = glue("~/Dropbox/"), strata = "all", forest_height = 15, categorical = F)
+
+
 
 # ------ meta-analysis ------ #
 covariates_meta <- sort(c('age_ref_imp', 'sex'))
@@ -204,6 +209,31 @@ reri_wrapper(data_epi = input_data, exposure = exposure, snp = "13:47191972:G:A"
 reri_wrapper(data_epi = input_data, exposure = exposure, snp = "8:118185025:G:A", covariates = covariates, path = glue("{path}/output"))
 
 
+# stratified odds ratios
+snps <- c("13:47191972:G:A")
+
+walk(snps, ~ fit_stratified_or(
+  data_epi = input_data,
+  exposure = 'diab',
+  snp = .x,
+  hrc_version = hrc_version,
+  covariates = covariates,
+  path = glue("{path}/output/")))
+
+
+walk(snps, ~ fit_stratified_or_old(
+  data_epi = input_data,
+  exposure = 'diab',
+  snp = .x,
+  hrc_version = hrc_version,
+  covariates = covariates,
+  path = glue("{path}/output/")))
+
+
+x <- readRDS("/media/work/gwis_test/diab/output/posthoc/stratified_oddsratio_diab_v2.3_chr13_47191972_G_A_age_ref_imp_pc1_pc2_pc3_sex_study_gxe.rds")
+
+
+
 
 # ---- calculate 2DF LR TEST ---- #
 # ---- chr13_47191972_G_A_dose ---- #
@@ -285,17 +315,44 @@ ggplot(aes(x = study_gxe, y = study_aaf), data = out) +
 
 covariates_original = covariates
 
-model_base <- glm(glue("outcome ~ diab + {glue_collapse(covariates_original, sep = '+')}"), data = tmp, family = 'binomial')
-model_g <- glm(glue("outcome ~ diab + chr8_118185025_G_A_dose + {glue_collapse(covariates_original, sep = '+')}"), data = tmp, family = 'binomial')
-lrtest(model_base, model_g)
+# 2df
+# model_base <- glm(glue("outcome ~ diab + {glue_collapse(covariates_original, sep = '+')}"), data = tmp, family = 'binomial')
+# model_g <- glm(glue("outcome ~ diab + chr8_118185025_G_A_dose + {glue_collapse(covariates_original, sep = '+')}"), data = tmp, family = 'binomial')
+# lrtest(model_base, model_g)
 
-model_base_gxe <- glm(glue("outcome ~ diab + chr8_118185025_G_A_dose + {glue_collapse(covariates_original, sep = '+')}"), data = tmp, family = 'binomial')
+# model_base_gxe <- glm(glue("outcome ~ diab + chr8_118185025_G_A_dose + {glue_collapse(covariates_original, sep = '+')}"), data = tmp, family = 'binomial')
+# model_gxe <- glm(glue("outcome ~ diab * chr8_118185025_G_A_dose + {glue_collapse(covariates_original, sep = '+')}"), data = tmp, family = 'binomial')
+# lrtest(model_base_gxe, model_gxe)
+
+model_base_gxe <- glm(glue("outcome ~ diab + {glue_collapse(covariates_original, sep = '+')}"), data = tmp, family = 'binomial')
 model_gxe <- glm(glue("outcome ~ diab * chr8_118185025_G_A_dose + {glue_collapse(covariates_original, sep = '+')}"), data = tmp, family = 'binomial')
-lrtest(model_base_gxe, model_gxe)
+a <- lrtest(model_base_gxe, model_gxe)
 
+# E|G
 model_base_eg <- lm(glue("chr8_118185025_G_A_dose ~ {glue_collapse(covariates_original, sep = '+')}"), data = tmp)
 model_eg <- lm(glue("chr8_118185025_G_A_dose ~ diab + {glue_collapse(covariates_original, sep = '+')}"), data = tmp)
-lrtest(model_base_eg, model_eg)
+b <- lrtest(model_base_eg, model_eg)
+
+pchisq(a$Chisq + b$Chisq, df = 3, lower.tail = F)
+
+
+
+
+
+## ------ what about when removing PPS3/4 studies ----- #
+tmp2 <- tmp %>% 
+  filter(!study_gxe %in% c("PPS3", "PPS4"))
+model_base_gxe <- glm(glue("outcome ~ diab + {glue_collapse(covariates_original, sep = '+')}"), data = tmp2, family = 'binomial')
+model_gxe <- glm(glue("outcome ~ diab * chr8_118185025_G_A_dose + {glue_collapse(covariates_original, sep = '+')}"), data = tmp2, family = 'binomial')
+a <- lrtest(model_base_gxe, model_gxe)
+model_base_eg <- lm(glue("chr8_118185025_G_A_dose ~ {glue_collapse(covariates_original, sep = '+')}"), data = tmp2)
+model_eg <- lm(glue("chr8_118185025_G_A_dose ~ diab + {glue_collapse(covariates_original, sep = '+')}"), data = tmp2)
+b <- lrtest(model_base_eg, model_eg)
+
+pchisq(a$Chisq + b$Chisq, df = 3, lower.tail = F)
+
+
+
 
 
 covariates_bmi = c(covariates_original, 'bmi')
@@ -335,6 +392,50 @@ aaf_wrapper(3, 193408847)
 aaf_wrapper(4, 31909491)
 aaf_wrapper(5, 60920832)
 aaf_wrapper(13, 47170118)
+
+
+
+
+#  make sure that removing PPS studies doesn't really influence findigs .
+
+
+
+
+
+
+# ---- calculate 3DF LR TEST ---- #
+# ---- chr13_47191972_G_A_dose ---- #
+
+# need allele frequency by study_gxe to confirm finding (and sensitivity analysis)
+tmp <- qread("/media/work/gwis_test/diab/output/posthoc/dosage_chr13_47191972.qs") %>% 
+  inner_join(input_data, 'vcfid')
+
+# calculate 2DF original to confirm
+covariates_original = covariates
+model_base_gxe <- glm(glue("outcome ~ diab + {glue_collapse(covariates_original, sep = '+')}"), data = tmp, family = 'binomial')
+model_gxe <- glm(glue("outcome ~ diab * chr13_47191972_G_A_dose + {glue_collapse(covariates_original, sep = '+')}"), data = tmp, family = 'binomial')
+a <- lrtest(model_base_gxe, model_gxe)
+
+## ------ what about when removing PPS3/4 studies ----- #
+tmp2 <- tmp %>% 
+  filter(!study_gxe %in% c("PPS3", "PPS4"))
+model_base_gxe <- glm(glue("outcome ~ diab + {glue_collapse(covariates_original, sep = '+')}"), data = tmp2, family = 'binomial')
+model_gxe <- glm(glue("outcome ~ diab * chr13_47191972_G_A_dose + {glue_collapse(covariates_original, sep = '+')}"), data = tmp2, family = 'binomial')
+a <- lrtest(model_base_gxe, model_gxe)
+
+pchisq(a$Chisq + b$Chisq, df = 3, lower.tail = F)
+
+
+
+
+
+
+
+
+
+
+
+
 # ================================================================== #
 # ======= interaction stratified by diabetes status ---- 
 # i forget the rationale for this analysis, maybe it's to check D|G association? 

@@ -132,25 +132,15 @@ plot(inf.analysis, "i2")
 # covariates_sets <- list(covariates)
 # walk(snps, ~ fit_gxe_covars(data_epi = input_data, exposure = exposure, snp = .x, covariates_list = covariates_sets, method = 'chiSq3df', path = glue("{path}/output")))
 
+# MAF plots
+snps_out <- c("1:151700227:G:A", "15:83613505:A:T", "3:85461302:G:A", "4:147966066:G:A", "11:112923466:A:T")
+walk(snps_out, ~ create_aaf_study_plot(data = input_data, exposure = exposure, hrc_version = hrc_version, snp = .x, path = path))
+
+# RERI plots (not as important.. )
 # output RERI plots (can't install package on CARC yet)
-significant_snps <- c("2:136407479:A:G", "1:151700227:G:A", "3:85461302:G:A", "4:147966066:G:A", "15:83613505:A:T") 
-significant_snps <- c("3:85461302:G:A", "4:147966066:G:A") 
-walk(significant_snps, ~ reri_wrapper(data_epi = input_data, exposure = exposure, snp = .x, covariates = covariates, path = glue("{path}/output")))
-
-
-# get MAF plots for suggestive hits 
-suggestive_hits <- fread(glue("/media/work/gwis_test/{exposure}/data/FIGI_{hrc_version}_gxeset_{exposure}_chiSqGxE_ldclump.clumped")) %>% 
-  pull(SNP)
-
-hits <- c("1:151700227:G:A", "15:83613505:A:T")
-walk(hits, ~ output_aaf_plot(dat = input_data, exposure, snp = .x))
-
-
-
-
-
-
-
+# significant_snps <- c("2:136407479:A:G", "1:151700227:G:A", "3:85461302:G:A", "4:147966066:G:A", "15:83613505:A:T") 
+# significant_snps <- c("3:85461302:G:A", "4:147966066:G:A") 
+# walk(significant_snps, ~ reri_wrapper(data_epi = input_data, exposure = exposure, snp = .x, covariates = covariates, path = glue("{path}/output")))
 
 
 # ================================================================== # 
@@ -170,9 +160,6 @@ esubset <- readRDS("/media/work/gwis_test/smk_ever/data/FIGI_v2.3_gxeset_smk_eve
   pull(vcfid)
 dat <- readRDS(glue("/media/work/gwis_test/data/FIGI_{hrc_version}_gxeset_analysis_data_glm.rds")) %>% 
   filter(vcfid%in% esubset)
-
-
-
 
 # 2:136407479:A:G -- nominally high GxE p-value that disappears when excluding mecc
 
@@ -200,7 +187,6 @@ model3 <- glm(outcome ~ smk_ever * chr2_136407479_A_G_dose + age_ref_imp + sex +
 summary(model3)
 
 
-
 # compare MAF between studies, first look at all studies and then MECC vs the rest
 
 aaf <- function(x) {
@@ -220,9 +206,6 @@ ggplot(aes(x = study_gxe, y = study_aaf), data = maf_compare) +
   theme(axis.text.x = element_text(angle = 270)) + 
   xlab("Study") + 
   ylab("Alternate Allele Frequency")
-
-
-
 
 
 
@@ -260,9 +243,6 @@ summary(model1)
 summary(model2) # p-value much higher (less sig)
 
 
-
-
-
 # how about 14:59209156:C:T
 
 dose <- qread("/media/work/gwis_test/smk_ever/output/posthoc/dosage_chr14_59209156.qs")
@@ -296,10 +276,7 @@ gwis_report(exposure = exposure,
             hrc_version = hrc_version, 
             covariates = covariates)
 
-posthoc_report(exposure = exposure, 
-               hrc_version = hrc_version,
-               covariates = covariates,
-               path = path)
+posthoc_report(exposure = exposure)
 
 
 posthoc_report(exposure = exposure)

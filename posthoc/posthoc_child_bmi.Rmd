@@ -4,104 +4,139 @@ title: ""
 output: html_document
 ---
 
-## GxE model stratified by sex
-```{r, results = 'asis'}
+
+``` {r, results = 'asis'}
+cat(paste0("## ", snp, " {.tabset}"), collapse = '\n')
+```
+
+
+```{r, echo = F, results = 'asis'}
+cat(paste0("### Allele Freq by Study"), collapse = '\n')
+```
+
+
+```{r}
+aaf_png <- glue("{path}/output/posthoc/aaf_by_studygxe_{exposure}_{hrc_version}_{snp}_dose.png")
+knitr::include_graphics(aaf_png)
+```
+
+
+
+```{r, results = 'asis',  eval = stratified_sex}
+cat(paste0("### GxE stratified by sex"), collapse = '\n')
+
 rawHTML <- paste(readLines(glue("{path}/output/posthoc/gxe_models_{exposure}_{hrc_version}_{snp}_dose_{glue_collapse(sort(covariates), sep = '_')}_stratified_by_sex.html")))
 cat(paste(rawHTML, collapse = "\n"), "\n")
 ```
 
-## GxE model stratified by tumor site
-```{r, results = 'asis'}
+```{r, results = 'asis',  eval = stratified_sex}
+cat(paste0("### GxE stratified by tumor site"), collapse = '\n')
+
 rawHTML <- paste(readLines(glue("{path}/output/posthoc/gxe_models_{exposure}_{hrc_version}_{snp}_dose_{glue_collapse(sort(covariates), sep = '_')}_stratified_by_cancer_site_sum2.html")))
 cat(paste(rawHTML, collapse = "\n"), "\n")
 ```
 
-## GxE model stratified by study design
-```{r, results = 'asis'}
+```{r, results = 'asis',  eval = stratified_sex}
+cat(paste0("### GxE stratified by study design"), collapse = '\n')
+
 rawHTML <- paste(readLines(glue("{path}/output/posthoc/gxe_models_{exposure}_{hrc_version}_{snp}_dose_{glue_collapse(sort(covariates), sep = '_')}_stratified_by_study_design.html")))
 cat(paste(rawHTML, collapse = "\n"), "\n")
 ```
 
-## GxE model with additional covariates
-```{r, results = 'asis'}
+```{r, results = 'asis',  eval = stratified_sex}
+cat(paste0("### GxE by covariate sets"), collapse = '\n')
+
 rawHTML <- paste(readLines(glue("{path}/output/posthoc/gxe_models_{exposure}_{hrc_version}_{snp}_dose_covariate_sets.html")))
 cat(paste(rawHTML, collapse = "\n"), "\n")
 ```
 
 
+<!-- ## Stratified OR -->
+<!-- ```{r, results = 'asis'} -->
+
+<!-- stratified_or_file <- readRDS(glue("{path}/output/posthoc/stratified_oddsratio_{exposure}_{hrc_version}_{snp}_{glue_collapse(covariates, sep = '_')}.rds")) -->
+
+<!-- options(knitr.kable.NA = '') -->
+<!-- kable(stratified_or_file) %>% -->
+<!--   kable_styling('bordered', bootstrap_options = c("striped", "hover", "condensed"), full_width = F, position = 'left') %>% -->
+<!--   # add_header_above(c(" " = 4, "G param by E" = 2, "Counts (Ca/Co)" = 3)) %>% -->
+<!--   add_header_above(c(" " = 4, "G param by E" = 2)) %>% -->
+<!--   pack_rows("E param by G", 5, 6, indent = F) -->
+
+<!-- ``` -->
+
+
+<!-- ## Stratified OR (adj smk_ever) -->
+<!-- ```{r, results = 'asis'} -->
+<!-- stratified_or_file <- readRDS(glue("{path}/output/posthoc/stratified_oddsratio_{exposure}_{hrc_version}_{snp}_{glue_collapse(covariates_smk, sep = '_')}.rds")) -->
+
+<!-- options(knitr.kable.NA = '') -->
+<!-- kable(stratified_or_file) %>% -->
+<!--   kable_styling('bordered', bootstrap_options = c("striped", "hover", "condensed"), full_width = F, position = 'left') %>% -->
+<!--   # add_header_above(c(" " = 4, "G param by E" = 2, "Counts (Ca/Co)" = 3)) %>% -->
+<!--   add_header_above(c(" " = 4, "G param by E" = 2)) %>% -->
+<!--   pack_rows("E param by G", 5, 6, indent = F) -->
+
+<!-- ``` -->
 
 
 
-## Stratified OR
-```{r, results = 'asis'}
+```{r, results = 'asis', eval = stratified_or_eval}
+# ok to include header here since setting results = 'asis' is set
+cat(paste0("### Odds Ratios (bmic3f"), collapse = '\n')
+cat(paste0("Categorical BMI - underweight, normal, overweight"))
 
-stratified_or_file <- readRDS(glue("{path}/output/posthoc/stratified_oddsratio_{exposure}_{hrc_version}_{snp}_{glue_collapse(covariates, sep = '_')}.rds"))
-
-options(knitr.kable.NA = '')
-kable(stratified_or_file) %>%
-  kable_styling('bordered', bootstrap_options = c("striped", "hover", "condensed"), full_width = F, position = 'left') %>%
-  # add_header_above(c(" " = 4, "G param by E" = 2, "Counts (Ca/Co)" = 3)) %>%
-  add_header_above(c(" " = 4, "G param by E" = 2)) %>%
-  pack_rows("E param by G", 5, 6, indent = F)
-
-```
+#### ORIGINAL (GENOTYPES)
+exposure_cat <- 'bmic3f'
+stratified_or_file <- readRDS(glue("{path}/output/posthoc/stratified_oddsratio_{exposure_cat}_{hrc_version}_{snp}_{glue_collapse(sort(covariates), sep = '_')}.rds"))
 
 
-## Stratified OR (adj smk_ever)
-```{r, results = 'asis'}
-stratified_or_file <- readRDS(glue("{path}/output/posthoc/stratified_oddsratio_{exposure}_{hrc_version}_{snp}_{glue_collapse(covariates_smk, sep = '_')}.rds"))
-
-options(knitr.kable.NA = '')
-kable(stratified_or_file) %>%
-  kable_styling('bordered', bootstrap_options = c("striped", "hover", "condensed"), full_width = F, position = 'left') %>%
-  # add_header_above(c(" " = 4, "G param by E" = 2, "Counts (Ca/Co)" = 3)) %>%
-  add_header_above(c(" " = 4, "G param by E" = 2)) %>%
-  pack_rows("E param by G", 5, 6, indent = F)
-
-```
-
-
-## Stratified OR (bmic3)
-Categorical BMI - underweight, normal, overweight
-```{r, results = 'asis'}
-stratified_or_file <- readRDS(glue("{path}/output/posthoc/stratified_oddsratio_bmic3f_{hrc_version}_{snp}_{glue_collapse(sort(covariates), sep = '_')}.rds"))
-
-options(knitr.kable.NA = '')
-kable(stratified_or_file) %>%
-  kable_styling('bordered', bootstrap_options = c("striped", "hover", "condensed"), full_width = F, position = 'left') %>%
-  add_header_above(c(" " = 4, "G param by E" = 2, "Counts (Ca/Co)" = 3)) %>%
-  pack_rows("E param by G", 7, 10, indent = F)
-
-```
-
-
-## Stratified OR (bmic3, adj smk_ever)
-Categorical BMI - underweight, normal, overweight
-```{r, results = 'asis'}
-stratified_or_file <- readRDS(glue("{path}/output/posthoc/stratified_oddsratio_bmic3f_{hrc_version}_{snp}_{glue_collapse(sort(covariates_smk), sep = '_')}.rds"))
-
+#### normal stratified OR table
 options(knitr.kable.NA = '')
 kable(stratified_or_file) %>%
   kable_styling('bordered', bootstrap_options = c("striped", "hover", "condensed"), full_width = F, position = 'left') %>%
   add_header_above(c(" " = 4, "G param by E" = 2, "Counts (Ca/Co)" = 3)) %>%
-  pack_rows("E param by G", 7, 10, indent = F)
+  pack_rows("E param by G", 7, 8, indent = F)
+```
 
+
+```{r, results = 'asis', eval = stratified_or_eval}
+# ok to include header here since setting results = 'asis' is set
+cat(paste0("### Odds Ratios (bmic3f"), collapse = '\n')
+cat(paste0("Categorical BMI - underweight, normal, overweight. Further adjusted by smk_ever"))
+
+#### ORIGINAL (GENOTYPES)
+exposure_cat <- 'bmic3f'
+stratified_or_file <- readRDS(glue("{path}/output/posthoc/stratified_oddsratio_{exposure_cat}_{hrc_version}_{snp}_{glue_collapse(sort(covariates_smk), sep = '_')}.rds"))
+
+
+#### normal stratified OR table
+options(knitr.kable.NA = '')
+kable(stratified_or_file) %>%
+  kable_styling('bordered', bootstrap_options = c("striped", "hover", "condensed"), full_width = F, position = 'left') %>%
+  add_header_above(c(" " = 4, "G param by E" = 2, "Counts (Ca/Co)" = 3)) %>%
+  pack_rows("E param by G", 7, 8, indent = F)
 ```
 
 
 
-## Regional plot
+```{r, echo = F, results = 'asis'}
+cat(paste0("### Locuszoom"), collapse = '\n')
+```
 ```{r}
 # remove ref/alt info from snp
 snpfix <- substr(snp, 1, nchar(snp)-4)
-method = "chiSqGxE"
 
 # locuszoom plot
 locuszoom_png <- glue("{path}/output/locuszoom_plot/locuszoom_plot_{exposure}_{hrc_version}_{method}_{snpfix}.png")
 knitr::include_graphics(locuszoom_png)
 ```
 
-## Functional annotation plot
+
+
+```{r, echo = F, results = 'asis'}
+cat(paste0("### Func Annot"), collapse = '\n')
+```
 ```{r}
 # remove ref/alt info from snp
 snpfix <- substr(snp, 1, nchar(snp)-4)
@@ -110,7 +145,6 @@ snpfix <- substr(snp, 1, nchar(snp)-4)
 functional_png <- glue("{path}/output/functional_plot/functional_annotation_{snpfix}.png")
 knitr::include_graphics(functional_png)
 ```
-
 
 
 

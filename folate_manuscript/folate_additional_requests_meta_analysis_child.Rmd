@@ -1,0 +1,108 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+
+```{r}
+if(exposure == "folate_diet400qcm") {
+  categorical = F
+} else {
+  categorical = T
+}
+
+```
+
+
+
+##### Basic covariates
+```{r fig.height=16, fig.width=12, cache=F}
+covariates <- sort(c('age_ref_imp', 'sex', 'energytot_imp'))
+create_forest_plot_rmarkdown(data_epi = input_data,
+                             exposure = exposure,
+                             covariates = covariates,
+                             hrc_version = hrc_version,
+                             strata = 'all',
+                             categorical = categorical)
+```
+
+
+##### Basic covariates + bmi + smk_ever
+```{r fig.height=16, fig.width=12, cache=F}
+# input variables
+covariates <- sort(c('age_ref_imp', 'sex', 'energytot_imp', 'bmi', 'smk_ever'))
+
+# create forest plot
+create_forest_plot_rmarkdown(data_epi = input_data %>% filter(across(c(bmi,smk_ever), ~ !is.na(.)),
+                                                              !study_gxe %in% c("ATBC")),
+                             exposure = exposure,
+                             covariates = covariates,
+                             hrc_version = hrc_version,
+                             strata = 'all',
+                             categorical = categorical)
+```
+
+
+<!-- Stratified by drinking status -->
+<!-- alcoholc_ref - never/ever -->
+
+
+##### Basic covariates - Non drinkers
+```{r fig.height=16, fig.width=12, cache=F}
+# input variables
+covariates <- sort(c('age_ref_imp', 'sex', 'energytot_imp'))
+
+# create forest plot
+create_forest_plot_rmarkdown(data_epi = input_data %>% filter(alcohol_ref == "No"),
+                             exposure = exposure,
+                             covariates = covariates,
+                             hrc_version = hrc_version,
+                             strata = 'all',
+                             categorical = categorical)
+```
+
+
+##### Basic covariates - Drinkers
+```{r fig.height=16, fig.width=12, cache=F}
+# create forest plot
+create_forest_plot_rmarkdown(data_epi = input_data %>% filter(alcohol_ref == "Yes"),
+                             exposure = exposure,
+                             covariates = covariates,
+                             hrc_version = hrc_version,
+                             strata = 'all',
+                             categorical = categorical)
+```
+
+
+##### Basic covariates + bmi + smk_ever - Non drinkers
+```{r fig.height=16, fig.width=12, cache=F}
+# input variables
+covariates <- sort(c('age_ref_imp', 'sex', 'energytot_imp', 'bmi', 'smk_ever'))
+
+# create forest plot
+create_forest_plot_rmarkdown(data_epi = input_data %>% filter(alcohol_ref == "No",
+                                                              across(c(bmi,smk_ever), ~ !is.na(.)),
+                                                              !study_gxe %in% c("ATBC")),
+                             exposure = exposure,
+                             covariates = covariates,
+                             hrc_version = hrc_version,
+                             strata = 'all',
+                             categorical = categorical)
+```
+
+
+##### Basic covariates + bmi + smk_ever - Drinkers
+```{r fig.height=16, fig.width=12, cache=F}
+# create forest plot
+create_forest_plot_rmarkdown(data_epi = input_data %>% filter(alcohol_ref == "Yes",
+                                                              across(c(bmi,smk_ever), ~ !is.na(.)),
+                                                              !study_gxe %in% c("ATBC")),
+                             exposure = exposure,
+                             covariates = covariates,
+                             hrc_version = hrc_version,
+                             strata = 'all',
+                             categorical = categorical)
+```
+
+
+

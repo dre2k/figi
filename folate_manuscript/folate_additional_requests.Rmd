@@ -1,0 +1,191 @@
+---
+title: 'FIGI Folate - additional analyses'
+author: "Andre Kim"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    toc_depth: 4
+    df_print: paged
+    code_folding: hide
+---
+
+```{r overall setup, include=FALSE, echo=FALSE}
+library(tidyverse)
+library(tidyr)
+library(grid)
+library(gridExtra)
+library(broom)
+library(data.table)
+library(glue)
+library(qs)
+library(DT)
+library(figifs)
+library(lmtest)
+library(stargazer)
+options(knitr.table.format = "html")
+knitr::opts_chunk$set(echo = TRUE)
+old.warn <- getOption("warn")
+options(warn=-1)
+
+# variables
+hrc_version = 'v3.0'
+
+# functions
+source("folate_additional_requests_functions.R")
+```
+
+
+## Questions
+  
+1) Does the “sup_fol” analyses consider “folate supplement use” (yes/no)?  
+- folate_sup_yn = binary supplemental folate variable
+
+<br>
+
+2) Contrasts - what is the contrast for all analysis  
+- **folate_dietqc2/folate_totqc2** - per quartile effect, Q1 as baseline  
+- **folate_xxx_400qcm_gwis (continuous variables)** - scaled as per IQR increase, median intake as baseline   
+
+## Main effects
+
+### Additional folate meta-analyses
+
+- Adjusted by BMI and smoking status (never/ever). Analyses adjusted for smoking exclude ATBC (Tobacco trial)   
+- Stratified by regular alcohol use (never/ever). Ever includes both low (1-28g/day) and high (> 28g/day) levels)  
+
+#### folate_dietqc2 {.tabset}
+```{r}
+# input variables
+exposure = 'folate_dietqc2'
+
+# input data
+esubset <- readRDS(glue("/media/work/gwis_test/{exposure}/data/FIGI_{hrc_version}_gxeset_{exposure}_basic_covars_glm.rds")) %>% 
+  pull(vcfid)
+input_data <- readRDS(glue("/media/work/gwis/data/FIGI_EpiData/FIGI_{hrc_version}_gxeset_analysis_data_glm.rds")) %>% 
+  filter(vcfid %in% esubset)
+```
+```{r child = paste0("folate_additional_requests_meta_analysis_child.Rmd"), cache=T}
+```
+
+#### folate_diet400qcm {.tabset}
+```{r}
+# input variables
+exposure = 'folate_diet400qcm'
+
+# input data
+# rescale the continuous variable to model per IQR increase, median as baseline
+esubset <- readRDS(glue("/media/work/gwis_test/{exposure}/data/FIGI_{hrc_version}_gxeset_{exposure}_basic_covars_glm.rds")) %>%
+  pull(vcfid)
+input_data <- readRDS(glue("/media/work/gwis/data/FIGI_EpiData/FIGI_{hrc_version}_gxeset_analysis_data_glm.rds")) %>%
+  filter(vcfid %in% esubset) %>%
+  mutate(folate_diet400qcm = as.numeric(folate_diet400qcm))
+
+folate_diet400qcm.iqr.median = median(input_data$folate_diet400qcm)
+input_data <- input_data %>%
+  mutate(folate_diet400qcm = folate_diet400qcm / folate_diet400qcm.iqr.median,
+         folate_diet400qcm = (folate_diet400qcm - median(folate_diet400qcm)) / IQR(folate_diet400qcm))
+
+```
+```{r child = paste0("folate_additional_requests_meta_analysis_child.Rmd"), cache=T}
+```
+
+#### folate_totqc2 {.tabset}
+```{r}
+# input variables
+exposure = 'folate_totqc2'
+
+# input data
+esubset <- readRDS(glue("/media/work/gwis_test/{exposure}/data/FIGI_{hrc_version}_gxeset_{exposure}_basic_covars_glm.rds")) %>%
+  pull(vcfid)
+input_data <- readRDS(glue("/media/work/gwis/data/FIGI_EpiData/FIGI_{hrc_version}_gxeset_analysis_data_glm.rds")) %>%
+  filter(vcfid %in% esubset)
+```
+```{r child = paste0("folate_additional_requests_meta_analysis_child.Rmd"), cache=T}
+```
+
+#### folate_sup_yn {.tabset}
+```{r}
+# input variables
+exposure = 'folate_sup_yn'
+
+# input data
+esubset <- readRDS(glue("/media/work/gwis_test/{exposure}/data/FIGI_{hrc_version}_gxeset_{exposure}_basic_covars_glm.rds")) %>%
+  pull(vcfid)
+input_data <- readRDS(glue("/media/work/gwis/data/FIGI_EpiData/FIGI_{hrc_version}_gxeset_analysis_data_glm.rds")) %>%
+  filter(vcfid %in% esubset)
+```
+```{r child = paste0("folate_additional_requests_meta_analysis_child.Rmd"), cache=T}
+```
+
+
+<!-- Posthoc analyses -->
+
+## GxE posthoc
+
+"For supplemental folate use **(folate_sup_yn, yes/no)**, is it possible to perform some follow up analysis for chr3_12041456_T_A (1df) chr6_23445253_T_A (case-only) findings?"   
+- eQTL for gene expression databases other than GTEx (e.g., BarcUVA, eQTLGen)    
+- stratified GxE results by regular alcohol at reference period   
+- stratified GxE by tumor molecular subtype   
+
+
+<!-- eQTL results -->
+
+### eQTL 
+
+#### BarcUVA (in progress)
+
+#### eQTLGen {.tabset}
+
+##### chr3_12041456_T_A
+
+```{r}
+eqtlgen <- read.csv("folate_sup_yn_chr3_12041456_eqtlgen.csv")
+datatable(eqtlgen, list(pageLength=50, scrollX='400px'))
+```
+
+##### chr6_23445253_T_A 
+
+(no findings)
+
+#### {-}
+
+<!-- GxE stratified by regular alcohol use -->
+
+### GxE stratified by alcohol use {.tabset}
+
+#### chr3_12041456_T_A
+```{r results = 'asis'}
+out <- create_stratified_gxe_rmarkdown(data_epi = input_data,
+                                       exposure = exposure,
+                                       snp = '3:12041456:T:A', # ugh
+                                       covariates = covariates,
+                                       strata = "alcohol_ref",
+                                       method = "chiSqGxE",
+                                       flip_allele = F)
+cat(unlist(out), sep = '\n')
+```
+
+#### chr6_23445253_T_A
+```{r results = 'asis'}
+out <- create_stratified_gxe_rmarkdown(data_epi = input_data,
+                                       exposure = exposure,
+                                       snp = '6:23445253:T:A', # ugh
+                                       covariates = covariates,
+                                       strata = "alcohol_ref",
+                                       method = "chiSqCase",
+                                       flip_allele = F)
+cat(unlist(out), sep = '\n')
+```
+
+### {-}
+
+<!-- GxE stratified by molecular subtype -->
+
+### GxE stratified by molecular subtype
+
+```{r}
+tumor_marker <- read.csv("Results_folate_sup_yn-20211118.csv")
+datatable(tumor_marker, list(pageLength=50, scrollX='400px'))
+```

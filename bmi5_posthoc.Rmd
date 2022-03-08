@@ -11,7 +11,7 @@ output:
     toc_depth: 3
     theme: "paper"
 params:
-  exposure: "smk_ever"
+  exposure: "bmi5"
   covariates: !r c("age_ref_imp", "sex", "pc1", "pc2", "pc3", "study_gxe")
   hrc_version: "v2.3"
   path: "/media/work/gwis_test"
@@ -35,6 +35,12 @@ library(kableExtra)
 library(formattable)
 library(glue)
 library(qs)
+
+
+exposure = "bmi5"
+covariates = c("age_ref_imp", "sex", "pc1", "pc2", "pc3", "study_gxe")
+hrc_version = "v2.3"
+path = glue("/media/work/gwis_test/{exposure}/")
 ```
 
 # Description
@@ -50,33 +56,93 @@ library(qs)
 
 ---
 
-<!-- define variables -->
-```{r, include = F}
-child_env <- new.env()
-assign("exposure",        params$exposure, child_env)
-assign("hrc_version",     params$hrc_version, child_env)
-assign("covariates", sort(params$covariates), child_env)
-
-# exposure working directory path
-path = glue("/media/work/gwis_test/{params$exposure}/")
+<!-- read script containing useful chunks -->
+```{r child = 'posthoc/chunks.Rmd'}
 ```
 
-
-# Two-step (expectation based partitioning)
+# Suggestive GxE findings
 ```{r, results = 'asis'}
-# child method variable
-assign("method", "chiSqGxE", child_env)
-snps_out <- c("chr15_33122966_C_T")
+statistic = 'chiSqGxE'
 
-# Call child Rmd script
-res <- lapply(snps_out, function(snp) {
-  assign("snp", snp, child_env)
-  knitr::knit_child('posthoc/posthoc_child_bmi.Rmd', envir = child_env, quiet = TRUE)
-  }
-)
+# list of SNPs
+snps <- sort(c("11:47328213:T:C", "3:100037644:A:G", "2:10961902:T:C", "11:120531547:C:G","11:46574459:T:A", "2:217410559:G:A", "6:138766021:C:T", "9:136601110:C:G", "15:33122966:C:T"))
+snps <- paste0('chr', gsub(":", "_", snps))
 
-cat(unlist(res), sep = '\n')
+# see chunks.Rmd for names
+run_functions <- function(snp) {
+  <<title>>
+  <<allele_freq_plots>>
+  <<gxe_stratified_sex>>
+  <<gxe_stratified_study>>
+  <<gxe_stratified_tumorsite>>
+  <<stratified_or_cat_bmic3f>>
+  <<stratified_or_cat_bmic3f_smk_ever>>
+  <<locuszoom_plots>>
+  <<functional_plots>>
+}
+
+# run
+walk(snps, ~ run_functions(.x))
 ```
+
+
+# Two-step findings
+```{r, results = 'asis'}
+statistic = 'chiSqGxE'
+
+# list of SNPs
+snps <- sort(c("15:33122966:C:T", "15:33120215:T:C"))
+snps <- paste0('chr', gsub(":", "_", snps))
+
+# see chunks.Rmd for names
+run_functions <- function(snp) {
+  <<title>>
+  <<allele_freq_plots>>
+  <<gxe_stratified_sex>>
+  <<gxe_stratified_study>>
+  <<gxe_stratified_tumorsite>>
+  <<stratified_or_cat_bmic3f>>
+  <<stratified_or_cat_bmic3f_smk_ever>>
+  <<locuszoom_plots>>
+  <<functional_plots>>
+}
+
+# run
+walk(snps, ~ run_functions(.x))
+```
+
+
+
+
+# 3DF findings
+
+All SNPs associated with BMI, no evidence of GxE (pvalue > 0.05), very small evidence of main effects
+
+
+```{r, results = 'asis'}
+statistic = 'chiSq3df'
+
+# list of SNPs
+snps <- sort(c("1:177889480:A:G", "12:50204089:G:A", "16:28649651:C:A", "16:53800954:T:C","18:57850583:C:A", "18:57971625:A:G", "18:58083923:A:C", "19:47581242:C:T","2:417167:T:C", "2:558080:G:T", "2:651365:G:A", "4:45181334:A:T"))
+snps <- paste0('chr', gsub(":", "_", snps))
+
+# see chunks.Rmd for names
+run_functions <- function(snp) {
+  <<title>>
+  # <<allele_freq_plots>>
+  # <<gxe_stratified_sex>>
+  # <<gxe_stratified_study>>
+  # <<gxe_stratified_tumorsite>>
+  # <<stratified_or_cat_bmic3f>>
+  # <<stratified_or_cat_bmic3f_smk_ever>>
+  <<locuszoom_plots>>
+  <<functional_plots>>
+}
+
+# run
+walk(snps, ~ run_functions(.x))
+```
+
 
 
 
