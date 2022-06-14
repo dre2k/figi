@@ -50,6 +50,10 @@ input_data <- readRDS(glue("/media/work/gwis_test/data/FIGI_{hrc_version}_gxeset
   left_join(pca, 'vcfid') %>% 
   mutate(redmeatqcm_v2 = as.numeric(redmeatqcm))
 
+
+
+
+
 #-----------------------------------------------------------------------------#
 # Main effects ------------------------------------------------------------
 #-----------------------------------------------------------------------------#
@@ -58,13 +62,12 @@ input_data <- readRDS(glue("/media/work/gwis_test/data/FIGI_{hrc_version}_gxeset
 output_dir = as.character(glue("{path}/output/posthoc/"))
 covariates_meta <- sort(covariates[which(!covariates %in% c(paste0(rep('pc', 20), seq(1, 20)), "study_gxe"))])
 
-create_forest_plot(data_epi = input_data, exposure = exposure, covariates = covariates_meta, hrc_version = hrc_version, path = glue("{path}/output/posthoc/"), strata = "all", forest_height = 15, categorical = F)
-create_forest_plot(data_epi = input_data, exposure = exposure, covariates = covariates_meta, hrc_version = hrc_version, path = glue("{path}/output/posthoc/"), strata = "proximal", forest_height = 13, categorical = F)
-create_forest_plot(data_epi = input_data, exposure = exposure, covariates = covariates_meta, hrc_version = hrc_version, path = glue("{path}/output/posthoc/"), strata = "distal", forest_height = 13, categorical = F)
-create_forest_plot(data_epi = input_data, exposure = exposure, covariates = covariates_meta, hrc_version = hrc_version, path = glue("{path}/output/posthoc/"), strata = "rectal", forest_height = 13, categorical = F)
-create_forest_plot(data_epi = input_data, exposure = exposure, covariates = covariates_meta, hrc_version = hrc_version, path = glue("{path}/output/posthoc/"), strata = "female", forest_height = 13, categorical = F)
-create_forest_plot(data_epi = input_data, exposure = exposure, covariates = covariates_meta, hrc_version = hrc_version, path = glue("{path}/output/posthoc/"), strata = "male", forest_height = 13, categorical = F)
-
+create_forest_plot(data_epi = input_data, exposure = exposure, covariates = covariates_meta, hrc_version = hrc_version, path = glue("{path}/output/posthoc/"), strata = "all", forest_height = 15, forest_width = 9, categorical = F)
+create_forest_plot(data_epi = input_data, exposure = exposure, covariates = covariates_meta, hrc_version = hrc_version, path = glue("{path}/output/posthoc/"), strata = "proximal", forest_height = 13, forest_width = 9, categorical = F)
+create_forest_plot(data_epi = input_data, exposure = exposure, covariates = covariates_meta, hrc_version = hrc_version, path = glue("{path}/output/posthoc/"), strata = "distal", forest_height = 13, forest_width = 9, categorical = F)
+create_forest_plot(data_epi = input_data, exposure = exposure, covariates = covariates_meta, hrc_version = hrc_version, path = glue("{path}/output/posthoc/"), strata = "rectal", forest_height = 13, forest_width = 9, categorical = F)
+create_forest_plot(data_epi = input_data, exposure = exposure, covariates = covariates_meta, hrc_version = hrc_version, path = glue("{path}/output/posthoc/"), strata = "female", forest_height = 13, forest_width = 9, categorical = F)
+create_forest_plot(data_epi = input_data, exposure = exposure, covariates = covariates_meta, hrc_version = hrc_version, path = glue("{path}/output/posthoc/"), strata = "male", forest_height = 13, forest_width = 9, categorical = F)
 
 # ------- stratified pooled analysis ------- #
 pooled_analysis_glm(input_data, exposure = exposure, hrc_version = hrc_version, covariates = covariates, strata = 'sex', filename_suffix = paste0(paste0(sort(covariates), collapse = '_'), "_stratified_sex"), output_dir = glue("{path}/output/posthoc/"))
@@ -75,156 +78,75 @@ pooled_analysis_multinom(input_data, exposure = exposure, hrc_version = hrc_vers
 
 
 
-#-----------------------------------------------------------------------------#
-# GxE additional analysis ---- 
-#-----------------------------------------------------------------------------#
 
+
+
+#-----------------------------------------------------------------------------#
+# GxE additional analysis -------------------------------------------------
+#-----------------------------------------------------------------------------#
+GxE <- c("17:71354811:G:A", "9:120653523:T:G", "4:31160820:G:A", "9:120290042:A:G", "8:122247679:C:G", "1:21495668:G:T", "3:29246192:C:T", "1:21209766:T:A", "15:100002029:C:T", "8:112374447:C:T", "18:21029284:C:T", "20:51479759:G:T", "2:42324419:T:A", "10:29013189:C:T", "13:62734417:A:G", "1:41466550:T:A", "3:27633795:G:A", "2:73204203:G:A", "1:239473113:T:C")
+df2 <- c("8:120042899:G:T", "8:122247679:C:G", "10:86469912:G:A")
+df3 <- c("8:122247679:C:G")
+twostep <- c("18:46453754:C:T")
+eg <- c("19:49232226:G:A")
+
+
+snps <- unique(c(GxE, df2, df3, twostep, eg))
+
+
+# MAF ---------------------------------------------------------------------
+walk(snps, ~ create_aaf_study_plot(data = input_data, exposure = exposure, hrc_version = hrc_version, snp = .x, path = path))
+
+
+
+# stratified odds ratio ---------------------------------------------------
+snps <- unique(c(df2, df3, twostep, eg))
+snps <- c("8:120042899:G:T", "8:122247679:C:G", "10:86469912:G:A")
+walk(snps , ~ fit_stratified_or_continuous(data_epi = input_data, exposure = exposure, snp = .x, hrc_version = hrc_version, covariates = covariates, dosage = F, path = glue("{path}/output"), flip_allele = F))
+
+# some alt alleles are protective, consider flipping
+# snps <- c('18:46453754:C:T')
+# walk(snps , ~ fit_stratified_or_continuous(data_epi = input_data, exposure = exposure, snp = .x, hrc_version = hrc_version, covariates = covariates, dosage = F, path = glue("{path}/output"), flip_allele = T))
+
+
+
+# interaction plots -------------------------------------------------------
+snps <- c('18:46453754:C:T')
+snps <- c("8:120042899:G:T", "8:122247679:C:G", "10:86469912:G:A")
+walk(snps, ~ iplot_wrapper(data_epi = input_data, exposure = exposure, snp = .x,  covariates = covariates, hrc_version = hrc_version, path = glue("{path}/output"), flip_allele = F))
+
+
+
+# Additional covariates ---------------------------------------------------
 # output GxE models adjusted by different covariate sets (if requested)
-covariates_sets <- list(covariates)
-snps <- c("8:122247679:C:G")
-walk(snps, ~ fit_gxe_covars(data_epi = input_data, exposure = exposure, snp = .x, covariates_list = covariates_sets, method = 'chiSq2df', path = glue("{path}/output")))
+# height, smoking, , alcohol intake, total fruit and vegetable intake, 
 
 
-# stratified odds ratios
-snps <- c("8:122247679:C:G", "18:46453754:C:T")
-snps <- c("18:46453754:C:T")
-walk(snps , ~ fit_stratified_or_continuous(data_epi = input_data, exposure = exposure, snp = .x, hrc_version = hrc_version, covariates = covariates, dosage = F, path = glue("{path}/output"), flip_allele = T))
+# physical activity - too many missing.. 
+
+cov1 <- covariates
+cov2 <- c(cov1, 'bmi5', 'height10')
+cov3 <- c(cov2, 'smk_ever', 'alcoholc', 'fruitqc2', 'fiberqc2', 'vegetableqc2')
 
 
+covariates_sets <- list(cov1, cov2, cov3)
+# snps <- c("8:122247679:C:G")
+snps <- unique(c(df2, twostep))
+walk(snps, ~ fit_gxe_covars(data_epi = input_data, exposure = exposure, snp = .x, covariates_list = covariates_sets, method = 'chiSqGxE', path = glue("{path}/output")))
+
+
+
+# Interaction plots -------------------------------------------------------
 # interaction plots (let's rescale the cutoffs, or maybe make it binary?)
 iplot_wrapper2(data_epi = input_data, exposure = exposure, snp = "8:122247679:C:G",  covariates = covariates, hrc_version = hrc_version, path = glue("{path}/output"))
 
 
 
 
+# RERI --------------------------------------------------------------------
 # output RERI table (can't install package on CARC yet)
 significant_snps <- c("8:122247679:C:G", "18:46453754:C:T")
 walk(significant_snps, ~ reri_wrapper(data_epi = input_data, exposure = exposure, snp = .x, covariates = covariates, path = glue("{path}/output")))
-
-
-input_data <- input_data %>% 
-  mutate(energytot_imp1000 = energytot_imp / 1000)
-
-
-glm(outcome ~ redmeatqcm_v2 + age_ref_imp + sex + energytot_imp + study_gxe + pc1 + pc2 + pc3, data = input_data, family = 'binomial')
-
-glm(outcome ~ redmeatqcm_v2 + age_ref_imp + sex + energytot_imp1000 + study_gxe + pc1 + pc2 + pc3, data = input_data, family = 'binomial')
-
-
-
-
-
-
-
-
-#-----------------------------------------------------------------------------#
-# SNP information ---- 
-#-----------------------------------------------------------------------------#
-
-
-# need allele frequency by study_gxe to confirm finding (and sensitivity analysis)
-tmp <- qread("/media/work/gwis_test/redmeatqcm_v2/output/posthoc/dosage_chr18_46453754.qs") %>% 
-  inner_join(input_data, 'vcfid')
-
-aaf <- function(x) {
-  sum(x) / nrow(x)
-}
-
-tmp %>% 
-  summarise(total = n(), 
-            aaf = sum(chr18_46453754_C_T_dose / (total*2)))
-
-
-out <- tmp %>% 
-  group_by(study_gxe) %>% 
-  summarise(total = n(), 
-            study_aaf = sum(chr18_46453754_C_T_dose) / (total*2)) %>% 
-  arrange(study_aaf) %>% 
-  mutate(study_gxe = fct_reorder(study_gxe, study_aaf))
-
-ggplot(aes(x = study_gxe, y = study_aaf), data = out) + 
-  geom_point() + 
-  theme_bw() + 
-  theme(axis.text.x = element_text(angle = 270)) + 
-  xlab("Study") + 
-  ylab("Alternate Allele Frequency")
-
-ggsave(filename = "~/Dropbox/asp_ref_chr6_32560631_C_T_AAF.png", width = 7.5, height = 4.72)
-
-
-# would results change if you remove mecc (note wald statistic)
-# EXCLUDE !!!!!!!!!!!!!
-model1 <- glm(glue("outcome ~ {exposure}*chr6_32560631_C_T_dose + {glue_collapse(covariates, sep = '+')}"), data = chr6_325, family = 'binomial')
-summary(model1)
-
-chr6_325b <- dplyr::filter(chr6_325, !grepl("UKB", study_gxe))
-model2 <- glm(glue("outcome ~ {exposure}*chr6_32560631_C_T_dose + {glue_collapse(covariates, sep = '+')}"), data = chr6_325b, family = 'binomial')
-summary(model2)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# need allele frequency by study_gxe to confirm finding (and sensitivity analysis)
-tmp <- qread("/media/work/gwis_test/redmeatqcm_v2/output/posthoc/dosage_chr8_122247679.qs") %>% 
-  inner_join(input_data, 'vcfid')
-
-aaf <- function(x) {
-  sum(x) / nrow(x)
-}
-
-
-out <- tmp %>% 
-  group_by(study_gxe) %>% 
-  summarise(total = n(), 
-            study_aaf = sum(chr8_122247679_C_G_dose) / (total*2)) %>% 
-  arrange(study_aaf) %>% 
-  mutate(study_gxe = fct_reorder(study_gxe, study_aaf))
-
-ggplot(aes(x = study_gxe, y = study_aaf), data = out) + 
-  geom_point() + 
-  theme_bw() + 
-  theme(axis.text.x = element_text(angle = 270)) + 
-  xlab("Study") + 
-  ylab("Alternate Allele Frequency")
-
-
-
-
-
-
-tmp <- qread("/media/work/gwis_test/redmeatqcm_v2/output/posthoc/dosage_chr18_46453754.qs") %>% 
-  inner_join(input_data, 'vcfid')
-
-out <- tmp %>% 
-  group_by(study_gxe) %>% 
-  summarise(total = n(), 
-            study_aaf = sum(chr18_46453754_C_T_dose) / (total*2)) %>% 
-  arrange(study_aaf) %>% 
-  mutate(study_gxe = fct_reorder(study_gxe, study_aaf))
-
-ggplot(aes(x = study_gxe, y = study_aaf), data = out) + 
-  geom_point() + 
-  theme_bw() + 
-  theme(axis.text.x = element_text(angle = 270)) + 
-  xlab("Study") + 
-  ylab("Alternate Allele Frequency")
-
-
-
-
 
 
 
@@ -234,6 +156,7 @@ ggplot(aes(x = study_gxe, y = study_aaf), data = out) +
 #-----------------------------------------------------------------------------#
 
 
+# ------ simple forest plot of the gxE interaction parameters ----- #
 label <- c("TT", "CT", "CC")
 mean  <- c(1.46, 1.35, 1.18)
 lower <- c(1.26, 1.26, 1.11)
@@ -249,11 +172,7 @@ ggplot(df, aes(y = mean, x = label)) +
   theme_bw() + labs(y = "Odds ratio (log)", x = "") + 
   ggtitle("redmeatqcm odds ratios by chr18:46453754 genotype")
 
-
 ggsave(filename = "~/Dropbox/redmeatqcm_by_chr18_46453754_C_T_genotype.png", width = 6, height = 4)
-
-
-
 
 label <- c("CT vs TT, redmeatqcm = 0", 
            "CC vs TT, redmeatqcm = 0", 
@@ -280,25 +199,10 @@ ggsave(filename = "~/Dropbox/chr18_46453754_C_T_by_redmeatqcm.png", width = 6, h
 
 
 
-
 # ================================================================== #
 # ======= rmarkdown reports ---- 
 # ================================================================== #
 main_effects_report(exposure = exposure, hrc_version = hrc_version, covariates = covariates, path = path)
-
 gwis_report(exposure = exposure, hrc_version = hrc_version, covariates = covariates)
-
-
 posthoc_report(exposure = exposure)
-
-posthoc_report(exposure = exposure, 
-               hrc_version = hrc_version,
-               covariates = covariates,
-               path = path)
-
-
-
-out <- data.frame(table(input_data$study_gxe, input_data$redmeatqcm_v2, input_data$sex)) %>% 
-  dplyr::filter(Freq != 0)
-
 

@@ -1,0 +1,85 @@
+---
+title: "`r params$exposure` posthoc analysis"
+date: '`r paste("Updated on", Sys.Date())`'
+output: 
+  html_document:
+    css: posthoc/posthoc_report.css
+    toc: true
+    toc_float:
+      collapsed: false
+      smooth_scroll: false
+    toc_depth: 3
+    theme: "paper"
+params:
+  exposure: "procmeatqcm_v2"
+  covariates: !r c("age_ref_imp", "sex", "energytot_imp", "pc1", "pc2", "pc3", "study_gxe")
+  hrc_version: "v3.0"
+  path: "/media/work/gwis_test"
+---
+
+  
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = F, message = F, warning = F, error = F)
+# load packages and define wrapper functions
+library(tidyverse)
+library(data.table)
+library(forcats)
+library(ggplot2)
+library(qqman)
+library(rlang)
+library(figifs)
+library(DT)
+library(grid)
+library(stargazer)
+library(kableExtra)
+library(formattable)
+library(glue)
+
+
+# parameters
+exposure = params$exposure
+covariates = c("age_ref_imp",
+               "sex",
+               "energytot_imp",
+               "pc1",
+               "pc2",
+               "pc3",
+               "study_gxe")
+hrc_version = params$hrc_version
+path = glue("/media/work/gwis_test/{params$exposure}")
+```
+
+
+---
+
+<!-- read script containing useful chunks -->
+```{r child = 'posthoc/chunks.Rmd'}
+```
+
+# Suggestive GxE (P < 5e-6)
+
+```{r, results = 'asis'}
+statistic = 'chiSqGxE'
+
+# list of SNPs
+snps <- c("4:11944206:A:G", "15:92814380:C:T", "8:59807881:A:C", "1:21015685:G:A", "14:24188606:C:T", "7:100511033:A:G", "16:23076410:C:T", "9:114385930:A:G", "18:21029284:C:T", "5:71909347:C:T", "15:98258859:C:T", "2:43003484:A:C", "13:21949790:T:A")
+snps <- paste0('chr', gsub(":", "_", snps))
+
+
+# see chunks.Rmd for names
+run_functions <- function(snp) {
+  <<title>>
+  <<allele_freq_plots>>
+  <<stratified_or_cont>>
+  <<interaction_plots>>
+  <<locuszoom_plots>>
+  <<functional_plots>>
+}
+
+# run
+walk(snps, ~ run_functions(.x))
+
+```
+
+
+

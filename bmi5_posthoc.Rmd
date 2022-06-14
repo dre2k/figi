@@ -146,3 +146,36 @@ walk(snps, ~ run_functions(.x))
 
 
 
+
+# 3DF finding (rs7313400)
+
+All SNPs associated with BMI, no evidence of GxE (pvalue > 0.05), very small evidence of main effects
+
+
+```{r, results = 'asis'}
+statistic = 'chiSq3df'
+
+# list of SNPs
+snps <- sort(c("12:50204089:G:A"))
+snps <- paste0('chr', gsub(":", "_", snps))
+
+# see chunks.Rmd for names
+run_functions <- function(snp) {
+  <<title>>
+  # <<allele_freq_plots>>
+  # <<gxe_stratified_sex>>
+  # <<gxe_stratified_study>>
+  # <<gxe_stratified_tumorsite>>
+  <<interaction_plots_bmic3f>>
+  <<stratified_or_cat_bmic3f>>
+  <<stratified_or_cat_bmic3f_smk_ever>>
+  <<locuszoom_plots>>
+  <<functional_plots>>
+}
+
+# run
+walk(snps, ~ run_functions(.x))
+```
+
+
+

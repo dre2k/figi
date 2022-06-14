@@ -1,0 +1,95 @@
+---
+title: "FIGI PhysAct sensitivity analyses"
+author: "AK"
+date:  "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(scales)
+library(glue)
+library(broom)
+library(meta)
+library(kableExtra)
+```
+
+## Summary of main findings for physact followup
+
+
+variable          finding           method
+---------------   ---------------   ---------
+active_met_875    15:32994756:T:C   gao 99.5
+active_met_1800   15:33008870:T:C   gao 97.5
+methrswklnsqc2    20:49693755:T:C   GxE
+methrswklns       21:44227260:T:C   case-only*
+
+
+## Sensivity analyses
+
+#### Covariate adjustment
+I ran 5 different covariate sets:     
+- set1: age, sex, energy, pc, study     
+- set2: set1 + bmi + smk_ever   
+- set3: set1 + famhx  
+- set4: set1 + bmi + smk_ever + famhx  
+- set5: set4 + height10 + redmeat + procmeat + folatetot + fiber + fruit + vegetable + calciumtot + NSAIDs + alcoholc (3 categories)  
+
+https://drive.google.com/open?id=1szTGSDsu5bDVkS18MJEFWSfwBzvOiE_Q&authuser=andreeki%40usc.edu&usp=drive_fs
+
+<br>
+
+#### Repeat sensitivity analysis, exclude WHI_2, WHI_3 (e.g. clinical trials after review of study background)
+https://drive.google.com/open?id=1tC7p3rkeCq1pep_nEArhTTgEG2VqZC09&authuser=andreeki%40usc.edu&usp=drive_fs
+
+<br>
+
+#### Repeat sensitivity analyses, exclude WHI_2, WHI3 + studies that are primarily composed of adenoma cases (HPFS, NHS -- see email)
+
+https://drive.google.com/open?id=1tLab-trZGJA3jSW2TMMU0tL8PICGi-2A&authuser=andreeki%40usc.edu&usp=drive_fs
+
+
+
+## active_met_875 by study
+
+
+#### simple tabulation
+```{r}
+
+x <- readRDS("/media/work/gwis_test/active_met_875/data/tmp.rds")
+# table(x$study_gxe, x$active_met_875)
+
+
+out <- x %>% 
+  group_by(study_gxe, active_met_875, outcome) %>% 
+  summarise(N = n()) %>% 
+  pivot_wider(names_from = outcome, values_from = N) %>% 
+  ungroup() %>% 
+  group_by(study_gxe) %>% 
+  mutate(pct0 = round((`0` / sum(`0`)*100), 1), 
+         pct1 = round((`1` / sum(`1`)*100), 1), 
+         control = paste0(`0`, " (", pct0, ")"), 
+         case = paste0(`1`, " (", pct1, ")")) %>% 
+  dplyr::select(study_gxe, active_met_875, control, case)
+
+
+# chisq pvalues
+chisq.pvalues <- x %>% 
+  group_by(study_gxe, active_met_875, outcome) %>% 
+  summarise(N = n()) %>% 
+  # pivot_wider(names_from = outcome, values_from = N, names_prefix = "stat") %>% 
+  ungroup() %>% dplyr::select(-active_met_875, -outcome) %>%
+  group_by(study_gxe) %>% 
+  summarise(pval = round(chisq.test(matrix(N, ncol = 2))$p.value, 3)) %>%
+  pull(pval)
+  
+tmp <- rep("", 27)
+tmp2 <- as.vector(rbind(tmp, chisq.pvalues))
+
+out$chisq_pvalue = tmp2
+
+kable(out) %>% 
+  kable_paper()
+
+```

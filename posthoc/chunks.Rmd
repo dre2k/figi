@@ -100,9 +100,7 @@ cat(paste(rawHTML, collapse = "\n"), "\n\n")
 
 
 
-
-
-<!-- Stratified GxE analyses - incorporate dataset obj name in filename -->
+<!-- Stratified GxE analyses - same as above, but data file name incorporated in the output filename -->
 ```{r gxe_stratified_sex_v2, results = 'asis',  eval = F}
 gxe_stratified_header(statistic, 'sex')
 
@@ -140,7 +138,6 @@ cat(paste(rawHTML, collapse = "\n"), "\n\n")
 <!-- ################################################# -->
 <!-- ################################################# -->
 <!-- ################################################# -->
-
 
 
 
@@ -268,8 +265,6 @@ cat(paste0("![](",locuszoom,")"), '\n\n')
 <!-- ################################################# -->
 
 
-
-
 <!-- Functional annotation plot -->
 ```{r functional_plots, results = 'asis', eval = F}
 cat(paste0("### Func Annot"), collapse = '\n')
@@ -279,6 +274,34 @@ snpfix <- substr(snp, 1, nchar(snp)-4)
 functional_png <- glue("{path}/output/functional_plot/functional_annotation_{snpfix}.png")
 cat(paste0("![](",functional_png,")"), '\n\n')
 ```
+
+
+
+<!-- ################################################# -->
+<!-- ################################################# -->
+<!-- ################################################# -->
+<!-- ################################################# -->
+
+```{r interaction_plots, results = 'asis', eval = F}
+cat(paste0("### Interaction Plot"), collapse = '\n')
+
+iplot <- glue("{path}/output/posthoc/interaction_plot_{exposure}_{hrc_version}_{snp}_dose_{glue_collapse(sort(covariates), sep = '_')}.png")
+cat(paste0("![](",iplot,")"), '\n\n')
+
+```
+
+
+
+```{r interaction_plots_bmic3f, results = 'asis', eval = F}
+cat(paste0("### Interaction Plot"), collapse = '\n')
+
+iplot <- glue("{path}/output/posthoc/interaction_plot_bmic3f_{hrc_version}_{snp}_dose_{glue_collapse(sort(covariates), sep = '_')}.png")
+cat(paste0("![](",iplot,")"), '\n\n')
+
+```
+
+
+
 
 
 <!-- ###################################################################### -->

@@ -38,7 +38,9 @@ covariates <- sort(c('age_ref_imp', 'sex', 'energytot_imp', 'study_gxe', 'pc1', 
 esubset <- readRDS(glue("{path}/data/FIGI_{hrc_version}_gxeset_{exposure}_basic_covars_glm.rds")) %>% pull(vcfid)
 input_data <- readRDS(glue("/media/work/gwis/data/FIGI_EpiData/FIGI_{hrc_version}_gxeset_analysis_data_glm.rds")) %>% 
   filter(vcfid%in% esubset) %>% 
-  mutate(fiber10qcm = as.numeric(fiber10qcm))
+  mutate(fiber10qcm = as.numeric(fiber10qcm),
+         redmeatqc2 = as.numeric(redmeatqc2), 
+         bmi5 = as.numeric(bmi5))
 
 
 # ---- rescale variable by median study/sex specific IQR
@@ -73,12 +75,12 @@ output_dir = as.character(glue("{path}/output/posthoc/"))
 covariates_meta <- sort(covariates[which(!covariates %in% c(paste0(rep('pc', 20), seq(1, 20)), "study_gxe"))])
 covariates_meta <- sort(covariates[which(!covariates %in% c("study_gxe"))])
 
-create_forest_plot(data_epi = input_data, exposure = exposure_scaled, covariates = covariates_meta, hrc_version = hrc_version, path = glue("{path}/output/posthoc/"), strata = "all", forest_height = 15, categorical = F)
-create_forest_plot(data_epi = input_data, exposure = exposure_scaled, covariates = covariates_meta, hrc_version = hrc_version, path = glue("{path}/output/posthoc/"), strata = "proximal", forest_height = 13, categorical = F)
-create_forest_plot(data_epi = input_data, exposure = exposure_scaled, covariates = covariates_meta, hrc_version = hrc_version, path = glue("{path}/output/posthoc/"), strata = "distal", forest_height = 13, categorical = F)
-create_forest_plot(data_epi = input_data, exposure = exposure_scaled, covariates = covariates_meta, hrc_version = hrc_version, path = glue("{path}/output/posthoc/"), strata = "rectal", forest_height = 13, categorical = F)
-create_forest_plot(data_epi = input_data, exposure = exposure_scaled, covariates = covariates_meta, hrc_version = hrc_version, path = glue("{path}/output/posthoc/"), strata = "female", forest_height = 13, categorical = F)
-create_forest_plot(data_epi = input_data, exposure = exposure_scaled, covariates = covariates_meta, hrc_version = hrc_version, path = glue("{path}/output/posthoc/"), strata = "male", forest_height = 13, categorical = F)
+create_forest_plot(data_epi = input_data, exposure = exposure_scaled, covariates = covariates_meta, hrc_version = hrc_version, path = glue("{path}/output/posthoc/"), strata = "all", forest_height = 15, forest_width = 9, categorical = F)
+create_forest_plot(data_epi = input_data, exposure = exposure_scaled, covariates = covariates_meta, hrc_version = hrc_version, path = glue("{path}/output/posthoc/"), strata = "proximal", forest_height = 13, forest_width = 9, categorical = F)
+create_forest_plot(data_epi = input_data, exposure = exposure_scaled, forest_width = 9, covariates = covariates_meta, hrc_version = hrc_version, path = glue("{path}/output/posthoc/"), strata = "distal", forest_height = 13, categorical = F)
+create_forest_plot(data_epi = input_data, exposure = exposure_scaled, covariates = covariates_meta, hrc_version = hrc_version, path = glue("{path}/output/posthoc/"), strata = "rectal", forest_height = 13, forest_width = 9, categorical = F)
+create_forest_plot(data_epi = input_data, exposure = exposure_scaled, covariates = covariates_meta, hrc_version = hrc_version, path = glue("{path}/output/posthoc/"), strata = "female", forest_height = 13, forest_width = 9, categorical = F)
+create_forest_plot(data_epi = input_data, exposure = exposure_scaled, covariates = covariates_meta, hrc_version = hrc_version, path = glue("{path}/output/posthoc/"), strata = "male", forest_height = 13, forest_width = 9, categorical = F)
 
 
 # ------- stratified pooled analysis ------- #
@@ -176,15 +178,16 @@ walk(snps_out, ~iplot_wrapper(data_epi = input_data, exposure = exposure_scaled,
 walk(snps_out, ~ fit_stratified_or_continuous(data_epi = input_data, exposure = exposure_scaled, hrc_version = hrc_version, snp = .x, covariates = covariates, dosage = F, path = glue("{path}/output/")))
 
 
-# ---- GxE models by covariate sets ---- #
-# covariates_sets <- list(covariates, 
-#                         c(covariates, 'bmi5'), 
-#                         c(covariates, 'bmi5', 'smk_ever'), 
-#                         c(covariates, 'bmi5', 'smk_ever', 'fruitqc2', 'vegetableqc2'))
-# covariates_sets <- list(covariates)
-# walk(snps, ~ fit_gxe_covars(data_epi = input_data, exposure = exposure, snp = .x, covariates_list = covariates_sets, method = 'chiSqGxE', path = glue("{path}/output")))
-# suggestive_gxe <- fread(glue("{path}/data/FIGI_v2.3_gxeset_diab_chiSqGxE_ldclump.clumped"))
-# walk(suggestive_gxe$SNP, ~ fit_gxe_covars(data_epi = input_data, exposure = exposure, snp = .x, covariates_list = covariates_sets, method = 'chiSqGxE', path = glue("{path}/output")))
+covariates_sets <- list(covariates,
+                        c(covariates, 'bmi5'),
+                        c(covariates, 'alcoholc'), 
+                        c(covariates, 'redmeatqc2'),
+                        c(covariates, 'bmi5', 'alcoholc'),
+                        c(covariates, 'bmi5', 'redmeatqc2'), 
+                        c(covariates, 'alcoholc', 'redmeatqc2'),
+                        c(covariates, 'bmi5', 'alcoholc', 'redmeatqc2'))
+
+walk(snps_out, ~ fit_gxe_covars(data_epi = input_data, exposure = exposure, snp = .x, covariates_list = covariates_sets, method = 'chiSqGxE', path = glue("{path}/output")))
 
 
 

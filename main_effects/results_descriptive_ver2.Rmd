@@ -38,36 +38,36 @@ if (params$exposure %in% c("folate_totqc2", "folate_dietqc2", "bmi5", "redmeatqc
 }
 
 # sorry
-gxe_ggplot = gxe_ggplot %>% 
-  mutate(fruit5qcm = as.numeric(fruit5qcm),
-         fiber10qcm = as.numeric(fiber10qcm),
-         vegetable5qcm = as.numeric(vegetable5qcm), 
-         methrswklns = as.numeric(methrswklns / 10),
-         active_met_875_ggplot = as.factor(ifelse(is.na(methrswklns),NA,
-                          ifelse(methrswklns<8.75, "No", "Yes"))))
+# gxe_ggplot = gxe_ggplot %>% 
+#   mutate(fruit5qcm = as.numeric(fruit5qcm),
+#          fiber10qcm = as.numeric(fiber10qcm),
+#          vegetable5qcm = as.numeric(vegetable5qcm), 
+#          methrswklns = as.numeric(methrswklns / 10),
+#          active_met_875_ggplot = as.factor(ifelse(is.na(methrswklns),NA,
+#                           ifelse(methrswklns<8.75, "No", "Yes"))))
+# 
+# gxe_table1 = gxe_table1 %>% 
+#   mutate(fruit5qcm = as.numeric(fruit5qcm),
+#          fiber10qcm = as.numeric(fiber10qcm),
+#          vegetable5qcm = as.numeric(vegetable5qcm), 
+#          methrswklns = as.numeric(methrswklns / 10),
+#          active_met_875 = as.factor(ifelse(is.na(methrswklns),NA,
+#                           ifelse(methrswklns<8.75, "No", "Yes"))))
+# 
+# gxe_ggplot_subset = gxe_ggplot_subset %>% 
+#   mutate(fruit5qcm = as.numeric(fruit5qcm),
+#          fiber10qcm = as.numeric(fiber10qcm),
+#          vegetable5qcm = as.numeric(vegetable5qcm), 
+#          methrswklns = as.numeric(methrswklns / 10),
+#          active_met_875_ggplot = as.factor(ifelse(is.na(methrswklns),NA,
+#                           ifelse(methrswklns<8.75, "No", "Yes"))))
 
-gxe_table1 = gxe_table1 %>% 
-  mutate(fruit5qcm = as.numeric(fruit5qcm),
-         fiber10qcm = as.numeric(fiber10qcm),
-         vegetable5qcm = as.numeric(vegetable5qcm), 
-         methrswklns = as.numeric(methrswklns / 10),
-         active_met_875 = as.factor(ifelse(is.na(methrswklns),NA,
-                          ifelse(methrswklns<8.75, "No", "Yes"))))
-
-gxe_ggplot_subset = gxe_ggplot_subset %>% 
-  mutate(fruit5qcm = as.numeric(fruit5qcm),
-         fiber10qcm = as.numeric(fiber10qcm),
-         vegetable5qcm = as.numeric(vegetable5qcm), 
-         methrswklns = as.numeric(methrswklns / 10),
-         active_met_875_ggplot = as.factor(ifelse(is.na(methrswklns),NA,
-                          ifelse(methrswklns<8.75, "No", "Yes"))))
-
-gxe_table1_subset = gxe_table1_subset %>% 
-  mutate(fruit5qcm = as.numeric(fruit5qcm),
-         fiber10qcm = as.numeric(fiber10qcm),
-         vegetable5qcm = as.numeric(vegetable5qcm),
-         active_met_875 = as.factor(ifelse(is.na(methrswklns),NA,
-                          ifelse(methrswklns<8.75, "No", "Yes"))))
+# gxe_table1_subset = gxe_table1_subset %>% 
+#   mutate(fruit5qcm = as.numeric(fruit5qcm),
+#          fiber10qcm = as.numeric(fiber10qcm),
+#          vegetable5qcm = as.numeric(vegetable5qcm),
+#          active_met_875 = as.factor(ifelse(is.na(methrswklns),NA,
+#                           ifelse(methrswklns<8.75, "No", "Yes"))))
 
 # whether to execute chunks based on categorical/binary vs continuous
 # do_next_chunk <- length(table(params$exposure)) <= 4 

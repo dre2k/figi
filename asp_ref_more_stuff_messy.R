@@ -4,6 +4,14 @@
 # need to run this for other expsures anyway
 #=============================================================================#
 
+
+
+# nsaid vs aspirin subsets ------------------------------------------------
+asp_ref <- readRDS("/media/work/gwis_test/asp_ref/data/FIGI_v2.4_gxeset_asp_ref_basic_covars_glm.rds") %>% pull(vcfid)
+aspirin <- readRDS("/media/work/gwis_test/aspirin/data/FIGI_v2.4_gxeset_aspirin_basic_covars_glm.rds") %>% pull(vcfid)
+length(unique(c(asp_ref, aspirin))) # all aspirin captured by asp_ref
+
+
 #-----------------------------------------#
 # table 1
 #-----------------------------------------#
@@ -81,6 +89,26 @@ table1(as.formula(paste0("~ ", paste(table_covariates, collapse = "+"), "| outco
 #-----------------------------------------#
 # forest plot by study (not study_gxe)
 #-----------------------------------------#
+
+
+
+
+
+#-----------------------------------------#
+# run analysis stratified by 
+# sex + tumor site
+#-----------------------------------------#
+
+# ONLY FOR CHROMOSOME 5 finding
+# get GxE model, then stratify by sex + tumor site 
+
+
+
+
+
+
+
+
 
 
 

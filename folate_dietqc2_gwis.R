@@ -23,7 +23,7 @@ library(flextable)
 library(jtools)
 library(interactions)
 library(msm)
-rm(list = ls())
+rm(list = ls()) 
 
 # input variables
 exposure = 'folate_dietqc2'

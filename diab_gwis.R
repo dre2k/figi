@@ -1,6 +1,9 @@
 #=============================================================================#
 # FIGI GxE diab results
 #=============================================================================#
+
+# setup -------------------------------------------------------------------
+
 library(tidyverse)
 library(data.table)
 library(qqman)
@@ -52,6 +55,59 @@ input_data <- readRDS(glue("/media/work/gwis/data/FIGI_EpiData/FIGI_{hrc_version
 # main effects ----
 #-----------------------------------------------------------------------------#
 
+# ------- meta-analysis (manuscript)------ # 
+output_dir = as.character(glue("{path}/output/posthoc/"))
+covariates_meta <- sort(covariates[which(!covariates %in% c(paste0(rep('pc', 20), seq(1, 20)), "study_gxe"))])
+# covariates_meta <- sort(covariates[which(!covariates %in% c("study_gxe"))])
+
+
+create_forest_plot(data_epi = input_data, exposure = exposure, covariates = covariates_meta, hrc_version = hrc_version, path = glue("{path}/output/posthoc/"), strata = "all", forest_height = 15, forest_width = 9)
+create_forest_plot(data_epi = input_data, exposure = exposure, covariates = covariates_meta, hrc_version = hrc_version, path = glue("{path}/output/posthoc/"), strata = "proximal", forest_height = 13, forest_width = 9)
+create_forest_plot(data_epi = input_data, exposure = exposure, covariates = covariates_meta, hrc_version = hrc_version, path = glue("{path}/output/posthoc/"), strata = "distal", forest_height = 13, forest_width = 9)
+create_forest_plot(data_epi = input_data, exposure = exposure, covariates = covariates_meta, hrc_version = hrc_version, path = glue("{path}/output/posthoc/"), strata = "rectal", forest_height = 13, forest_width = 9)
+create_forest_plot(data_epi = input_data, exposure = exposure, covariates = covariates_meta, hrc_version = hrc_version, path = glue("{path}/output/posthoc/"), strata = "female", forest_height = 13, forest_width = 9)
+create_forest_plot(data_epi = input_data, exposure = exposure, covariates = covariates_meta, hrc_version = hrc_version, path = glue("{path}/output/posthoc/"), strata = "male", forest_height = 13, forest_width = 9)
+
+
+
+
+# ------- meta-analysis (manuscript) + bmi------ # 
+output_dir = as.character(glue("{path}/output/posthoc/"))
+covariates_meta <- sort(covariates[which(!covariates %in% c(paste0(rep('pc', 20), seq(1, 20)), "study_gxe"))])
+covariates_meta <- c(covariates_meta, 'bmi')
+
+input_data2 <- input_data %>% 
+  dplyr::filter(!is.na(bmi))
+  
+create_forest_plot(data_epi = input_data2, exposure = exposure, covariates = covariates_meta, hrc_version = hrc_version, path = glue("{path}/output/posthoc/"), strata = "all", forest_height = 15, forest_width = 9)
+create_forest_plot(data_epi = input_data2, exposure = exposure, covariates = covariates_meta, hrc_version = hrc_version, path = glue("{path}/output/posthoc/"), strata = "proximal", forest_height = 13, forest_width = 9)
+create_forest_plot(data_epi = input_data2, exposure = exposure, covariates = covariates_meta, hrc_version = hrc_version, path = glue("{path}/output/posthoc/"), strata = "distal", forest_height = 13, forest_width = 9)
+create_forest_plot(data_epi = input_data2, exposure = exposure, covariates = covariates_meta, hrc_version = hrc_version, path = glue("{path}/output/posthoc/"), strata = "rectal", forest_height = 13, forest_width = 9)
+create_forest_plot(data_epi = input_data2, exposure = exposure, covariates = covariates_meta, hrc_version = hrc_version, path = glue("{path}/output/posthoc/"), strata = "female", forest_height = 13, forest_width = 9)
+create_forest_plot(data_epi = input_data2, exposure = exposure, covariates = covariates_meta, hrc_version = hrc_version, path = glue("{path}/output/posthoc/"), strata = "male", forest_height = 13, forest_width = 9)
+
+
+
+# ------- meta-analysis (manuscript) + bmi + smk_ever + redmeatqc2------ # 
+output_dir = as.character(glue("{path}/output/posthoc/"))
+covariates_meta <- sort(covariates[which(!covariates %in% c(paste0(rep('pc', 20), seq(1, 20)), "study_gxe"))])
+covariates_meta <- c(covariates_meta, 'bmi', 'smk_ever', 'redmeatqc2')
+
+input_data2 <- input_data %>% 
+  dplyr::filter(!is.na(bmi), 
+                !is.na(smk_ever), 
+                !is.na(redmeatqc2))
+
+create_forest_plot(data_epi = input_data2, exposure = exposure, covariates = covariates_meta, hrc_version = hrc_version, path = glue("{path}/output/posthoc/"), strata = "all", forest_height = 15, forest_width = 9)
+create_forest_plot(data_epi = input_data2, exposure = exposure, covariates = covariates_meta, hrc_version = hrc_version, path = glue("{path}/output/posthoc/"), strata = "proximal", forest_height = 13, forest_width = 9)
+create_forest_plot(data_epi = input_data2, exposure = exposure, covariates = covariates_meta, hrc_version = hrc_version, path = glue("{path}/output/posthoc/"), strata = "distal", forest_height = 13, forest_width = 9)
+create_forest_plot(data_epi = input_data2, exposure = exposure, covariates = covariates_meta, hrc_version = hrc_version, path = glue("{path}/output/posthoc/"), strata = "rectal", forest_height = 13, forest_width = 9)
+create_forest_plot(data_epi = input_data2, exposure = exposure, covariates = covariates_meta, hrc_version = hrc_version, path = glue("{path}/output/posthoc/"), strata = "female", forest_height = 13, forest_width = 9)
+create_forest_plot(data_epi = input_data2, exposure = exposure, covariates = covariates_meta, hrc_version = hrc_version, path = glue("{path}/output/posthoc/"), strata = "male", forest_height = 13, forest_width = 9)
+
+
+
+
 
 # ------ meta-analysis (updated?) ------ #
 output_dir = as.character(glue("{path}/posthoc/"))
@@ -102,58 +158,58 @@ pooled_analysis_multinom(input_data, exposure = exposure, covariates = covariate
 # main effects additional analysis ----
 #-----------------------------------------------------------------------------#
 
-output_dir_dropbox = paste0("~/Dropbox/Presentations/", exposure, "/")
-
-tmp1 <- readRDS(paste0("/media/work/gwis/results/input/FIGI_", hrc_version, "_gxeset_", exposure, "_basic_covars_glm.rds")) %>% 
-  pull(vcfid)
-xx <- filter(input_data, vcfid %in% tmp1) %>% 
-  group_by(study_gxe)
-
-
-results_beta <- dplyr::do(xx, broom::tidy(glm(outcome ~ folate_dietqc2 + age_ref_imp + sex + energytot_imp, data = . , family = 'binomial'))) %>% 
-  dplyr::filter(grepl("folate_dietqc2", term)) %>% 
-  dplyr::arrange(study_gxe) %>% 
-  inner_join(unique(xx[,c('study_gxe', 'study_design')]), 'study_gxe')
-
-results_meta <- meta::metagen(estimate,
-                              std.error,
-                              data=results_beta,
-                              studlab=paste(study_gxe),
-                              comb.fixed = FALSE,
-                              comb.random = TRUE,
-                              method.tau = "SJ",
-                              hakn = TRUE,
-                              prediction=TRUE,
-                              sm="OR", 
-                              byvar=study_design)
-
-fo <- find.outliers(results_meta)
-fo
-meta::forest(results_meta,
-             layout = "JAMA",
-             text.predict = "95% CI",
-             col.predict = "black",
-             # leftcols = c("studlab", "Control", "Case", "N", "effect", "ci", "w.random"),
-             digits.addcols=0,
-             study.results=T,
-             prediction = F,
-             col.random = 'red')
-
-png(paste0(output_dir_dropbox, "meta_analysis_", "folate_dietqc2",  "_", "original_outliers_removed", ".png"), height = 17, width = 8.5, units = 'in', res = 150)                                                          
-forest(fo)
-dev.off()
-
-
-# leave on out (influence analysis)
-inf.analysis <- InfluenceAnalysis(x = results_meta,
-                                  random = TRUE)
-
-summary(inf.analysis)
-
-plot(inf.analysis, "influence")
-plot(inf.analysis, "baujat")
-plot(inf.analysis, "es")
-plot(inf.analysis, "i2")
+# output_dir_dropbox = paste0("~/Dropbox/Presentations/", exposure, "/")
+# 
+# tmp1 <- readRDS(paste0("/media/work/gwis/results/input/FIGI_", hrc_version, "_gxeset_", exposure, "_basic_covars_glm.rds")) %>% 
+#   pull(vcfid)
+# xx <- filter(input_data, vcfid %in% tmp1) %>% 
+#   group_by(study_gxe)
+# 
+# 
+# results_beta <- dplyr::do(xx, broom::tidy(glm(outcome ~ folate_dietqc2 + age_ref_imp + sex + energytot_imp, data = . , family = 'binomial'))) %>% 
+#   dplyr::filter(grepl("folate_dietqc2", term)) %>% 
+#   dplyr::arrange(study_gxe) %>% 
+#   inner_join(unique(xx[,c('study_gxe', 'study_design')]), 'study_gxe')
+# 
+# results_meta <- meta::metagen(estimate,
+#                               std.error,
+#                               data=results_beta,
+#                               studlab=paste(study_gxe),
+#                               comb.fixed = FALSE,
+#                               comb.random = TRUE,
+#                               method.tau = "SJ",
+#                               hakn = TRUE,
+#                               prediction=TRUE,
+#                               sm="OR", 
+#                               byvar=study_design)
+# 
+# fo <- find.outliers(results_meta)
+# fo
+# meta::forest(results_meta,
+#              layout = "JAMA",
+#              text.predict = "95% CI",
+#              col.predict = "black",
+#              # leftcols = c("studlab", "Control", "Case", "N", "effect", "ci", "w.random"),
+#              digits.addcols=0,
+#              study.results=T,
+#              prediction = F,
+#              col.random = 'red')
+# 
+# png(paste0(output_dir_dropbox, "meta_analysis_", "folate_dietqc2",  "_", "original_outliers_removed", ".png"), height = 17, width = 8.5, units = 'in', res = 150)                                                          
+# forest(fo)
+# dev.off()
+# 
+# 
+# # leave on out (influence analysis)
+# inf.analysis <- InfluenceAnalysis(x = results_meta,
+#                                   random = TRUE)
+# 
+# summary(inf.analysis)
+# 
+# plot(inf.analysis, "influence")
+# plot(inf.analysis, "baujat")
+# plot(inf.analysis, "es")
+# plot(inf.analysis, "i2")
 
 
 
@@ -190,6 +246,16 @@ plot(inf.analysis, "i2")
 # GxE additional analysis ---- 
 #-----------------------------------------------------------------------------#
 
+# ---- MAF ---- #
+snps <- c("13:47191972:G:A", "8:118185025:G:A")
+walk(snps, ~ create_aaf_study_plot(data = input_data, exposure = exposure, hrc_version = hrc_version, snp = .x, path = path))
+
+
+
+
+
+
+
 # output GxE models adjusted by different covariate sets
 covariates_sets <- list(covariates, 
                         c(covariates, 'bmi5'), 
@@ -209,11 +275,37 @@ reri_wrapper(data_epi = input_data, exposure = exposure, snp = "13:47191972:G:A"
 reri_wrapper(data_epi = input_data, exposure = exposure, snp = "8:118185025:G:A", covariates = covariates, path = glue("{path}/output"))
 
 
+# stratified odds ratio (newer) -------------------------------------------
+walk(snps, ~ fit_stratified_or(
+  data_epi = input_data,
+  exposure = exposure,
+  snp = .x,
+  hrc_version = hrc_version,
+  covariates = covariates,
+  dosage = T,
+  path = glue("{path}/output/")))
+
+
+snps <- c("8:118185025:G:A")
+walk(snps, ~ fit_stratified_or(
+  data_epi = input_data %>% filter(!study_gxe %in% c("PPS3", "PPS4")),
+  exposure = exposure,
+  snp = .x,
+  hrc_version = hrc_version,
+  covariates = covariates,
+  dosage = T, flip_allele = T,
+  path = glue("{path}/output/")))
+
+
+
+
+# stratified odds ratio (older) -------------------------------------------
+
 # stratified odds ratios
 snps <- c("13:47191972:G:A")
 
 walk(snps, ~ fit_stratified_or(
-  data_epi = input_data,
+  data_epi = input_data %>% filter(!study_gxe %in% c("PPS3", "PPS4")),
   exposure = 'diab',
   snp = .x,
   hrc_version = hrc_version,
@@ -230,207 +322,67 @@ walk(snps, ~ fit_stratified_or_old(
   path = glue("{path}/output/")))
 
 
-x <- readRDS("/media/work/gwis_test/diab/output/posthoc/stratified_oddsratio_diab_v2.3_chr13_47191972_G_A_age_ref_imp_pc1_pc2_pc3_sex_study_gxe.rds")
 
+# Explore removing PPS3/4 studies from manuscript -------------------------
+snps <- c("13:47191972:G:A", "8:118185025:G:A")
 
+## 13:47191972:G:A (see table 1 in Niki's manuscript)
+## original p-values match, go ahead and filter PPS3/4
+dos <- qread("/media/work/gwis_test/diab/output/posthoc/dosage_chr13_47191972.qs")
+out <- inner_join(input_data, dos, 'vcfid') %>% 
+  mutate(diab_num = as.numeric(diab)) %>% 
+  dplyr::filter(!study_gxe  %in% c("PPS3", "PPS4"))
 
+model_base <- glm(outcome ~ diab + chr13_47191972_G_A_dose + age_ref_imp + sex + pc1 + pc2 + pc3 + study_gxe, data = out, family = 'binomial')
+model_gxe <- glm(outcome ~ diab * chr13_47191972_G_A_dose + age_ref_imp + sex + pc1 + pc2 + pc3 + study_gxe, data = out, family = 'binomial')
+model_gwas <- glm(outcome ~ diab + age_ref_imp + sex + pc1 + pc2 + pc3 + study_gxe, data = out, family = 'binomial')
+model_base_eg <- lm(diab_num ~ age_ref_imp + sex + pc1 + pc2 + pc3 + study_gxe, data = out)
+model_eg <- lm(diab_num ~ chr13_47191972_G_A_dose + age_ref_imp + sex + pc1 + pc2 + pc3 + study_gxe, data = out)
 
-# ---- calculate 2DF LR TEST ---- #
-# ---- chr13_47191972_G_A_dose ---- #
-
-# need allele frequency by study_gxe to confirm finding (and sensitivity analysis)
-tmp <- qread("/media/work/gwis_test/diab/output/posthoc/dosage_chr13_47191972.qs") %>% 
-  inner_join(input_data, 'vcfid')
-
-
-# calculate 2DF original to confirm
-covariates_original = covariates
-model_base <- glm(glue("outcome ~ diab + {glue_collapse(covariates_original, sep = '+')}"), data = tmp, family = 'binomial')
-model_gxe <- glm(glue("outcome ~ diab * chr13_47191972_G_A_dose + {glue_collapse(covariates_original, sep = '+')}"), data = tmp, family = 'binomial')
-lrtest(model_base, model_gxe)
-
-covariates_bmi = c(covariates_original, 'bmi')
-model_base <- glm(glue("outcome ~ diab + {glue_collapse(covariates_bmi, sep = '+')}"), data = tmp, family = 'binomial')
-model_gxe <- glm(glue("outcome ~ diab * chr13_47191972_G_A_dose + {glue_collapse(covariates_bmi, sep = '+')}"), data = tmp, family = 'binomial')
-lrtest(model_base, model_gxe)
-
-tmp %>% 
-  summarise(total = n(), 
-            study_aaf = sum(chr13_47191972_G_A_dose) / (total*2))
-
-aaf <- function(x) {
-  sum(x) / nrow(x)
-}
-
-out <- tmp %>% 
-  group_by(study_gxe) %>% 
-  summarise(total = n(), 
-            study_aaf = sum(chr13_47191972_G_A_dose) / (total*2)) %>% 
-  arrange(study_aaf) %>% 
-  mutate(study_gxe = fct_reorder(study_gxe, study_aaf))
-
-ggplot(aes(x = study_gxe, y = study_aaf), data = out) + 
-  geom_point() + 
-  theme_bw() + 
-  theme(axis.text.x = element_text(angle = 270)) + 
-  xlab("Study") + 
-  ylab("Alternate Allele Frequency")
-
-
-
-
-
-
-
-
-
-
-# ---- calculate 3DF LR TEST ---- #
-# ---- chr13_47191972_G_A_dose ---- #
-
-# need allele frequency by study_gxe to confirm finding (and sensitivity analysis)
-tmp <- qread("/media/work/gwis_test/diab/output/posthoc/dosage_chr8_118185025.qs") %>% 
-  inner_join(input_data, 'vcfid')
-
-tmp %>% 
-  summarise(total = n(), 
-            study_aaf = sum(chr8_118185025_G_A_dose) / (total*2))
-
-out <- tmp %>% 
-  group_by(study_gxe) %>% 
-  summarise(total = n(), 
-            study_aaf = sum(chr8_118185025_G_A_dose) / (total*2)) %>% 
-  arrange(study_aaf) %>% 
-  mutate(study_gxe = fct_reorder(study_gxe, study_aaf))
-
-ggplot(aes(x = study_gxe, y = study_aaf), data = out) + 
-  geom_point() + 
-  theme_bw() + 
-  theme(axis.text.x = element_text(angle = 270)) + 
-  xlab("Study") + 
-  ylab("Alternate Allele Frequency")
-
-
-# calculate 3DF original to confirm
-
-covariates_original = covariates
-
-# 2df
-# model_base <- glm(glue("outcome ~ diab + {glue_collapse(covariates_original, sep = '+')}"), data = tmp, family = 'binomial')
-# model_g <- glm(glue("outcome ~ diab + chr8_118185025_G_A_dose + {glue_collapse(covariates_original, sep = '+')}"), data = tmp, family = 'binomial')
-# lrtest(model_base, model_g)
-
-# model_base_gxe <- glm(glue("outcome ~ diab + chr8_118185025_G_A_dose + {glue_collapse(covariates_original, sep = '+')}"), data = tmp, family = 'binomial')
-# model_gxe <- glm(glue("outcome ~ diab * chr8_118185025_G_A_dose + {glue_collapse(covariates_original, sep = '+')}"), data = tmp, family = 'binomial')
-# lrtest(model_base_gxe, model_gxe)
-
-model_base_gxe <- glm(glue("outcome ~ diab + {glue_collapse(covariates_original, sep = '+')}"), data = tmp, family = 'binomial')
-model_gxe <- glm(glue("outcome ~ diab * chr8_118185025_G_A_dose + {glue_collapse(covariates_original, sep = '+')}"), data = tmp, family = 'binomial')
-a <- lrtest(model_base_gxe, model_gxe)
-
-# E|G
-model_base_eg <- lm(glue("chr8_118185025_G_A_dose ~ {glue_collapse(covariates_original, sep = '+')}"), data = tmp)
-model_eg <- lm(glue("chr8_118185025_G_A_dose ~ diab + {glue_collapse(covariates_original, sep = '+')}"), data = tmp)
-b <- lrtest(model_base_eg, model_eg)
-
-pchisq(a$Chisq + b$Chisq, df = 3, lower.tail = F)
-
-
-
-
-
-## ------ what about when removing PPS3/4 studies ----- #
-tmp2 <- tmp %>% 
-  filter(!study_gxe %in% c("PPS3", "PPS4"))
-model_base_gxe <- glm(glue("outcome ~ diab + {glue_collapse(covariates_original, sep = '+')}"), data = tmp2, family = 'binomial')
-model_gxe <- glm(glue("outcome ~ diab * chr8_118185025_G_A_dose + {glue_collapse(covariates_original, sep = '+')}"), data = tmp2, family = 'binomial')
-a <- lrtest(model_base_gxe, model_gxe)
-model_base_eg <- lm(glue("chr8_118185025_G_A_dose ~ {glue_collapse(covariates_original, sep = '+')}"), data = tmp2)
-model_eg <- lm(glue("chr8_118185025_G_A_dose ~ diab + {glue_collapse(covariates_original, sep = '+')}"), data = tmp2)
-b <- lrtest(model_base_eg, model_eg)
-
-pchisq(a$Chisq + b$Chisq, df = 3, lower.tail = F)
-
-
-
-
-
-covariates_bmi = c(covariates_original, 'bmi')
-model_base <- glm(glue("outcome ~ diab + {glue_collapse(covariates_bmi, sep = '+')}"), data = tmp, family = 'binomial')
-model_g <- glm(glue("outcome ~ diab + chr8_118185025_G_A_dose + {glue_collapse(covariates_bmi, sep = '+')}"), data = tmp, family = 'binomial')
-lrtest(model_base, model_g)
-
-model_base_gxe <- glm(glue("outcome ~ diab + chr8_118185025_G_A_dose + {glue_collapse(covariates_bmi, sep = '+')}"), data = tmp, family = 'binomial')
-model_gxe <- glm(glue("outcome ~ diab * chr8_118185025_G_A_dose + {glue_collapse(covariates_bmi, sep = '+')}"), data = tmp, family = 'binomial')
-lrtest(model_base_gxe, model_gxe)
-
-model_base_eg <- lm(glue("chr8_118185025_G_A_dose ~ {glue_collapse(covariates_bmi, sep = '+')}"), data = tmp)
-model_eg <- lm(glue("chr8_118185025_G_A_dose ~ diab + {glue_collapse(covariates_bmi, sep = '+')}"), data = tmp)
+lrtest(model_base, model_gwas)
 lrtest(model_base_eg, model_eg)
+lrtest(model_base, model_gxe)
+lrtest(model_gwas, model_gxe)
 
-pchisq(0.4015+9.696+39.23, df = 3, lower.tail = F)
-
-
-
-# AAF for suggestive hits
-aaf_wrapper <- function(chr, snp) {
-  tmp <- qread(glue("/media/work/gwis_test/diab/output/posthoc/dosage_chr{chr}_{snp}.qs")) %>% 
-    inner_join(input_data, 'vcfid')
-  
-  tmp %>% 
-    summarise(total = n(), 
-              study_aaf = sum(.[, 1]) / (total*2))
-}
-
-dosage_chr13_47191972.qs
-chr8_118185025_G_A_dose
-aaf_wrapper(13, 47191972)
-aaf_wrapper(8, 118185025)
-
-aaf_wrapper(2, 3731978)
-aaf_wrapper(3, 193408847)
-aaf_wrapper(4, 31909491)
-aaf_wrapper(5, 60920832)
-aaf_wrapper(13, 47170118)
-
-
-
-
-#  make sure that removing PPS studies doesn't really influence findigs .
+model_gxe <- glm(outcome ~ diab * chr13_47191972_G_A_dose + age_ref_imp + sex + pc1 + pc2 + pc3 + study_gxe + bmi, data = out, family = 'binomial')
+model_gwas <- glm(outcome ~ diab + age_ref_imp + sex + pc1 + pc2 + pc3 + study_gxe + bmi, data = out, family = 'binomial')
+lrtest(model_gwas, model_gxe)
 
 
 
 
 
 
-# ---- calculate 3DF LR TEST ---- #
-# ---- chr13_47191972_G_A_dose ---- #
 
-# need allele frequency by study_gxe to confirm finding (and sensitivity analysis)
-tmp <- qread("/media/work/gwis_test/diab/output/posthoc/dosage_chr13_47191972.qs") %>% 
-  inner_join(input_data, 'vcfid')
+## 8:118185025:G:A (see table 1 in Niki's manuscript)
+## original p-values match, go ahead and filter PPS3/4
+dos <- qread("/media/work/gwis_test/diab/output/posthoc/dosage_chr8_118185025.qs")
+out <- inner_join(input_data, dos, 'vcfid') %>% 
+  mutate(diab_num = as.numeric(diab)) %>% 
+  dplyr::filter(!study_gxe  %in% c("PPS3", "PPS4"))
 
-# calculate 2DF original to confirm
-covariates_original = covariates
-model_base_gxe <- glm(glue("outcome ~ diab + {glue_collapse(covariates_original, sep = '+')}"), data = tmp, family = 'binomial')
-model_gxe <- glm(glue("outcome ~ diab * chr13_47191972_G_A_dose + {glue_collapse(covariates_original, sep = '+')}"), data = tmp, family = 'binomial')
-a <- lrtest(model_base_gxe, model_gxe)
+model_base <- glm(outcome ~ diab + chr8_118185025_G_A_dose + age_ref_imp + sex + pc1 + pc2 + pc3 + study_gxe, data = out, family = 'binomial')
+model_gxe <- glm(outcome ~ diab * chr8_118185025_G_A_dose + age_ref_imp + sex + pc1 + pc2 + pc3 + study_gxe, data = out, family = 'binomial')
+model_gwas <- glm(outcome ~ diab + age_ref_imp + sex + pc1 + pc2 + pc3 + study_gxe, data = out, family = 'binomial')
+model_base_eg <- lm(diab_num ~ age_ref_imp + sex + pc1 + pc2 + pc3 + study_gxe, data = out)
+model_eg <- lm(diab_num ~ chr8_118185025_G_A_dose + age_ref_imp + sex + pc1 + pc2 + pc3 + study_gxe, data = out)
 
-## ------ what about when removing PPS3/4 studies ----- #
-tmp2 <- tmp %>% 
-  filter(!study_gxe %in% c("PPS3", "PPS4"))
-model_base_gxe <- glm(glue("outcome ~ diab + {glue_collapse(covariates_original, sep = '+')}"), data = tmp2, family = 'binomial')
-model_gxe <- glm(glue("outcome ~ diab * chr13_47191972_G_A_dose + {glue_collapse(covariates_original, sep = '+')}"), data = tmp2, family = 'binomial')
-a <- lrtest(model_base_gxe, model_gxe)
+lrtest(model_base, model_gwas)
+lrtest(model_base_eg, model_eg)
+lrtest(model_base, model_gxe)
 
+# 3df ..
+a<-lrtest(model_base_eg, model_eg)
+b<-lrtest(model_gwas, model_gxe)
 pchisq(a$Chisq + b$Chisq, df = 3, lower.tail = F)
 
-
-
-
-
-
-
+model_gxe <- glm(outcome ~ diab * chr8_118185025_G_A_dose + age_ref_imp + sex + pc1 + pc2 + pc3 + study_gxe + bmi, data = out, family = 'binomial')
+model_gwas <- glm(outcome ~ diab + age_ref_imp + sex + pc1 + pc2 + pc3 + study_gxe + bmi, data = out, family = 'binomial')
+model_base_eg <- lm(diab_num ~ age_ref_imp + sex + pc1 + pc2 + pc3 + study_gxe + bmi, data = out)
+model_eg <- lm(diab_num ~ chr8_118185025_G_A_dose + age_ref_imp + sex + pc1 + pc2 + pc3 + study_gxe + bmi, data = out)
+a<-lrtest(model_base_eg, model_eg)
+b<-lrtest(model_gwas, model_gxe)
+pchisq(a$Chisq + b$Chisq, df = 3, lower.tail = F)
 
 
 

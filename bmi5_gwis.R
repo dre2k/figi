@@ -3,7 +3,6 @@
 #=============================================================================#
 
 
-
 # setup -------------------------------------------------------------------
 library(tidyverse)
 library(data.table)
@@ -52,9 +51,7 @@ input_data <- readRDS(glue("/media/work/gwis_test/data/FIGI_{hrc_version}_gxeset
          bmic3f = fct_relevel(factor(bmic3), "Normal", "Overweight", "Obese"))
 
 
-
 # mean / SD by study_gxe (bmi)
-
 unique(input_data$study_gxe)
 
 out <- input_data %>% 
@@ -190,7 +187,7 @@ results_3df <- c("1:177889480:A:G", "12:50204089:G:A", "16:28649651:C:A", "16:53
 # snps <- c("20:6584196:C:G", "15:33122966:C:T", "15:32987718:A:G", "5:134486618:G:A", "10:114274269:T:C", "12:50177324:A:T")
 
 snps <- c(results_gxe, results_twostep)
-
+snps <- c("12:50204089:G:A")
 
 
 # ---- MAF ---- #
@@ -236,8 +233,6 @@ walk(snps, ~ fit_gxe_covars(data_epi = input_data, exposure = exposure, snp = .x
 
 
 
-
-
 # stratified by tumor and sex 
 
 walk(snps, ~ fit_gxe_stratified(data_epi = input_data, exposure = exposure, snp = .x, covariates = covariates, method = "chiSqGxE", strata = 'sex', path = glue("{path}/output")))
@@ -247,17 +242,9 @@ walk(snps, ~ fit_gxe_stratified(data_epi = input_data, exposure = exposure, snp 
 
 
 
-
-
-
-
-
-
-
 # output RERI plots
 snps <- c("15:33122966:C:T", "15:33120215:T:C")
 walk(snps, ~ reri_wrapper(data_epi = input_data, exposure = 'bmic3f', snp = .x, covariates = covariates, path = glue("{path}/output")))
-
 
 
 
@@ -287,6 +274,23 @@ snp_info_out <- snp_info %>%
   dplyr::select(SNP, rsid, REF, ALT, ALT_AF , MAF, Imputation_Rsq )
 
 saveRDS(snp_info_out, glue("{path}/output/posthoc/gwis_snp_info.rds"))
+
+
+
+
+
+
+
+
+
+# "fine mapping" ------------------------------------------------------------
+
+
+# basically - g
+
+
+
+
 
 
 

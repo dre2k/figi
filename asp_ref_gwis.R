@@ -2,9 +2,7 @@
 # FIGI GxE asp_ref results
 #=============================================================================#
 
-
 # Setup -------------------------------------------------------------------
-
 library(tidyverse)
 library(data.table)
 library(qqman)
@@ -56,12 +54,12 @@ covariates_meta <- sort(covariates[which(!covariates %in% c(paste0(rep('pc', 20)
 # covariates_meta <- sort(covariates[which(!covariates %in% c("study_gxe"))])
 
 
-create_forest_plot(data_epi = input_data, exposure = exposure, covariates = covariates_meta, hrc_version = hrc_version, path = glue("{path}/output/posthoc/"), strata = "all", forest_height = 15)
-create_forest_plot(data_epi = input_data, exposure = exposure, covariates = covariates_meta, hrc_version = hrc_version, path = glue("{path}/output/posthoc/"), strata = "proximal", forest_height = 13)
-create_forest_plot(data_epi = input_data, exposure = exposure, covariates = covariates_meta, hrc_version = hrc_version, path = glue("{path}/output/posthoc/"), strata = "distal", forest_height = 13)
-create_forest_plot(data_epi = input_data, exposure = exposure, covariates = covariates_meta, hrc_version = hrc_version, path = glue("{path}/output/posthoc/"), strata = "rectal", forest_height = 13)
-create_forest_plot(data_epi = input_data, exposure = exposure, covariates = covariates_meta, hrc_version = hrc_version, path = glue("{path}/output/posthoc/"), strata = "female", forest_height = 13)
-create_forest_plot(data_epi = input_data, exposure = exposure, covariates = covariates_meta, hrc_version = hrc_version, path = glue("{path}/output/posthoc/"), strata = "male", forest_height = 13)
+create_forest_plot(data_epi = input_data, exposure = exposure, covariates = covariates_meta, hrc_version = hrc_version, path = glue("{path}/output/posthoc/"), strata = "all", forest_height = 15, forest_width = 9)
+create_forest_plot(data_epi = input_data, exposure = exposure, covariates = covariates_meta, hrc_version = hrc_version, path = glue("{path}/output/posthoc/"), strata = "proximal", forest_height = 13, forest_width = 9)
+create_forest_plot(data_epi = input_data, exposure = exposure, covariates = covariates_meta, hrc_version = hrc_version, path = glue("{path}/output/posthoc/"), strata = "distal", forest_height = 13, forest_width = 9)
+create_forest_plot(data_epi = input_data, exposure = exposure, covariates = covariates_meta, hrc_version = hrc_version, path = glue("{path}/output/posthoc/"), strata = "rectal", forest_height = 13, forest_width = 9)
+create_forest_plot(data_epi = input_data, exposure = exposure, covariates = covariates_meta, hrc_version = hrc_version, path = glue("{path}/output/posthoc/"), strata = "female", forest_height = 13, forest_width = 9)
+create_forest_plot(data_epi = input_data, exposure = exposure, covariates = covariates_meta, hrc_version = hrc_version, path = glue("{path}/output/posthoc/"), strata = "male", forest_height = 13, forest_width = 9)
 
 
 
@@ -163,6 +161,8 @@ pooled_analysis_multinom(input_data, exposure = exposure, hrc_version = hrc_vers
 # plot(inf.analysis, "baujat")
 # plot(inf.analysis, "es")
 # plot(inf.analysis, "i2")
+
+
 
 #-----------------------------------------------------------------------------#
 # main effects (SNP) ----
@@ -316,8 +316,50 @@ walk(snps, ~ create_aaf_study_plot(data = input_data, exposure = exposure, hrc_v
 
 # would results change if you remove UKB (note wald statistic)
 # yes, as expected
-# model1 <- glm(glue("outcome ~ {exposure}*chr6_32560631_C_T_dose + {glue_collapse(covariates, sep = '+')}"), data = chr6_325, family = 'binomial')
-# summary(model1)
+dose <- qread("/media/work/gwis_test/asp_ref/output/posthoc/dosage_chr6_32560631.qs")
+out <- inner_join(dose, input_data, 'vcfid')
+
+model1 <- glm(glue("outcome ~ {exposure}*chr6_32560631_C_T_dose + {glue_collapse(covariates, sep = '+')}"), data = out, family = 'binomial')
+summary(model1)
+
+model1 <- glm(glue("outcome ~ {exposure}*chr6_32560631_C_T_dose + {glue_collapse(covariates, sep = '+')}"), data = out %>% filter(study_gxe != "UKB_1"), family = 'binomial')
+summary(model1)
+
+
+model1 <- glm(glue("outcome ~ {exposure}+chr6_32560631_C_T_dose + {glue_collapse(covariates, sep = '+')}"), data = out, family = 'binomial')
+summary(model1)
+
+model1 <- glm(glue("outcome ~ {exposure}+chr6_32560631_C_T_dose + {glue_collapse(covariates, sep = '+')}"), data = out %>% filter(study_gxe != "UKB_1"), family = 'binomial')
+summary(model1)
+
+ukb <- out %>% 
+  filter(study_gxe == "UKB_1") %>% 
+  mutate(chr6_32560631_C_T_dose = 2-chr6_32560631_C_T_dose)
+  
+out2 <- filter(out, study_gxe !="UKB_1") %>% 
+  bind_rows(ukb)
+
+
+model1 <- glm(glue("outcome ~ {exposure}*chr6_32560631_C_T_dose + {glue_collapse(covariates, sep = '+')}"), data = out2, family = 'binomial')
+summary(model1)
+
+
+model1 <- glm(glue("outcome ~ {exposure}+chr6_32560631_C_T_dose + {glue_collapse(covariates, sep = '+')}"), data = out2, family = 'binomial')
+summary(model1)
+
+
+covariates
+covariates2 <- c("age_ref_imp", "pc1", "pc2", "pc3", "sex")
+model1 <- glm(glue("outcome ~ {exposure}*chr6_32560631_C_T_dose + {glue_collapse(covariates2, sep = '+')}"), data = out %>% filter(study_gxe == "UKB_1"), family = 'binomial')
+summary(model1)
+
+
+
+# is there a way UKB AF is RIGHT (is that population that different - unlikely)
+# - 
+
+
+
 # 
 # chr6_325b <- dplyr::filter(chr6_325, !grepl("UKB", study_gxe))
 # model2 <- glm(glue("outcome ~ {exposure}*chr6_32560631_C_T_dose + {glue_collapse(covariates, sep = '+')}"), data = chr6_325b, family = 'binomial')
@@ -335,10 +377,10 @@ summary(model2)
 
 
 
-
+# Replicate Nan et al findings --------------------------------------------
 
 # replicate Nan et al (GxE or case-only)
-snps <- c("12:17444733:A:T", "12:17444733:A:T", "12:17488764:A:T")
+snps <- c("12:17444733:A:T", "12:17488764:A:T", "15:82229999:A:C")
 
 ## MAF plots..
 walk(snps, ~ create_aaf_study_plot(data = input_data, exposure = exposure, hrc_version = hrc_version, snp = .x, path = path))
@@ -359,6 +401,51 @@ dose <- qread("/media/work/gwis_test/asp_ref/output/posthoc/dosage_chr12_1744473
 tmp <- inner_join(input_data, dose, 'vcfid')
 
 
+
+## fit models
+dose <- 
+
+
+
+
+
+# additional covariate for the chr6 finding -------------------------------
+
+
+dose <- qread("/media/work/gwis_test/asp_ref/output/posthoc/dosage_chr6_12577203.qs")
+out <- inner_join(input_data, dose, 'vcfid')
+
+mod_base <- glm(outcome ~ chr6_12577203_T_C_dose + asp_ref + age_ref_imp + sex + pc1 + pc2 + pc3 + study_gxe, data = out, family = 'binomial')
+mod_alt <- glm(outcome ~ chr6_12577203_T_C_dose * asp_ref + age_ref_imp + sex + pc1 + pc2 + pc3 + study_gxe, data = out, family = 'binomial') # GxE OR = 2.776e-01
+
+lrtest(mod_base, mod_alt)
+
+# BMI, tobacco smoking, alcohol use, and red meat
+mod_base <- glm(outcome ~ chr6_12577203_T_C_dose + asp_ref + age_ref_imp + sex + pc1 + pc2 + pc3 + study_gxe + bmi + smk_ever + alcoholc + redmeatqc2, data = out, family = 'binomial')
+mod_alt <- glm(outcome ~ chr6_12577203_T_C_dose * asp_ref + age_ref_imp + sex + pc1 + pc2 + pc3 + study_gxe + bmi + smk_ever + alcoholc + redmeatqc2, data = out, family = 'binomial') # GxE OR = 2.557e-01
+
+lrtest(mod_base, mod_alt)
+
+
+
+
+2.557e-01/2.776e-01
+
+exp(2.557e-01)/exp(2.776e-01)
+
+
+
+
+# -------------------- chr5 finding GxExSex -------------------- #
+
+dose <- qread("/media/work/gwis_test/asp_ref/output/posthoc/dosage_chr5_40252294.qs")
+out <- inner_join(input_data, dose, 'vcfid')
+
+mod_base <- glm(outcome ~ chr5_40252294_C_T_dose * asp_ref + age_ref_imp + sex + pc1 + pc2 + pc3 + study_gxe, data = out, family = 'binomial')
+summary(mod_base)
+
+mod_base <- glm(outcome ~ chr5_40252294_C_T_dose * asp_ref * sex + age_ref_imp + pc1 + pc2 + pc3 + study_gxe, data = out, family = 'binomial')
+summary(mod_base)
 
 # ================================================================== #
 # ======= rmarkdown reports ---- 

@@ -49,22 +49,70 @@ hrc_version = params$hrc_version
 path = glue("/media/work/gwis_test/{params$exposure}")
 ```
 
-# Description
-
-## Follow-up analyses of GWIS findings  
-- Table of significant and suggestive (1df GxE only) ```r params$exposure``` GWIS findings  
-- GxE models stratified by study_design and tumor site (proximal, distal, rectal)  
-- GxE models with additional covariate sets (might do this for aspirin ..)  
-- Odds ratios stratified by exposure and genotype  
-- Plots of model predicted outcome by 1 unit increase of exposure/allelic dosage  
-- Locuszoom plot   
-- Functional annotation plot   
 
 ---
 
 <!-- read script containing useful chunks -->
 ```{r child = 'posthoc/chunks.Rmd'}
 ```
+
+# Suggestive GxE (P < 5e-6)
+
+```{r, results = 'asis'}
+statistic = 'chiSqGxE'
+
+# list of SNPs
+snps <- c("17:71354811:G:A", "9:120653523:T:G", "4:31160820:G:A", "9:120290042:A:G", "8:122247679:C:G", "1:21495668:G:T", "3:29246192:C:T", "1:21209766:T:A", "15:100002029:C:T", "8:112374447:C:T", "18:21029284:C:T", "20:51479759:G:T", "2:42324419:T:A", "10:29013189:C:T", "13:62734417:A:G", "1:41466550:T:A", "3:27633795:G:A", "2:73204203:G:A", "1:239473113:T:C")
+snps <- paste0('chr', gsub(":", "_", snps))
+
+
+# see chunks.Rmd for names
+run_functions <- function(snp) {
+  <<title>>
+  <<allele_freq_plots>>
+  <<stratified_or_cont>>
+  <<interaction_plots>>
+  <<locuszoom_plots>>
+  # <<functional_plots>>
+}
+
+# run
+walk(snps, ~ run_functions(.x))
+
+```
+
+
+# 2DF findings
+```{r, results = 'asis'}
+statistic = 'chiSqGxE'
+
+# list of SNPs
+snps <- c("8:120042899:G:T", "8:122247679:C:G", "10:86469912:G:A")
+snps <- paste0('chr', gsub(":", "_", snps))
+
+# see chunks.Rmd for names
+run_functions <- function(snp) {
+  <<title>>
+  <<allele_freq_plots>>
+  <<gxe_stratified_sex>>
+  <<gxe_stratified_study>>
+  <<gxe_stratified_tumorsite>>
+  <<stratified_or_cont>>
+  <<interaction_plots>>
+  <<locuszoom_plots>>
+  <<functional_plots>>
+}
+
+# run
+walk(snps, ~ run_functions(.x))
+```
+
+
+
+
+# 3DF findings
+(same locus as 2DF) -- see above
+
 
 # Two-step findings
 ```{r, results = 'asis'}
@@ -78,15 +126,11 @@ snps <- paste0('chr', gsub(":", "_", snps))
 run_functions <- function(snp) {
   <<title>>
   <<allele_freq_plots>>
-  <<gxe_stratified_sex_v2>>
-  <<gxe_stratified_study_v2>>
-  <<gxe_stratified_tumorsite_v2>>
-  <<gxe_stratified_bmic3_v2>>
-  <<gxe_stratified_sex_v2_crc>>
-  <<gxe_stratified_study_v2_crc>>
-  <<gxe_stratified_tumorsite_v2_crc>>
-  <<gxe_stratified_bmic3_v2_crc>>
-  <<stratified_or_cat>>
+  <<gxe_stratified_sex>>
+  <<gxe_stratified_study>>
+  <<gxe_stratified_tumorsite>>
+  <<stratified_or_cont>>
+  <<interaction_plots>>
   <<locuszoom_plots>>
   <<functional_plots>>
 }
@@ -100,28 +144,21 @@ walk(snps, ~ run_functions(.x))
 
 
 # E|G finding (combined case-control sample)
+(SNP associated with meat intake)
 
-<!-- Note: Summarizing the E|G association - stratified ables below report E|G model parameters, not GxE -->
 ```{r, results = 'asis'}
+# Note: Summarizing the E|G association - stratified ables below report E|G model parameters, not GxE
+
 statistic = 'chiSqGE'
 
 # list of SNPs
-snps <- c("13:61572969:G:A")
+snps <- c("19:49232226:G:A")
 snps <- paste0('chr', gsub(":", "_", snps))
 
 # see chunks.Rmd for names
 run_functions <- function(snp) {
   <<title>>
   <<allele_freq_plots>>
-  <<gxe_stratified_sex_v2>>
-  <<gxe_stratified_study_v2>>
-  <<gxe_stratified_tumorsite_v2>>
-  <<gxe_stratified_bmic3_v2>>
-  <<gxe_stratified_sex_v2_crc>>
-  <<gxe_stratified_study_v2_crc>>
-  <<gxe_stratified_tumorsite_v2_crc>>
-  <<gxe_stratified_bmic3_v2_crc>>
-  <<stratified_or_cat>>
   <<locuszoom_plots>>
   <<functional_plots>>
 }
@@ -131,19 +168,3 @@ walk(snps, ~ run_functions(.x))
 
 ```
 
-
-
-
-<!-- # G|E association in combined case/control sample -->
-<!-- ```{r, results = 'asis'} -->
-<!-- assign("method", "chiSqGE", child_env) -->
-<!-- snps_out <- paste0('chr', gsub(":", "_", c("13:61572969:G:A"))) -->
-
-<!-- res <- lapply(snps_out, function(snp) { -->
-<!--   assign("snp", snp, child_env) -->
-<!--   knitr::knit_child(glue('posthoc/posthoc_child_active_met_875_ge.Rmd'), envir = child_env, quiet = TRUE) -->
-<!--   }) -->
-
-<!-- cat(unlist(res), sep = '\n') -->
-
-<!-- ``` -->
